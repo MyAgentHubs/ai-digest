@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们如何构建多 Agent 研究系统 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>我们如何构建多 Agent 研究系统</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank">https://www.anthropic.com/engineering/multi-agent-research-system</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2025 年 6 月 13 日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-10-29</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#agent_1">为什么研究需要多 Agent 系统</a></li>
+<li><a href="#agent_2">我们的多 Agent 架构</a></li>
+  <li><a href="#1-orchestrator">1. Orchestrator（编排器）</a></li>
+  <li><a href="#2-research-agent-agent">2. Research Agent（研究 Agent）</a></li>
+  <li><a href="#3-synthesis-agent-agent">3. Synthesis Agent（综合 Agent）</a></li>
+<li><a href="#_1">我们学到的核心原则</a></li>
+  <li><a href="#1">原则 1：明确的职责分离</a></li>
+  <li><a href="#2">原则 2：结构化通信</a></li>
+  <li><a href="#3">原则 3：显式工具约束</a></li>
+  <li><a href="#4">原则 4：渐进式复杂度</a></li>
+  <li><a href="#5">原则 5：主动错误处理</a></li>
+  <li><a href="#6">原则 6：可观测性至关重要</a></li>
+  <li><a href="#7">原则 7：人机协作而非自动化</a></li>
+<li><a href="#_2">实际实现细节</a></li>
+  <li><a href="#orchestrator">Orchestrator 提示结构</a></li>
+  <li><a href="#research-agent">Research Agent 提示结构</a></li>
+  <li><a href="#_3">工具设计最佳实践</a></li>
+<li><a href="#_4">性能优化</a></li>
+  <li><a href="#1_1">1. 并行化</a></li>
+  <li><a href="#2_1">2. 结果缓存</a></li>
+  <li><a href="#3_1">3. 智能批处理</a></li>
+<li><a href="#_5">评估和迭代</a></li>
+  <li><a href="#_6">我们如何衡量成功</a></li>
+  <li><a href="#_7">持续改进</a></li>
+<li><a href="#_8">生产经验教训</a></li>
+  <li><a href="#1_2">1. 提示漂移是真实存在的</a></li>
+  <li><a href="#2_2">2. 工具可靠性至关重要</a></li>
+  <li><a href="#3_2">3. 上下文管理很棘手</a></li>
+  <li><a href="#4_1">4. 用户期望很重要</a></li>
+<li><a href="#_9">未来方向</a></li>
+  <li><a href="#1-agent">1. 自适应 Agent 选择</a></li>
+  <li><a href="#2-orchestrator">2. 学习型 Orchestrator</a></li>
+  <li><a href="#3_3">3. 人类反馈循环</a></li>
+  <li><a href="#4_2">4. 跨研究记忆</a></li>
+<li><a href="#_10">开始构建</a></li>
+  <li><a href="#_11">从简单开始</a></li>
+  <li><a href="#_12">添加编排</a></li>
+  <li><a href="#_13">添加专门化</a></li>
+<li><a href="#_14">关键要点</a></li>
+<li><a href="#_15">附录</a></li>
+  <li><a href="#_16">完整示例代码</a></li>
+  <li><a href="#_17">推荐资源</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="agent">我们如何构建多 Agent 研究系统</h1>
+<p><strong>原文链接</strong>: https://www.anthropic.com/engineering/multi-agent-research-system
+<strong>发布日期</strong>: 2025 年 6 月 13 日</p>
+<p>Claude 现在具备了研究能力（Research capabilities），可以在网络、Google Workspace 以及任何集成服务中进行搜索，以完成复杂任务。</p>
+<p>这个多 Agent 系统从原型到生产的旅程，让我们学到了关于系统架构、工具设计和提示工程的关键经验。多 Agent 系统由多个专门的 Agent 组成，它们协同工作以完成复杂任务。</p>
+<p>本文分解了对我们有效的原则——我们希望你在构建自己的多 Agent 系统时能发现这些原则很有用。</p>
+<h2 id="agent_1">为什么研究需要多 Agent 系统</h2>
+<p>研究工作涉及开放性问题，很难提前预测所需的步骤。你无法为探索复杂主题硬编码固定路径，因为这个过程本质上是动态的。</p>
+<p>这种不可预测性使得 AI Agent 特别适合研究任务。研究需要灵活性，能够在调查展开时转向或探索相关联系。模型必须能够：</p>
+<ul>
+<li><strong>动态规划</strong>：根据新发现调整策略</li>
+<li><strong>深度探索</strong>：追踪有希望的线索</li>
+<li><strong>综合信息</strong>：从多个来源整合见解</li>
+<li><strong>迭代改进</strong>：基于中间结果完善方法</li>
+</ul>
+<p>单个 Agent 可以处理简单任务，但复杂研究需要协调。这就是多 Agent 系统的用武之地。</p>
+<h2 id="agent_2">我们的多 Agent 架构</h2>
+<p>我们的研究系统采用分层架构，具有明确的职责分离：</p>
+<h3 id="1-orchestrator">1. Orchestrator（编排器）</h3>
+<p><strong>职责</strong>：高层规划和任务分配</p>
+<p>Orchestrator 是系统的大脑。它：</p>
+<ul>
+<li>分解研究问题为子任务</li>
+<li>决定哪些 Agent 应该处理每个任务</li>
+<li>监控进度并调整计划</li>
+<li>综合最终结果</li>
+</ul>
+<p><strong>关键设计决策</strong>：</p>
+<ul>
+<li>使用最强大的模型（Claude 3.7 Sonnet）以获得最佳推理能力</li>
+<li>保持 Orchestrator 的提示简洁且专注于规划</li>
+<li>避免让 Orchestrator 直接执行任务——它应该委派</li>
+</ul>
+<h3 id="2-research-agent-agent">2. Research Agent（研究 Agent）</h3>
+<p><strong>职责</strong>：执行具体的研究任务</p>
+<p>Research Agent 是系统的工作马。每个 Agent：</p>
+<ul>
+<li>接收来自 Orchestrator 的明确定义的任务</li>
+<li>使用专门的工具（搜索、文档检索等）</li>
+<li>收集和分析信息</li>
+<li>向 Orchestrator 报告发现</li>
+</ul>
+<p><strong>关键设计决策</strong>：</p>
+<ul>
+<li>每个 Research Agent 专注于单一任务</li>
+<li>提供清晰的工具和期望</li>
+<li>使用结构化输出格式以便于解析</li>
+</ul>
+<h3 id="3-synthesis-agent-agent">3. Synthesis Agent（综合 Agent）</h3>
+<p><strong>职责</strong>：整合和格式化结果</p>
+<p>Synthesis Agent 将所有内容汇集在一起。它：</p>
+<ul>
+<li>从多个 Research Agent 收集结果</li>
+<li>识别模式和关键见解</li>
+<li>创建连贯的最终报告</li>
+<li>应用格式和风格指南</li>
+</ul>
+<p><strong>关键设计决策</strong>：</p>
+<ul>
+<li>在综合前等待所有研究完成</li>
+<li>使用模板确保一致的输出</li>
+<li>优先考虑清晰度和可操作性</li>
+</ul>
+<h2 id="_1">我们学到的核心原则</h2>
+<h3 id="1">原则 1：明确的职责分离</h3>
+<p><strong>问题</strong>：早期版本中，Agent 试图同时规划、搜索和综合。这导致了混乱的提示和不可预测的行为。</p>
+<p><strong>解决方案</strong>：严格分离关注点。每个 Agent 应该有一个主要职责。</p>
+<p><strong>实践</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="gh"># Orchestrator 提示</span>
+你的唯一职责是规划和委派。
+<span class="k">-</span><span class="w"> </span>不要执行搜索
+<span class="k">-</span><span class="w"> </span>不要编写最终报告
+<span class="k">-</span><span class="w"> </span>只创建任务并分配它们 <span class="gh"># Research Agent 提示</span>
+你的唯一职责是收集信息。
+<span class="k">-</span><span class="w"> </span>使用提供的工具进行搜索
+<span class="k">-</span><span class="w"> </span>总结你的发现
+<span class="k">-</span><span class="w"> </span>不要试图规划整体策略
+</code></pre></div> <h3 id="2">原则 2：结构化通信</h3>
+<p><strong>问题</strong>：Agent 之间的自由文本通信导致了解析错误和误解。</p>
+<p><strong>解决方案</strong>：使用严格的结构化格式进行 Agent 间通信。</p>
+<p><strong>实践</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w"> </span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;research_001&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;web_search&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;parameters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Claude 3.7 capabilities&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;depth&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;detailed&quot;</span>
+<span class="w"> </span><span class="p">},</span>
+<span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;completed&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="nt">&quot;summary&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">]</span>
+<span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div> <h3 id="3">原则 3：显式工具约束</h3>
+<p><strong>问题</strong>：给 Agent 太多工具会导致决策瘫痪和低效使用。</p>
+<p><strong>解决方案</strong>：为每个 Agent 类型提供最小且相关的工具集。</p>
+<p><strong>实践</strong>：</p>
+<ul>
+<li><strong>Orchestrator</strong>：只有任务管理工具</li>
+<li><strong>Research Agent</strong>：搜索 + 文档检索</li>
+<li><strong>Synthesis Agent</strong>：格式化和模板工具</li>
+</ul>
+<h3 id="4">原则 4：渐进式复杂度</h3>
+<p><strong>问题</strong>：试图一次构建完整系统导致了调试困难。</p>
+<p><strong>解决方案</strong>：从简单开始，逐步添加复杂性。</p>
+<p><strong>我们的路径</strong>：</p>
+<ol>
+<li><strong>阶段 1</strong>：单个 Research Agent 带工具</li>
+<li><strong>阶段 2</strong>：添加 Orchestrator 来管理多个 Research Agent</li>
+<li><strong>阶段 3</strong>：添加 Synthesis Agent 用于报告生成</li>
+<li><strong>阶段 4</strong>：添加专门的 Agent 用于特定任务</li>
+</ol>
+<h3 id="5">原则 5：主动错误处理</h3>
+<p><strong>问题</strong>：Agent 失败会默默地破坏整个研究流程。</p>
+<p><strong>解决方案</strong>：在每个层级实现显式错误处理和重试逻辑。</p>
+<p><strong>实践</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="k">try</span><span class="p">:</span> <span class="n">result</span> <span class="o">=</span> <span class="n">research_agent</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ToolError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c1"># 使用不同参数重试</span> <span class="n">result</span> <span class="o">=</span> <span class="n">research_agent</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">AgentError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c1"># 通知 Orchestrator 重新规划</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">handle_failure</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+</code></pre></div> <h3 id="6">原则 6：可观测性至关重要</h3>
+<p><strong>问题</strong>：难以理解多 Agent 系统内部发生了什么。</p>
+<p><strong>解决方案</strong>：在每个层级构建全面的日志和监控。</p>
+<p><strong>我们跟踪的内容</strong>：</p>
+<ul>
+<li>Agent 决策和理由</li>
+<li>工具调用和结果</li>
+<li>任务完成时间</li>
+<li>跨 Agent 的依赖关系</li>
+</ul>
+<h3 id="7">原则 7：人机协作而非自动化</h3>
+<p><strong>问题</strong>：完全自主的系统做出了错误的假设。</p>
+<p><strong>解决方案</strong>：在关键决策点设计人类参与。</p>
+<p><strong>实践</strong>：</p>
+<ul>
+<li>在开始深度研究前显示研究计划</li>
+<li>允许用户引导方向</li>
+<li>提供中间结果以便反馈</li>
+</ul>
+<h2 id="_2">实际实现细节</h2>
+<h3 id="orchestrator">Orchestrator 提示结构</h3>
+<div class="codehilite"><pre><span></span><code>你是研究 Orchestrator。你的职责是： <span class="k">1.</span> 分析用户的研究问题
+<span class="k">2.</span> 将其分解为具体、可操作的子任务
+<span class="k">3.</span> 将任务分配给专门的 Research Agent
+<span class="k">4.</span> 监控进度并根据需要调整 输出格式：
+{ &quot;plan&quot;: [ {&quot;task_id&quot;: &quot;...&quot;, &quot;type&quot;: &quot;...&quot;, &quot;description&quot;: &quot;...&quot;}, ... ]
+} 约束： <span class="k">-</span><span class="w"> </span>每个任务必须是独立的
+<span class="k">-</span><span class="w"> </span>使用明确、具体的语言
+<span class="k">-</span><span class="w"> </span>不要执行研究——只规划
+</code></pre></div> <h3 id="research-agent">Research Agent 提示结构</h3>
+<div class="codehilite"><pre><span></span><code>你是专门的 Research Agent。给定一个任务，你必须： <span class="k">1.</span> 使用提供的工具收集相关信息
+<span class="k">2.</span> 分析和总结你的发现
+<span class="k">3.</span> 以结构化格式报告结果 可用工具： <span class="k">-</span><span class="w"> </span>web_search (query: str)
+<span class="k">-</span><span class="w"> </span>retrieve_document (doc_id: str) 输出格式：
+{ &quot;task_id&quot;: &quot;...&quot;, &quot;findings&quot;: &quot;...&quot;, &quot;sources&quot;: [...], &quot;confidence&quot;: &quot;high|medium|low&quot;
+}
+</code></pre></div> <h3 id="_3">工具设计最佳实践</h3>
+<p><strong>1. 幂等性</strong></p>
+<p>工具应该在相同输入下产生一致的结果：</p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@tool</span>
+<span class="k">def</span> <span class="nf">search_web</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
+<span class="w"> </span><span class="sd">&quot;&quot;&quot;搜索网络并返回排名靠前的结果&quot;&quot;&quot;</span> <span class="c1"># 确保确定性排序</span> <span class="n">results</span> <span class="o">=</span> <span class="n">perform_search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">score</span><span class="p">)[:</span><span class="n">max_results</span><span class="p">]</span>
+</code></pre></div> <p><strong>2. 清晰的错误消息</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ToolError</span><span class="p">(</span> <span class="s2">&quot;search_web 需要非空查询。&quot;</span> <span class="s2">&quot;示例：search_web (&#39;Claude 3.7 features&#39;)&quot;</span> <span class="p">)</span>
+</code></pre></div> <p><strong>3. 渐进式信息披露</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@tool</span>
+<span class="k">def</span> <span class="nf">search_web</span><span class="p">(</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;quick&quot;</span><span class="p">,</span> <span class="s2">&quot;standard&quot;</span><span class="p">,</span> <span class="s2">&quot;comprehensive&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;standard&quot;</span>
+<span class="p">):</span>
+<span class="w"> </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"> 在网络上搜索。</span> <span class="sd"> - quick: 前 3 个结果</span>
+<span class="sd"> - standard: 前 10 个结果，带摘要</span>
+<span class="sd"> - comprehensive: 前 20 个结果，带详细分析</span>
+<span class="sd"> &quot;&quot;&quot;</span>
+</code></pre></div> <h2 id="_4">性能优化</h2>
+<h3 id="1_1">1. 并行化</h3>
+<p>独立任务应该并行运行：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 不好：顺序执行</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span> <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="c1"># 好：并行执行</span>
+<span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span> <span class="n">agent</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span>
+<span class="p">])</span>
+</code></pre></div> <h3 id="2_1">2. 结果缓存</h3>
+<p>重复查询应该使用缓存：</p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@cache</span><span class="p">(</span><span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span> <span class="c1"># 缓存 1 小时</span>
+<span class="k">def</span> <span class="nf">search_web</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span> <span class="k">return</span> <span class="n">expensive_search_operation</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</code></pre></div> <h3 id="3_1">3. 智能批处理</h3>
+<p>将相关请求分组：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 批量搜索而不是单独搜索</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">search_batch</span><span class="p">([</span> <span class="s2">&quot;Claude 3.7 features&quot;</span><span class="p">,</span> <span class="s2">&quot;Claude pricing&quot;</span><span class="p">,</span> <span class="s2">&quot;Claude API limits&quot;</span>
+<span class="p">])</span>
+</code></pre></div> <h2 id="_5">评估和迭代</h2>
+<h3 id="_6">我们如何衡量成功</h3>
+<p><strong>1. 任务完成率</strong></p>
+<ul>
+<li>系统成功完成了多少百分比的研究任务？</li>
+<li>目标：&gt;90 %</li>
+</ul>
+<p><strong>2. 结果质量</strong></p>
+<ul>
+<li>人类评估者对输出评分（1-5 分）</li>
+<li>目标：平均 &gt;4.0</li>
+</ul>
+<p><strong>3. 效率</strong></p>
+<ul>
+<li>完成时间与预期的对比</li>
+<li>Agent 调用次数</li>
+<li>目标：&lt;5 分钟用于标准研究</li>
+</ul>
+<p><strong>4. 成本</strong></p>
+<ul>
+<li>每个研究任务的 token 使用量</li>
+<li>目标：&lt;100K tokens 用于标准任务</li>
+</ul>
+<h3 id="_7">持续改进</h3>
+<p>我们每周运行评估流程：</p>
+<ol>
+<li><strong>收集失败案例</strong>：系统未能完成任务的地方</li>
+<li><strong>分析根本原因</strong>：提示问题？工具限制？架构缺陷？</li>
+<li><strong>实施修复</strong>：更新提示、添加工具或重构架构</li>
+<li><strong>重新测试</strong>：验证改进有效</li>
+</ol>
+<h2 id="_8">生产经验教训</h2>
+<h3 id="1_2">1. 提示漂移是真实存在的</h3>
+<p><strong>问题</strong>：随着时间推移，我们不断调整提示，导致不一致的行为。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>在版本控制中维护提示</li>
+<li>运行回归测试以捕获意外变化</li>
+<li>记录每次提示更改的原因</li>
+</ul>
+<h3 id="2_2">2. 工具可靠性至关重要</h3>
+<p><strong>问题</strong>：不可靠的工具（超时、错误）破坏了整个流程。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>实现重试和回退</li>
+<li>监控工具性能</li>
+<li>为关键功能提供替代工具</li>
+</ul>
+<h3 id="3_2">3. 上下文管理很棘手</h3>
+<p><strong>问题</strong>：长时间运行的研究任务超出了上下文窗口。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>在 Agent 之间主动总结和传递信息</li>
+<li>使用外部存储用于大型中间结果</li>
+<li>实现上下文修剪策略</li>
+</ul>
+<h3 id="4_1">4. 用户期望很重要</h3>
+<p><strong>问题</strong>：用户不确定系统在做什么或需要多长时间。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>显示实时进度更新</li>
+<li>解释 Agent 决策</li>
+<li>提供完成时间估计</li>
+</ul>
+<h2 id="_9">未来方向</h2>
+<p>我们正在探索的内容：</p>
+<h3 id="1-agent">1. 自适应 Agent 选择</h3>
+<p>根据任务特征动态选择最佳 Agent 配置。</p>
+<h3 id="2-orchestrator">2. 学习型 Orchestrator</h3>
+<p>Orchestrator 从过去的任务中学习以改进规划。</p>
+<h3 id="3_3">3. 人类反馈循环</h3>
+<p>在研究过程中集成更复杂的人类引导。</p>
+<h3 id="4_2">4. 跨研究记忆</h3>
+<p>在研究会话之间保留和重用知识。</p>
+<h2 id="_10">开始构建</h2>
+<p>如果你想构建类似的系统，这是我们的建议：</p>
+<h3 id="_11">从简单开始</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 阶段 1：单个 Agent 带一个工具</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-7-sonnet&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">search_tool</span><span class="p">]</span>
+<span class="p">)</span> <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;研究 Claude 的功能&quot;</span><span class="p">)</span>
+</code></pre></div> <h3 id="_12">添加编排</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 阶段 2：多个 Agent 带编排</span>
+<span class="n">orchestrator</span> <span class="o">=</span> <span class="n">Orchestrator</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-7-sonnet&quot;</span><span class="p">)</span>
+<span class="n">research_agents</span> <span class="o">=</span> <span class="p">[</span><span class="n">Agent</span><span class="p">(</span><span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">search_tool</span><span class="p">])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span> <span class="n">tasks</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">plan</span><span class="p">(</span><span class="s2">&quot;研究 AI 安全&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">agents</span><span class="o">=</span><span class="n">research_agents</span><span class="p">)</span>
+</code></pre></div> <h3 id="_13">添加专门化</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 阶段 3：专门的 Agent</span>
+<span class="n">web_agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">search_tool</span><span class="p">])</span>
+<span class="n">doc_agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">retrieve_tool</span><span class="p">])</span>
+<span class="n">synthesis_agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">format_tool</span><span class="p">])</span> <span class="c1"># 自定义编排逻辑</span>
+</code></pre></div> <h2 id="_14">关键要点</h2>
+<ol>
+<li>✅ <strong>明确职责</strong>：每个 Agent 应该有一个清晰的单一目的</li>
+<li>✅ <strong>结构化通信</strong>：使用严格格式进行 Agent 间消息</li>
+<li>✅ <strong>最小工具集</strong>：只给每个 Agent 需要的工具</li>
+<li>✅ <strong>渐进式构建</strong>：从简单开始，逐步添加复杂性</li>
+<li>✅ <strong>主动监控</strong>：在每个层级实现全面的日志记录</li>
+<li>✅ <strong>错误处理</strong>：优雅地处理失败，带重试和回退</li>
+<li>✅ <strong>人类参与</strong>：在关键决策点设计协作</li>
+</ol>
+<h2 id="_15">附录</h2>
+<h3 id="_16">完整示例代码</h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">anthropic</span> <span class="kn">import</span> <span class="n">Anthropic</span> <span class="n">client</span> <span class="o">=</span> <span class="n">Anthropic</span><span class="p">()</span> <span class="c1"># Orchestrator</span>
+<span class="n">orchestrator_prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">你是研究 Orchestrator。将研究问题分解为 2-3 个子任务。</span> <span class="s2">输出 JSON：</span>
+<span class="s2">{</span>
+<span class="s2"> &quot;tasks&quot;: [</span>
+<span class="s2"> {&quot;id&quot;: &quot;1&quot;, &quot;type&quot;: &quot;search&quot;, &quot;query&quot;: &quot;...&quot;},</span>
+<span class="s2"> ...</span>
+<span class="s2"> ]</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span> <span class="c1"># Research Agent</span>
+<span class="n">research_prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">使用 search_tool 收集信息。总结发现。</span> <span class="s2">输出 JSON：</span>
+<span class="s2">{</span>
+<span class="s2"> &quot;findings&quot;: &quot;...&quot;,</span>
+<span class="s2"> &quot;sources&quot;: [...]</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span> <span class="c1"># 执行研究</span>
+<span class="k">def</span> <span class="nf">run_research</span><span class="p">(</span><span class="n">question</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span> <span class="c1"># 规划阶段</span> <span class="n">plan</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-7-sonnet&quot;</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="p">[{</span> <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">orchestrator_prompt</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">问题：</span><span class="si">{</span><span class="n">question</span><span class="si">}</span><span class="s2">&quot;</span> <span class="p">}]</span> <span class="p">)</span> <span class="c1"># 执行阶段</span> <span class="n">tasks</span> <span class="o">=</span> <span class="n">parse_json</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span> <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-7-sonnet&quot;</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="p">[{</span> <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">research_prompt</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">任务：</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span> <span class="p">}],</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">search_tool</span><span class="p">]</span> <span class="p">)</span> <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="k">return</span> <span class="n">results</span>
+</code></pre></div> <h3 id="_17">推荐资源</h3>
+<ul>
+<li><a href="https://docs.anthropic.com">Anthropic API 文档</a></li>
+<li><a href="https://docs.anthropic.com/claude/docs/tool-use">工具使用指南</a></li>
+<li><a href="https://docs.anthropic.com/claude/docs/prompt-engineering">提示工程最佳实践</a></li>
+</ul>
+<hr />
+<p><strong>整理者</strong>: Panda
+<strong>整理日期</strong>: 2025 年 10 月 29 日</p>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-10-29 15:14:27<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
