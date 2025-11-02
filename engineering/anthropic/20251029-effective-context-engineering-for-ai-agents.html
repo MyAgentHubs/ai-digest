@@ -214,6 +214,23 @@
             color: #333;
         }
 
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
         /* 引用 */
         blockquote {
             border-left: 4px solid var(--secondary-color);
@@ -285,6 +302,8 @@
             border-top: 1px solid var(--border-color);
             color: var(--text-light);
             font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .footer-links {
@@ -711,5 +730,23 @@ def good_compaction (history): """第一阶段：最大化回忆""" summary = mo
             </p>
         </footer>
     </div>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
+
 </body>
 </html>

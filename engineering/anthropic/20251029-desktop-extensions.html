@@ -187,6 +187,9 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -200,10 +203,29 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         /* ASCII 艺术 */
-        pre.ascii-art {
+        pre
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        .ascii-art {
             background: #fafafa;
             border: 1px solid #ddd;
             font-family: "Courier New", Consolas, Monaco, monospace;
@@ -894,5 +916,22 @@ class ExtensionUpdateManager { async checkUpdates (installedExtension) { const m
             </p>
         </footer>
     </div>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>
