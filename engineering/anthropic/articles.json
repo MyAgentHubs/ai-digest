@@ -1,0 +1,106 @@
+[
+  {
+    "title": "上下文工程深度技术分析",
+    "filename": "20251029-effective-context-engineering-for-ai-agents.html",
+    "original_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "publish_date": "2025 年 9 月 29 日",
+    "created_at": "2025-10-29 20:50:00",
+    "updated_at": "2025-10-30 11:07:54"
+  },
+  {
+    "title": "三个近期问题的事后分析",
+    "filename": "20251029-a-postmortem-of-three-recent-issues.html",
+    "original_url": "https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues",
+    "publish_date": "2025 年 9 月 17 日",
+    "created_at": "2025-10-29 09:41:14",
+    "updated_at": "2025-10-29 09:41:45"
+  },
+  {
+    "title": "AI Agent 工具设计架构深度分析",
+    "filename": "20251029-writing-tools-for-agents.html",
+    "original_url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "publish_date": "2025 年 9 月 11 日",
+    "created_at": "2025-10-29 20:53:44",
+    "updated_at": "2025-10-30 11:07:54"
+  },
+  {
+    "title": "Desktop Extensions 技术深度分析",
+    "filename": "20251029-desktop-extensions.html",
+    "original_url": "https://www.anthropic.com/engineering/desktop-extensions",
+    "publish_date": "2025 年 6 月 26 日",
+    "created_at": "2025-10-29 20:58:33",
+    "updated_at": "2025-10-30 11:07:54"
+  },
+  {
+    "title": "我们如何构建多 Agent 研究系统",
+    "filename": "20251029-multi-agent-research-system.html",
+    "original_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "publish_date": "2025 年 6 月 13 日",
+    "created_at": "2025-10-29 15:14:27",
+    "updated_at": "2025-10-29 15:14:45"
+  },
+  {
+    "title": "Claude Code：Agent 编码的最佳实践",
+    "filename": "20251029-claude-code-best-practices.html",
+    "original_url": "https://www.anthropic.com/engineering/claude-code-best-practices",
+    "publish_date": "2025 年 4 月 18 日",
+    "created_at": "2025-10-29 15:10:08",
+    "updated_at": "2025-10-29 15:10:26"
+  },
+  {
+    "title": "The \"Think\" Tool: AI 架构师深度分析",
+    "filename": "20251029-claude-think-tool.html",
+    "original_url": "",
+    "publish_date": "未知",
+    "created_at": "2025-10-29 20:59:56",
+    "updated_at": "2025-10-30 11:07:54"
+  },
+  {
+    "title": "超越权限提示：让 Claude Code 更安全、更自主",
+    "filename": "20251029-claude-code-sandboxing.html",
+    "original_url": "https://www.anthropic.com/engineering/claude-code-sandboxing",
+    "publish_date": "2025 年 10 月 20 日",
+    "created_at": "2025-10-29 15:28:18",
+    "updated_at": "2025-10-29 15:28:36"
+  },
+  {
+    "title": "Agent Skills - 为真实世界的 Agent 提供技能",
+    "filename": "20251029-equipping-agents-for-the-real-world-with-agent-skills.html",
+    "original_url": "https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "publish_date": "2025 年 10 月 16 日",
+    "created_at": "2025-10-29 09:41:14",
+    "updated_at": "2025-10-29 09:41:45"
+  },
+  {
+    "title": "使用 Claude Agent SDK 构建 Agent",
+    "filename": "20251029-building-agents-with-the-claude-agent-sdk.html",
+    "original_url": "https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk",
+    "publish_date": "2025 年 10 月 16 日",
+    "created_at": "2025-10-29 09:41:14",
+    "updated_at": "2025-10-29 09:41:45"
+  },
+  {
+    "title": "Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析",
+    "filename": "20251029-swe-bench-sonnet.html",
+    "original_url": "https://www.anthropic.com/engineering/swe-bench-sonnet",
+    "publish_date": "2025年1月6日",
+    "created_at": "2025-10-29 21:02:59",
+    "updated_at": "2025-10-30 11:07:54"
+  },
+  {
+    "title": "介绍上下文检索（Contextual Retrieval）",
+    "filename": "20251029-contextual-retrieval.html",
+    "original_url": "https://www.anthropic.com/engineering/contextual-retrieval",
+    "publish_date": "2024 年 9 月 19 日",
+    "created_at": "2025-10-29 15:37:07",
+    "updated_at": "2025-10-29 15:37:25"
+  },
+  {
+    "title": "AI Agent 架构设计权威指南：从工作流到自主系统",
+    "filename": "20251029-building-effective-agents.html",
+    "original_url": "https://www.anthropic.com/engineering/building-effective-agents",
+    "publish_date": "2024 年 12 月 19 日",
+    "created_at": "2025-10-29 21:04:56",
+    "updated_at": "2025-10-30 11:07:53"
+  }
+]
