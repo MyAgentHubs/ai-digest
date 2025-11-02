@@ -3,224 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anthropic Engineering Digest - 索引</title>
+    <title>AI Digest - AI 工程博客中文翻译</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        :root {
-            --primary-color: #191A1A;
-            --secondary-color: #CC785C;
-            --text-color: #2D2D2D;
-            --text-light: #666;
-            --bg-color: #FAFAF8;
-            --border-color: #E5E5E5;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            line-height: 1.8;
-            color: var(--text-color);
-            background: var(--bg-color);
-            font-size: 16px;
-        }
-        .container {
-            max-width: 920px;
-            margin: 0 auto;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 60px 24px;
         }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
         header {
-            margin-bottom: 48px;
-            padding-bottom: 32px;
-            border-bottom: 2px solid var(--secondary-color);
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
         }
         h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--primary-color);
+            font-size: 3rem;
             margin-bottom: 16px;
+            font-weight: 700;
         }
         .subtitle {
-            color: var(--text-light);
-            font-size: 1.1rem;
+            font-size: 1.25rem;
+            opacity: 0.9;
         }
-        .article-item {
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        .source-card {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 32px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: box-shadow 0.2s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
-        .article-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .source-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
-        .article-date {
-            color: var(--secondary-color);
-            font-size: 0.9rem;
+        .source-card h2 {
+            font-size: 1.75rem;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+        .source-card .description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .source-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 12px;
         }
-        .article-title {
-            font-size: 1.5rem;
-            margin-bottom: 12px;
+        .coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        .article-title a {
-            color: var(--primary-color);
-            text-decoration: none;
-            transition: color 0.2s;
+        .coming-soon:hover {
+            transform: none;
         }
-        .article-title a:hover {
-            color: var(--secondary-color);
-        }
-        .article-source {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: all 0.2s;
-        }
-        .article-source:hover {
-            color: var(--secondary-color);
-            border-bottom-color: var(--secondary-color);
+        .coming-soon .badge {
+            background: #ccc;
         }
         footer {
-            margin-top: 64px;
-            padding-top: 32px;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-light);
-            font-size: 0.9rem;
             text-align: center;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        footer a {
+            color: white;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Anthropic Engineering Digest</h1>
-            <p class="subtitle">Anthropic 官方工程博客精选文章 · 中文整理</p>
+            <h1>🤖 AI Digest</h1>
+            <p class="subtitle">精选 AI 公司工程博客的中文翻译</p>
         </header>
 
-        <main>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 9 月 29 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-effective-context-engineering-for-ai-agents.html">上下文工程深度技术分析</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 9 月 29 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-effective-context-engineering-for-ai-agents-v2.html">上下文工程深度技术分析</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 9 月 17 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-a-postmortem-of-three-recent-issues.html">三个近期问题的事后分析</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 9 月 11 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-writing-tools-for-agents.html">AI Agent 工具设计架构深度分析</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/writing-tools-for-agents" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 6 月 26 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-desktop-extensions.html">Desktop Extensions 技术深度分析</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/desktop-extensions" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 6 月 13 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-multi-agent-research-system.html">我们如何构建多 Agent 研究系统</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/multi-agent-research-system" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 4 月 18 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-claude-code-best-practices.html">Claude Code：Agent 编码的最佳实践</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/claude-code-best-practices" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">未知</div>
-                <h3 class="article-title">
-                    <a href="20251029-claude-think-tool.html">The "Think" Tool: AI 架构师深度分析</a>
-                </h3>
-                <a href="" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 10 月 20 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-claude-code-sandboxing.html">超越权限提示：让 Claude Code 更安全、更自主</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/claude-code-sandboxing" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 10 月 16 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-equipping-agents-for-the-real-world-with-agent-skills.html">Agent Skills - 为真实世界的 Agent 提供技能</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025 年 10 月 16 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-building-agents-with-the-claude-agent-sdk.html">使用 Claude Agent SDK 构建 Agent</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2025年1月6日</div>
-                <h3 class="article-title">
-                    <a href="20251029-swe-bench-sonnet.html">Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/swe-bench-sonnet" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2024 年 9 月 19 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-contextual-retrieval.html">介绍上下文检索（Contextual Retrieval）</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/contextual-retrieval" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-            <div class="article-item">
-                <div class="article-date">2024 年 12 月 19 日</div>
-                <h3 class="article-title">
-                    <a href="20251029-building-effective-agents.html">AI Agent 架构设计权威指南：从工作流到自主系统</a>
-                </h3>
-                <a href="https://www.anthropic.com/engineering/building-effective-agents" class="article-source" target="_blank">查看原文 →</a>
-            </div>
-            
-        </main>
+        <div class="sources-grid">
+            <a href="engineering/anthropic/" class="source-card">
+                <h2>Anthropic Engineering</h2>
+                <p class="description">Anthropic 官方工程博客的中文翻译</p>
+                <div class="meta">
+                    <span class="badge">ENGINEERING</span>
+                    <span>查看文章 →</span>
+                </div>
+            </a>
+            <a href="#" class="source-card coming-soon" onclick="return false;">
+                <h2>OpenAI Research</h2>
+                <p class="description">OpenAI 研究博客的中文翻译</p>
+                <div class="meta">
+                    <span class="badge">ENGINEERING</span>
+                    <span>即将推出...</span>
+                </div>
+            </a>
+            <a href="#" class="source-card coming-soon" onclick="return false;">
+                <h2>DeepSeek Research</h2>
+                <p class="description">DeepSeek 研究博客的中文翻译</p>
+                <div class="meta">
+                    <span class="badge">ENGINEERING</span>
+                    <span>即将推出...</span>
+                </div>
+            </a>
+        </div>
 
         <footer>
-            <p>由 <strong>Claude Code Agent Skill</strong> 自动生成</p>
-            <p style="margin-top: 8px;">整理者：Panda</p>
+            <p>整理者：Panda | <a href="https://github.com/MyAIsWithPanda" target="_blank">GitHub</a></p>
         </footer>
     </div>
 </body>
