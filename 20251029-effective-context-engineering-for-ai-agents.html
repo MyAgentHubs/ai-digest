@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上下文工程深度技术分析 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>上下文工程深度技术分析</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank">https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2025 年 9 月 29 日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-10-30</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_2">一、核心技术概念</a></li>
+  <li><a href="#11">1.1 上下文工程的本质</a></li>
+  <li><a href="#12-transformer">1.2 Transformer 架构的约束</a></li>
+  <li><a href="#13-context-rot">1.3 上下文衰减（Context Rot）原理</a></li>
+<li><a href="#_3">二、架构设计模式</a></li>
+  <li><a href="#21-altitude-problem">2.1 系统提示的"高度问题"（Altitude Problem）</a></li>
+  <li><a href="#22">2.2 工具设计的令牌效率模式</a></li>
+  <li><a href="#23-hybrid-retrieval">2.3 混合检索策略（Hybrid Retrieval）</a></li>
+<li><a href="#_4">三、上下文管理的三大策略</a></li>
+  <li><a href="#31-compaction">3.1 压缩（Compaction）</a></li>
+  <li><a href="#32-agentic-memory">3.2 结构化笔记（Agentic Memory）</a></li>
+  <li><a href="#33-agent-multi-agent-orchestration">3.3 子 Agent 架构（Multi-Agent Orchestration）</a></li>
+<li><a href="#_5">四、关键工程洞察</a></li>
+  <li><a href="#41">4.1 为什么上下文是稀缺资源？</a></li>
+  <li><a href="#42">4.2 工具设计如何影响上下文效率？</a></li>
+  <li><a href="#43-vs">4.3 提示工程 vs 系统设计的平衡</a></li>
+<li><a href="#_6">五、实践建议总结</a></li>
+  <li><a href="#51">5.1 系统提示设计检查清单</a></li>
+  <li><a href="#52">5.2 上下文窗口预算规划</a></li>
+  <li><a href="#53">5.3 何时使用各策略</a></li>
+<li><a href="#_7">六、技术权衡矩阵</a></li>
+<li><a href="#_8">七、结论与前沿</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="_1">上下文工程深度技术分析</h1>
+<p><strong>原文链接</strong>：https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+<strong>发布日期</strong>：2025 年 9 月 29 日</p>
+<hr />
+<h2 id="_2">一、核心技术概念</h2>
+<h3 id="11">1.1 上下文工程的本质</h3>
+<p>文章将上下文工程定义为："一组策略，用于在 LLM 推理期间策划和维护最优的令牌集合"。</p>
+<p><strong>技术架构师视角的理解</strong>：</p>
+<p>这不仅是信息管理问题，而是<strong>有限注意力预算的优化问题</strong>。本质上涉及三个维度：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>技术挑战</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>容量限制</strong></td>
+<td>固定上下文窗口大小</td>
+<td>无法任意扩展输入</td>
+</tr>
+<tr>
+<td><strong>衰减曲线</strong></td>
+<td>"上下文衰减"现象</td>
+<td>长序列精度下降</td>
+</tr>
+<tr>
+<td><strong>计算复杂度</strong></td>
+<td>O (n²) 令牌关系</td>
+<td>线性扩展成本</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-transformer">1.2 Transformer 架构的约束</h3>
+<p><strong>关键引用</strong>："基于 transformer 架构，每个令牌都能 <strong>注意到所有其他令牌</strong>，这导致 n 个令牌产生 n² 的成对关系"。</p>
+<p><strong>技术影响分析</strong>：</p>
+<pre class="ascii-art"> 上下文长度: 4K 8K 16K 32K 200K
+─────────────────────────────────────────
+注意力计算: 16M 64M 256M 1024M 40B (单位：操作数)
+内存需求: ↑↑ ↑↑↑ ↑↑↑↑ ↑↑↑↑↑ ↑↑↑↑↑ 副作用: 位置编码插值 → 位置信息精度丧失 </pre> <h3 id="13-context-rot">1.3 上下文衰减（Context Rot）原理</h3>
+<p><strong>关键发现</strong>：模型在训练数据中接触短序列较多，因此：</p>
+<ol>
+<li><strong>参数分布不均</strong>：参数优化面向短序列</li>
+<li><strong>注意力分散</strong>：长序列中的依赖关系难以捕捉</li>
+<li><strong>检索精度下降</strong>：不是突然失效，而是<strong>梯度性能下降</strong></li>
+</ol>
+<p><strong>性能曲线 (典型模型)</strong>：</p>
+<pre class="ascii-art">
+100 % │ ╱╲ │ ╱ ╲
+精度 │ ╱ ╲___ │ ╱ ╲___ │ ╱ ╲___ 50 % │ ╱ ╲____ │╱_____________________╲____ └──────────────────────────── 0 % 50 % 100 % 150 % 200 % 相对训练上下文长度
+</pre>
+<p><img alt="提示工程 vs 上下文工程的对比" src="images/9a396bc6892c.png" /></p>
+<p><em>与编写提示的离散任务不同，上下文工程是迭代的，每次我们决定向模型传递什么时都会进行策划。</em></p>
+<hr />
+<h2 id="_3">二、架构设计模式</h2>
+<h3 id="21-altitude-problem">2.1 系统提示的"高度问题"（Altitude Problem）</h3>
+<p><strong>反模式 vs 最佳实践</strong>：</p>
+<p><strong>❌ 反模式 1：过度具体的 if-else 逻辑</strong></p>
+<div class="codehilite"><pre><span></span><code>&lt;!-- 脆弱、难以维护 --&gt;
+&lt;instructions&gt;
+IF task == &quot;classification&quot;: IF confidence &lt; 0.7: IF num_classes &gt; 10: USE ensemble_method ELSE: USE single_classifier ELSE: ...
+&lt;!-- 灾难级别：嵌套 7 层 --&gt;
+</code></pre></div> <p><strong>❌ 反模式 2：模糊高层指导</strong></p>
+<div class="codehilite"><pre><span></span><code>&lt;!-- 假设共享上下文 --&gt;
+&lt;instructions&gt;
+You are a helpful assistant.
+Be accurate.
+Think carefully.
+&lt;!-- 模型无法推断具体行为 --&gt;
+</code></pre></div> <p><strong>✅ 最佳实践：平衡的启发式指导</strong></p>
+<div class="codehilite"><pre><span></span><code>&lt;instructions&gt;
+You are a data classification agent. &lt;key_behaviors&gt;
+- Classify by semantic meaning, not keywords
+- Flag ambiguous cases (confidence &lt; 0.6) for review
+- Prefer recall over precision for safety-critical tasks
+&lt;/key_behaviors&gt; &lt;example_ambiguous_case&gt;
+Input: &quot;I can&#39;t believe it&#39;s not butter&quot;
+Context: Food product review
+Classification: PRODUCT_REVIEW (not SENTIMENT)
+Reasoning: Semantic category matters more than emotional words
+&lt;/example_ambiguous_case&gt;
+</code></pre></div> <p><strong>关键洞察</strong>：高度问题的本质是<strong>信息密度 vs 灵活性的权衡</strong>。</p>
+<p><img alt="系统提示校准过程" src="images/861c370bac5c.png" /></p>
+<p><em>在频谱的一端，我们看到脆弱的 if-else 硬编码提示，在另一端是过于笼统或错误地假设共享上下文的提示。</em></p>
+<h3 id="22">2.2 工具设计的令牌效率模式</h3>
+<p><strong>模式对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>单体工具</th>
+<th>微粒度工具</th>
+<th>最优设计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>令牌用量/调用</td>
+<td>高</td>
+<td>低</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>歧义决策点</td>
+<td>少</td>
+<td>多</td>
+<td>少</td>
+</tr>
+<tr>
+<td>上下文污染</td>
+<td>严重</td>
+<td>轻微</td>
+<td>可控</td>
+</tr>
+<tr>
+<td>可维护性</td>
+<td>好</td>
+<td>差</td>
+<td>优秀</td>
+</tr>
+</tbody>
+</table>
+<p><strong>反模式示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code># ❌ 令牌浪费：工具功能重叠
+tools = [ Tool (&quot;query_database&quot;, returns_full_result), # 可能返回 10K 令牌 Tool (&quot;query_db_filtered&quot;, returns_subset), # 同样返回 5K 令牌 Tool (&quot;search_cache&quot;, ...), # 重复功能
+]
+# 问题：模型会困惑该用哪个；无论如何令牌开销都大 # ✅ 令牌高效：清晰的工具职责
+tools = [ Tool (&quot;list_tables&quot;), # 返回 100 令牌 Tool (&quot;query&quot;, params=[ &quot;table&quot;, &quot;filters&quot;, # 让模型精确查询 &quot;limit&quot;, # 控制返回大小 ]), Tool (&quot;get_schema&quot;, table_name) # 轻量元数据
+]
+</code></pre></div> <h3 id="23-hybrid-retrieval">2.3 混合检索策略（Hybrid Retrieval）</h3>
+<p><strong>策略图解</strong>：</p>
+<pre class="ascii-art"> 用户请求 ↓
+────────────────────────────────────────
+│ 混合检索策略 │
+├────────────────────────────────────────
+│
+│ [快速路径] ─→ 预加载 CLAUDE.md (文件)
+│ │
+│ └→ 直接提供背景信息 (500-1000 令牌)
+│
+│ [探索路径] ─→ glob/grep 工具导航
+│ │
+│ ├→ 文件系统语义信号
+│ │ (文件名、文件夹、大小)
+│ │
+│ └→ 动态加载相关文件
+│ (只加载需要的)
+│
+└──────────────────────────────────────── ↓ [渐进式披露] 每次交互 → 改进检索策略 </pre> <p><strong>Claude Code 的实现</strong>：</p>
+<pre class="ascii-art"> 初始状态: CLAUDE.md (项目上下文) + 5 个最近文件引用 查询时: bash: head -20 large_data.csv (不加载全部) → 模型推断结构 → 发出 targeted 查询 结果: 令牌用量: 固定 (不随数据量线性增长) </pre> <hr />
+<h2 id="_4">三、上下文管理的三大策略</h2>
+<h3 id="31-compaction">3.1 压缩（Compaction）</h3>
+<p><strong>适用场景</strong>：长对话、迭代任务、保持流畅交互</p>
+<p><strong>技术流程</strong>：</p>
+<pre class="ascii-art"> 消息历史 (接近窗口限制) │ ↓
+[模型总结] ← "保留所有关键决策" │ "丢弃冗余工具输出" │ "保留错误和解决方案" ↓
+压缩摘要 (500-1000 令牌) │ ↓
+新窗口 = 压缩摘要 + 最近 5 个文件 + 新输入 </pre> <p><strong>实现要点</strong>（基于文章）：</p>
+<pre class="ascii-art">
+# ⚠️ 常见错误：过度激进的压缩
+def bad_compaction (history): """丢弃所有实现细节 - 灾难性""" return "User asked for feature X" # 后续: "为什么要这样做?" → 上下文丢失 # ✅ 平衡方案：回忆优先，精度次之
+def good_compaction (history): """第一阶段：最大化回忆""" summary = model.summarize ( history, constraints={ "include": [ "architectural_decisions", "unresolved_bugs", "implementation_approach", "error_patterns" ], "exclude": [ "raw_tool_outputs", "duplicate_messages", "debug_logs" ] } ) """第二阶段：迭代消除冗余""" return compress_summary (summary, target_length=800) </pre> <h3 id="32-agentic-memory">3.2 结构化笔记（Agentic Memory）</h3>
+<p><strong>适用场景</strong>：长地平线任务、多阶段项目、知识积累</p>
+<p><strong>架构示例</strong>：</p>
+<pre class="ascii-art"> Agent 行为循环: 每 N 步 → [决策点] ├─ 更新 PROGRESS.md │ ├─ 当前目标 │ ├─ 已完成里程碑 │ └─ 待办事项 │ ├─ 更新 LEARNINGS.md │ ├─ 有效策略 │ ├─ 失败模式 │ └─ 发现的约束 │ └─ 更新 STATE.md ├─ 当前位置/配置 ├─ 探索过的分支 └─ 关键决策树 上下文检索时: 新窗口 ← PROGRESS.md + LEARNINGS.md + 当前任务文件 </pre> <p><strong>Pokemon 示例分析</strong>（文章引用）：</p>
+<pre class="ascii-art"> Agent 维护笔记示例:
+"Route 1: Pikachu training
+- Current level: 2→10 (step 1234 of 5000)
+- Strategy: Focus on Thunder Wave → Thunderbolt combo
+- Failed: Direct attack vs Geodude (CRITICAL: use Grass moves)
+- Next: Find Grass-type trainer for EXP farming" 效果:
+✓ 跨数小时维持策略一致性
+✓ 无需重新发现失败模式
+✓ 令牌成本: 固定 (~200-300/次) </pre> <h3 id="33-agent-multi-agent-orchestration">3.3 子 Agent 架构（Multi-Agent Orchestration）</h3>
+<p><strong>适用场景</strong>：复杂研究、并行探索、清晰的任务分解</p>
+<p><strong>架构拓扑</strong>：</p>
+<pre class="ascii-art"> [主 Agent] (高级规划) │ ┌─────────────┼─────────────┐ ↓ ↓ ↓ [SubAgent-1] [SubAgent-2] [SubAgent-3] (文献检索) (数据分析) (方法验证) │ │ │ 10K 令牌 15K 令牌 12K 令牌 深度搜索 复杂计算 严格测试 │ │ │ └─────────────┼─────────────┘ ↓ [提炼摘要 1-2K 令牌] ↓ [主 Agent 汇总] </pre> <p><strong>令牌成本模型</strong>：</p>
+<pre class="ascii-art"> 单 Agent 方案: 总消耗: 5K (历史) + 20K (探索) + 5K (推理) = 30K 令牌 Multi-Agent 方案: 分解: 3K (规划) SubAgent1: 10K → 1.5K (摘要) SubAgent2: 15K → 2K (摘要) SubAgent3: 12K → 1.5K (摘要) 集成: 3K (汇总) ───────────────────────── 总消耗: ~21K 令牌 (节省 30 %) 收益: 更深度的探索 + 令牌高效 </pre> <hr />
+<h2 id="_5">四、关键工程洞察</h2>
+<h3 id="41">4.1 为什么上下文是稀缺资源？</h3>
+<p><strong>多维分析</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>约束</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>容量</strong></td>
+<td>固定窗口</td>
+<td>无法随意扩展输入</td>
+</tr>
+<tr>
+<td><strong>关注力</strong></td>
+<td>O (n²) 复杂度</td>
+<td>长序列注意力分散</td>
+</tr>
+<tr>
+<td><strong>记忆</strong></td>
+<td>训练分布偏差</td>
+<td>超长序列性能衰减</td>
+</tr>
+<tr>
+<td><strong>成本</strong></td>
+<td>API 按令牌计费</td>
+<td>经济制约</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最深层的原因</strong>：Transformer 的设计本质 - "注意力是全局的，但大脑容量有限"。</p>
+<h3 id="42">4.2 工具设计如何影响上下文效率？</h3>
+<p><strong>因果链</strong>：</p>
+<pre class="ascii-art"> 工具设计 ↓
+决策清晰性 ← 歧义多 = 多次尝试工具 = 令牌浪费 ↓
+返回值精度 ← 盲目返回 = 污染上下文 = 噪声增加 ↓
+自描述性 ← 隐式契约 = 误解 = 迭代修复 ↓
+上下文效率 (最终指标) </pre> <p><strong>关键原则</strong>（文章总结）：</p>
+<blockquote>
+<p>"如果人工工程师无法明确说出应该用哪个工具，AI Agent 也做不到更好"</p>
+</blockquote>
+<h3 id="43-vs">4.3 提示工程 vs 系统设计的平衡</h3>
+<p><strong>进化路径</strong>：</p>
+<pre class="ascii-art"> 第一代 (2022-2023): 提示工程时代 ├─ One-shot 分类 ├─ 微调 few-shot 示例 └─ 局部优化 问题: 无法处理多轮、长期任务 ↓ 第二代 (2023-2024): 上下文工程时代 ├─ 工具使用和检索 ├─ 动态上下文管理 ├─ Agent 循环 └─ 全局令牌预算优化 优势: 处理数小时任务 ↓ 第三代 (2024+): 智能自适应 ├─ 动态工具选择 ├─ 自优化压缩策略 ├─ 学习型记忆 └─ 能力驱动的任务分解 </pre> <hr />
+<h2 id="_6">五、实践建议总结</h2>
+<h3 id="51">5.1 系统提示设计检查清单</h3>
+<div class="codehilite"><pre><span></span><code>def validate_system_prompt (prompt: str) -&gt; List[str]: &quot;&quot;&quot;系统架构师审查清单&quot;&quot;&quot; issues = [] # 1. 高度检查 if prompt.count (&quot;IF&quot;) &gt; 3: issues.append (&quot;❌ 逻辑过于具体，违反高度原则&quot;) # 2. 令牌效率 if len (prompt.split ()) &gt; 500: issues.append (&quot;⚠️ 考虑精简：通常 150-300 词足够&quot;) # 3. 示例多样性 if prompt.count (&quot;example&quot;) == 0: issues.append (&quot;❌ 缺少具体示例（图片价值千言）&quot;) # 4. 灵活性 if &quot;must&quot; in prompt and &quot;should&quot; not in prompt: issues.append (&quot;⚠️ 过于刚性，考虑启发式指导&quot;) return issues if issues else [&quot;✅ 设计合理&quot;]
+</code></pre></div> <h3 id="52">5.2 上下文窗口预算规划</h3>
+<pre class="ascii-art"> 100 % 上下文窗口 = 200K 令牌 分配:
+├─ 系统提示: 2 % (4K)
+├─ 工具定义: 3 % (6K)
+├─ 用户输入: 10 % (20K)
+├─ 历史消息: 25 % (50K)
+├─ 检索/上下文: 40 % (80K)
+├─ 工作内存: 10 % (20K)
+└─ 响应空间: 10 % (20K) ──────────────────────── 总计: 100 % </pre> <h3 id="53">5.3 何时使用各策略</h3>
+<table>
+<thead>
+<tr>
+<th>任务特征</th>
+<th>推荐策略</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>迭代对话</td>
+<td>压缩</td>
+<td>维持流畅、避免窗口溢出</td>
+</tr>
+<tr>
+<td>单一长任务</td>
+<td>笔记</td>
+<td>积累知识、支持恢复</td>
+</tr>
+<tr>
+<td>复杂研究</td>
+<td>Multi-Agent</td>
+<td>并行探索、高效综合</td>
+</tr>
+<tr>
+<td>快速响应</td>
+<td>混合检索</td>
+<td>预加载 + 按需探索</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_7">六、技术权衡矩阵</h2>
+<pre class="ascii-art"> │ 延迟 │ 准确度 │ 成本 │ 复杂度
+────────┼──────┼────────┼─────┼────────
+压缩 │ 低 │ 中 │ 低 │ 中
+笔记 │ 低 │ 高 │ 中 │ 中
+多 Agent │ 高 │ 高 │ 高 │ 高
+混合检索 │ 中 │ 中 │ 中 │ 中 </pre> <hr />
+<h2 id="_8">七、结论与前沿</h2>
+<p><strong>Anthropic 的核心主张</strong>：</p>
+<blockquote>
+<p>在模型能力不断提升的未来，"上下文工程"会逐步演变为模型的<strong>自适应行为</strong>，而非人工精细设计。</p>
+</blockquote>
+<p><strong>架构演进方向</strong>：</p>
+<ul>
+<li>从人工管理 → 模型驱动的自优化</li>
+<li>从静态配置 → 动态适应</li>
+<li>从全局优化 → 局部贪心（足够好就够）</li>
+</ul>
+<p><strong>最终建议</strong>："做最简单的有效方案"（Do the simplest thing that works）— 这比过度工程更符合当前阶段的认知水平。</p>
+<hr />
+<p><strong>致谢</strong></p>
+<p>由 Anthropic 应用 AI 团队编写：Prithvi Rajasekaran、Ethan Dixon、Carly Ryan 和 Jeremy Hadfield，得到团队成员 Rafi Ayub、Hannah Moran、Cal Rueb 和 Connor Jennings 的贡献。特别感谢 Molly Vorwerck、Stuart Ritchie 和 Maggie Vo 的支持。</p>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-10-30 11:07:54<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Skills - 为真实世界的 Agent 提供技能 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Agent Skills - 为真实世界的 Agent 提供技能</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" target="_blank">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2025 年 10 月 16 日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-10-29</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#skill">Skill 的解剖结构</a></li>
+  <li><a href="#_1">渐进式内容加载</a></li>
+<li><a href="#skills">Skills 与上下文窗口</a></li>
+<li><a href="#skills_1">Skills 与代码执行</a></li>
+<li><a href="#skills_2">开发与评估 Skills</a></li>
+  <li><a href="#1">1. 原型设计</a></li>
+  <li><a href="#2">2. 结构化组织</a></li>
+  <li><a href="#3">3. 性能优化</a></li>
+  <li><a href="#4">4. 测试与验证</a></li>
+<li><a href="#_2">实际应用示例</a></li>
+<li><a href="#_3">总结</a></li>
+  <li><a href="#_4">关键数据</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="agentagent-skills">为现实世界打造智能 Agent：Agent Skills</h1>
+<p>随着模型能力的提升，我们现在可以构建通用型 Agent，让它们与完整的计算环境进行交互。例如，Claude Code 可以使用读写文件、执行 bash 命令和搜索代码库等工具来完成跨领域的复杂任务。</p>
+<p>这促使我们创建了 <strong>Agent Skills</strong>：一种由指令、脚本和资源组成的有组织的文件夹结构，Agent 可以访问这些内容来完成特定任务。</p>
+<p><img alt="激活 Skills" src="images/2ed547f3a887.jpg" />
+<em>图 1：激活 Skill 只需编写一个包含自定义指令的 SKILL.md 文件</em></p>
+<p>为 Agent 构建 Skill 就像为新员工准备入职指南。不同的是，Agent 不需要一次性阅读整本手册，而是可以在需要时动态探索和加载相关部分。</p>
+<h2 id="skill">Skill 的解剖结构</h2>
+<p>让我们通过一个真实示例来了解 Skills 的实际应用：这是支持 Claude Code 对 PDF 文件进行推理的 Skill 之一。</p>
+<p>最简单的情况下，Skill 是一个包含 <code>SKILL.md</code> 文件的目录。该文件必须以 YAML 格式的元数据开头：</p>
+<div class="codehilite"><pre><span></span><code><span class="nn">---</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pdf</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">处理和分析 PDF 文件</span>
+<span class="nt">triggers</span><span class="p">:</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;PDF&quot;</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;</span><span class="err">\</span><span class="s">.pdf$&quot;</span>
+<span class="nn">---</span>
+</code></pre></div> <p><img alt="SKILL.md 文件结构" src="images/0b568ab1fcf4.jpg" />
+<em>图 2：SKILL.md 文件的解剖结构，包含元数据（名称、描述）和具体操作相关的上下文</em></p>
+<p>这些元数据是渐进式披露的第一层级：它只提供足够的信息让 Agent 判断何时应该使用该 Skill。</p>
+<h3 id="_1">渐进式内容加载</h3>
+<p>随着 Skill 变得越来越复杂，单个 <code>SKILL.md</code> 可能无法容纳所有上下文，或者需要包含 Agent 可以执行的代码。</p>
+<p>在下面展示的 PDF Skill 中，<code>SKILL.md</code> 引用了两个额外的文件（<code>reference.md</code> 和 <code>forms.md</code>），并包含一个 Agent 可以执行的 Python 脚本（<code>reader.py</code>）。</p>
+<p><img alt="多文件 Skill 结构" src="images/771b12d9dbce.jpg" />
+<em>图 3：如何将额外内容打包到 SKILL.md 文件中</em></p>
+<p><strong>渐进式披露</strong>是使 Agent Skills 灵活且可扩展的核心设计原则。与人类阅读培训材料的方式类似，Agent 可以先浏览高层次概述，然后在需要时深入了解特定部分的细节。</p>
+<p>具有文件系统和代码执行工具的 Agent 不需要将整个 Skill 的内容读入上下文窗口。相反，它们可以：</p>
+<ol>
+<li><strong>浏览</strong> Skill 目录以了解可用的资源</li>
+<li><strong>选择性读取</strong>所需的特定文件</li>
+<li><strong>执行</strong>包含的脚本来完成任务</li>
+</ol>
+<p>这种方法有几个关键优势：</p>
+<ul>
+<li><strong>效率</strong>：只加载完成任务所需的内容</li>
+<li><strong>可扩展性</strong>：Skills 可以包含大量资源而不会填满上下文窗口</li>
+<li><strong>灵活性</strong>：同一个 Skill 可以支持简单和复杂的用例</li>
+</ul>
+<p><img alt="渐进式披露原理" src="images/b1074b509d42.jpg" />
+<em>图 4：Skills 中上下文的渐进式披露过程</em></p>
+<h2 id="skills">Skills 与上下文窗口</h2>
+<p>下图展示了当用户消息触发 Skill 时，上下文窗口如何变化：</p>
+<p><img alt="上下文窗口变化" src="images/dd18d4d82937.jpg" />
+<em>图 5：Skills 在上下文窗口中的触发过程</em></p>
+<p>操作序列如下：</p>
+<ol>
+<li><strong>初始状态</strong>：上下文窗口包含核心系统提示词和每个已安装 Skill 的元数据（名称、描述、触发器）</li>
+<li><strong>用户请求</strong>：用户发送消息"分析这个 PDF"，触发了 PDF Skill</li>
+<li><strong>Skill 激活</strong>：系统将 <code>SKILL.md</code> 的完整内容加载到上下文窗口中</li>
+<li><strong>Agent 探索</strong>：Agent 可以使用文件系统工具读取引用的文件（<code>reference.md</code>、<code>forms.md</code>）</li>
+<li><strong>动态加载</strong>：只有 Agent 实际请求的文件才会被读入上下文</li>
+</ol>
+<p>这种设计使得可以安装数十个甚至数百个 Skills，而不会耗尽上下文窗口。</p>
+<h2 id="skills_1">Skills 与代码执行</h2>
+<p>Skills 也可以包含代码，供 Claude 自主决定何时执行为工具。</p>
+<p><img alt="代码执行流程" src="images/954720d42b5d.jpg" />
+<em>图 6：通过 Skills 执行代码的流程</em></p>
+<p>大语言模型擅长许多任务，但某些操作更适合用传统代码来处理。例如：</p>
+<ul>
+<li><strong>解析结构化数据</strong>：提取 PDF 表格、解析 JSON、处理 XML</li>
+<li><strong>执行精确计算</strong>：数学运算、数据转换、格式化</li>
+<li><strong>与外部系统交互</strong>：API 调用、数据库查询、文件操作</li>
+</ul>
+<p>在我们的示例中，PDF Skill 包含一个预先编写的 Python 脚本，用于读取 PDF 并提取所有文本、表格和表单字段。Agent 可以调用这个脚本，而不是尝试自己解析 PDF 格式（这将效率低下且容易出错）。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># reader.py - PDF 解析工具</span>
+<span class="k">def</span> <span class="nf">extract_pdf_content</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">):</span>
+<span class="w"> </span><span class="sd">&quot;&quot;&quot;提取 PDF 的文本、表格和表单字段&quot;&quot;&quot;</span> <span class="c1"># 使用专业库如 PyPDF2、pdfplumber 等</span> <span class="k">return</span> <span class="p">{</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">extracted_text</span><span class="p">,</span> <span class="s1">&#39;tables&#39;</span><span class="p">:</span> <span class="n">extracted_tables</span><span class="p">,</span> <span class="s1">&#39;forms&#39;</span><span class="p">:</span> <span class="n">form_fields</span> <span class="p">}</span>
+</code></pre></div> <p>这种方法结合了 LLM 的优势（理解用户意图、生成响应）和传统代码的优势（可靠的数据处理）。</p>
+<h2 id="skills_2">开发与评估 Skills</h2>
+<p>创建高质量的 Skills 需要迭代开发和严格的测试。我们的流程包括：</p>
+<h3 id="1">1. 原型设计</h3>
+<ul>
+<li>从最小可行的 Skill 开始（只有 <code>SKILL.md</code>）</li>
+<li>在真实用例上测试</li>
+<li>根据 Agent 的表现进行迭代</li>
+</ul>
+<h3 id="2">2. 结构化组织</h3>
+<ul>
+<li>将复杂指令分解为多个文件</li>
+<li>使用清晰的命名约定</li>
+<li>添加示例和参考文档</li>
+</ul>
+<h3 id="3">3. 性能优化</h3>
+<ul>
+<li>监控上下文窗口使用情况</li>
+<li>优化触发器模式以减少误触发</li>
+<li>平衡详细程度与简洁性</li>
+</ul>
+<h3 id="4">4. 测试与验证</h3>
+<ul>
+<li>创建测试用例集</li>
+<li>验证 Skill 在各种场景下的表现</li>
+<li>确保与其他 Skills 良好协作</li>
+</ul>
+<h2 id="_2">实际应用示例</h2>
+<p>让我们看一个完整的工作流程：</p>
+<p><strong>用户请求</strong>："分析这个研究论文 PDF，提取关键发现并总结方法论"</p>
+<p><strong>Agent 执行流程</strong>：</p>
+<ol>
+<li>✅ 识别触发词"PDF"，激活 PDF Skill</li>
+<li>✅ 读取 <code>SKILL.md</code> 了解基本能力</li>
+<li>✅ 执行 <code>reader.py</code> 提取 PDF 内容</li>
+<li>✅ 读取 <code>reference.md</code> 了解如何处理学术论文</li>
+<li>✅ 分析提取的文本，识别方法论部分</li>
+<li>✅ 生成结构化摘要</li>
+</ol>
+<p>整个过程中，Agent 只加载了必需的内容，保持了上下文窗口的效率使用。</p>
+<h2 id="_3">总结</h2>
+<p>Agent Skills 代表了构建智能 Agent 的全新范式：</p>
+<ul>
+<li>✅ <strong>模块化</strong>：每个 Skill 是独立的功能单元</li>
+<li>✅ <strong>可扩展</strong>：通过渐进式披露支持大规模资源库</li>
+<li>✅ <strong>灵活</strong>：结合 LLM 推理与传统代码执行</li>
+<li>✅ <strong>高效</strong>：只在需要时加载内容</li>
+</ul>
+<p>通过 Agent Skills，我们让 AI Agent 能够像熟练的专业人员一样工作——拥有丰富的知识库，知道何时查阅参考资料，并能使用正确的工具完成任务。</p>
+<p>这不仅仅是技术创新，更是为 AI Agent 在现实世界中发挥作用奠定了基础。</p>
+<hr />
+<h3 id="_4">关键数据</h3>
+<ul>
+<li>📊 <strong>上下文效率</strong>：通过渐进式披露，可以安装 100+ Skills 而不耗尽上下文</li>
+<li>🎯 <strong>触发精度</strong>：使用模式匹配确保 Skill 在正确时机激活</li>
+<li>🔧 <strong>代码执行</strong>：结合 LLM 推理与传统代码的可靠性</li>
+<li>📈 <strong>可扩展性</strong>：从简单的单文件 Skill 到包含多个模块的复杂系统</li>
+</ul>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-10-29 09:41:45<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

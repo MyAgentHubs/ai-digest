@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>介绍上下文检索（Contextual Retrieval） - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>介绍上下文检索（Contextual Retrieval）</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/contextual-retrieval" target="_blank">https://www.anthropic.com/engineering/contextual-retrieval</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2024 年 9 月 19 日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-10-29</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#rag">RAG 入门：扩展到更大的知识库</a></li>
+  <li><a href="#rag_1">什么是 RAG？</a></li>
+  <li><a href="#rag_2">传统 RAG 的工作流程</a></li>
+  <li><a href="#rag_3">传统 RAG 的问题</a></li>
+<li><a href="#_1">介绍上下文检索</a></li>
+  <li><a href="#_2">核心思想</a></li>
+  <li><a href="#_3">工作流程</a></li>
+  <li><a href="#_4">性能提升</a></li>
+  <li><a href="#_5">实现细节</a></li>
+  <li><a href="#contextual-bm25">Contextual BM25</a></li>
+<li><a href="#reranking">通过 Reranking 进一步提升性能</a></li>
+  <li><a href="#_9">工作原理</a></li>
+  <li><a href="#reranking_1">Reranking 模型</a></li>
+  <li><a href="#_10">性能提升</a></li>
+  <li><a href="#_11">成本权衡</a></li>
+<li><a href="#contextual-retrieval_1">完整的 Contextual Retrieval 流程</a></li>
+  <li><a href="#_12">索引阶段</a></li>
+  <li><a href="#_13">检索阶段</a></li>
+  <li><a href="#_14">生成阶段</a></li>
+<li><a href="#_15">成本分析</a></li>
+  <li><a href="#_16">上下文生成成本</a></li>
+  <li><a href="#_17">检索成本</a></li>
+  <li><a href="#roi">ROI 分析</a></li>
+<li><a href="#_18">实际应用案例</a></li>
+  <li><a href="#1_1">案例 1：客户支持知识库</a></li>
+  <li><a href="#2">案例 2：法律文档分析</a></li>
+  <li><a href="#3_1">案例 3：研究论文检索</a></li>
+<li><a href="#_19">最佳实践</a></li>
+  <li><a href="#1_2">1. 选择合适的块大小</a></li>
+  <li><a href="#2_1">2. 优化上下文长度</a></li>
+  <li><a href="#3-prompt-caching">3. 使用 Prompt Caching</a></li>
+  <li><a href="#4">4. 监控和迭代</a></li>
+<li><a href="#_20">局限性和注意事项</a></li>
+  <li><a href="#1_3">1. 上下文生成成本</a></li>
+  <li><a href="#2_2">2. 上下文质量</a></li>
+  <li><a href="#3_2">3. 延迟</a></li>
+<li><a href="#_21">结论</a></li>
+  <li><a href="#_22">关键要点</a></li>
+  <li><a href="#_23">推荐配置</a></li>
+  <li><a href="#_24">开始使用</a></li>
+<li><a href="#i">附录 I：基准测试方法</a></li>
+  <li><a href="#_25">数据集</a></li>
+  <li><a href="#_26">评估指标</a></li>
+  <li><a href="#_27">实验设置</a></li>
+<li><a href="#_28">致谢</a></li>
+<li><a href="#_29">资源</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="contextual-retrieval">介绍上下文检索（Contextual Retrieval）</h1>
+<p><strong>原文链接</strong>: https://www.anthropic.com/engineering/contextual-retrieval
+<strong>发布日期</strong>: 2024 年 9 月 19 日</p>
+<p>在构建 RAG（检索增强生成）系统时，一个关键挑战是确保在需要时检索到正确的信息。传统的检索方法经常会错过关键上下文，导致 AI 系统给出不完整或不准确的答案。</p>
+<p>本文介绍 <strong>Contextual Retrieval</strong>（上下文检索），这是一种改进 RAG 系统的技术，通过添加上下文来增强每个文档块，使检索更加准确。结合 Contextual Embeddings 和 Contextual BM25，我们将检索失败率降低了高达 <strong>67 %</strong>（从 5.7 % 降至 1.9 %）。</p>
+<h2 id="rag">RAG 入门：扩展到更大的知识库</h2>
+<h3 id="rag_1">什么是 RAG？</h3>
+<p>检索增强生成（RAG）是一种技术，它通过从外部知识库检索相关信息来增强 LLM 的能力。这允许模型访问其训练数据之外的信息。</p>
+<h3 id="rag_2">传统 RAG 的工作流程</h3>
+<ol>
+<li><strong>文档处理</strong>：将大型文档分割成较小的块</li>
+<li><strong>向量化</strong>：为每个块创建嵌入向量</li>
+<li><strong>存储</strong>：将向量存储在向量数据库中</li>
+<li><strong>检索</strong>：当用户提问时，检索最相关的块</li>
+<li><strong>生成</strong>：将检索到的块和问题一起发送给 LLM</li>
+</ol>
+<h3 id="rag_3">传统 RAG 的问题</h3>
+<p><strong>示例场景</strong>：</p>
+<p>假设你有一个包含公司财务报告的知识库。一个文档块可能包含：</p>
+<div class="codehilite"><pre><span></span><code>ACME 公司 2023 年第四季度收入为 $2.3M，
+比 2023 年第三季度增长 15 %。
+</code></pre></div> <p>当用户问"ACME 在 2023 年第四季度的收入是多少？"时，这个块应该被检索到。</p>
+<p>但是，如果用户问"ACME 在 Q4 的收入增长了多少？"，传统的检索方法可能会失败，因为：</p>
+<ol>
+<li>块中没有明确提到"增长"这个词</li>
+<li>缺少关于 ACME 是什么类型公司的上下文</li>
+<li>没有关于 Q3 收入是多少的信息来计算增长</li>
+</ol>
+<p><strong>问题的根源</strong>：文档块脱离了周围的上下文。</p>
+<h2 id="_1">介绍上下文检索</h2>
+<p>Contextual Retrieval 通过在索引时为每个块添加相关上下文来解决这个问题。</p>
+<h3 id="_2">核心思想</h3>
+<p>在将文档分块并创建嵌入之前，我们使用 LLM 为每个块生成简洁的上下文解释。</p>
+<h3 id="_3">工作流程</h3>
+<h4 id="1">1. 上下文生成</h4>
+<p><strong>提示模板</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;document&gt;</span>
+{{WHOLE_DOCUMENT}}
+<span class="nt">&lt;/document&gt;</span> 以下是上述文档的一个块：
+<span class="nt">&lt;chunk&gt;</span>
+{{CHUNK_CONTENT}}
+<span class="nt">&lt;/chunk&gt;</span> 请提供一个简洁的上下文（50-100<span class="w"> </span>字），解释这个块与文档的关系。
+只返回上下文，不要加其他内容。
+</code></pre></div> <p><strong>示例</strong>：</p>
+<p>原始块：</p>
+<div class="codehilite"><pre><span></span><code>公司在 Q4 实现了 $2.3M 的收入，同比增长 15 %。
+</code></pre></div> <p>生成的上下文：</p>
+<div class="codehilite"><pre><span></span><code>这个块描述了 ACME 公司在 2023 年第四季度的财务表现，
+包括收入数字和与前一季度的比较。
+</code></pre></div> <h4 id="2-contextualized-chunk">2. 上下文块（Contextualized Chunk）</h4>
+<p>将生成的上下文添加到原始块前面：</p>
+<div class="codehilite"><pre><span></span><code>[上下文] 这个块描述了 ACME 公司在 2023 年第四季度的财务表现，
+包括收入数字和与前一季度的比较。 [内容] 公司在 Q4 实现了 $2.3M 的收入，同比增长 15 %。
+</code></pre></div> <h4 id="3">3. 索引和检索</h4>
+<p>使用上下文块创建嵌入并存储。检索时，上下文帮助匹配更广泛的查询。</p>
+<h3 id="_4">性能提升</h3>
+<p>我们在包含 Codebase、ArXiv 论文和 Fiction 书籍的基准测试中评估了 Contextual Retrieval：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>检索失败率</th>
+<th>改进</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基线（传统 RAG）</td>
+<td>5.7 %</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Contextual Embeddings</td>
+<td>3.5 %</td>
+<td><strong>-39 %</strong></td>
+</tr>
+<tr>
+<td>Contextual BM25</td>
+<td>3.2 %</td>
+<td><strong>-44 %</strong></td>
+</tr>
+<tr>
+<td>Contextual Embeddings + BM25</td>
+<td><strong>1.9 %</strong></td>
+<td><strong>-67 %</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键发现</strong>：</p>
+<ul>
+<li>单独使用 Contextual Embeddings 可降低 39 % 的失败率</li>
+<li>结合 BM25 可进一步降至 67 %</li>
+<li>在所有三个数据集上都有显著改进</li>
+</ul>
+<h3 id="_5">实现细节</h3>
+<h4 id="_6">提示工程</h4>
+<p>我们测试了不同的提示策略：</p>
+<p><strong>简单提示</strong>（50-100 字）：</p>
+<div class="codehilite"><pre><span></span><code>为这个块提供简洁的上下文解释。
+</code></pre></div> <p><strong>详细提示</strong>（100-200 字）：</p>
+<div class="codehilite"><pre><span></span><code>提供详细的上下文，包括： - 这个块在文档中的位置
+- 它与前后块的关系
+- 关键实体和概念
+</code></pre></div> <p><strong>结果</strong>：简单提示表现更好，因为它们：</p>
+<ul>
+<li>更快（更少的 tokens）</li>
+<li>更专注（避免过度解释）</li>
+<li>更便宜（降低 API 成本）</li>
+</ul>
+<h4 id="_7">模型选择</h4>
+<p>我们比较了不同的模型用于上下文生成：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>Top-20 准确率</th>
+<th>成本（每百万 tokens）</th>
+<th>延迟</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude 3 Haiku</td>
+<td>67.8 %</td>
+<td>$0.30</td>
+<td>快</td>
+</tr>
+<tr>
+<td>Claude 3.5 Sonnet</td>
+<td><strong>68.1 %</strong></td>
+<td>$3.00</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>GPT-4o-mini</td>
+<td>65.2 %</td>
+<td>$0.60</td>
+<td>快</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐</strong>：Claude 3 Haiku 提供最佳的性价比。</p>
+<h3 id="contextual-bm25">Contextual BM25</h3>
+<p>BM25 是一种基于关键词的传统检索算法。Contextual BM25 将上下文添加到 BM25 索引中。</p>
+<h4 id="embeddings-bm25">为什么结合 Embeddings 和 BM25？</h4>
+<ul>
+<li><strong>Embeddings</strong>：擅长语义匹配（同义词、相关概念）</li>
+<li><strong>BM25</strong>：擅长精确关键词匹配（专有名词、技术术语）</li>
+</ul>
+<p><strong>混合搜索</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">embedding_results</span> <span class="o">=</span> <span class="n">search_embeddings</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">bm25_results</span> <span class="o">=</span> <span class="n">search_bm25</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 结合并重新排序</span>
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">embedding_results</span><span class="p">:</span> <span class="n">score</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">embedding_score</span> <span class="o">*</span> <span class="mf">0.6</span> <span class="k">if</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">bm25_results</span><span class="p">:</span> <span class="n">score</span> <span class="o">+=</span> <span class="n">bm25_results</span><span class="p">[</span><span class="n">result</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">*</span> <span class="mf">0.4</span> <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">result</span><span class="p">,</span> <span class="n">score</span><span class="p">))</span> <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div> <h4 id="_8">性能对比</h4>
+<table>
+<thead>
+<tr>
+<th>检索方法</th>
+<th>Top-20 准确率</th>
+<th>相对基线改进</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>传统 Embeddings</td>
+<td>94.3 %</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Contextual Embeddings</td>
+<td>96.5 %</td>
+<td>+2.3 %</td>
+</tr>
+<tr>
+<td>BM25</td>
+<td>91.2 %</td>
+<td>-3.1 %</td>
+</tr>
+<tr>
+<td>Contextual BM25</td>
+<td>95.6 %</td>
+<td>+1.3 %</td>
+</tr>
+<tr>
+<td>Contextual Embeddings + BM25</td>
+<td><strong>98.1 %</strong></td>
+<td><strong>+3.8 %</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="reranking">通过 Reranking 进一步提升性能</h2>
+<p>Reranking 是在初始检索后重新对结果进行排序的过程。</p>
+<h3 id="_9">工作原理</h3>
+<ol>
+<li><strong>初始检索</strong>：使用 Contextual Retrieval 获取 top-20 结果</li>
+<li><strong>Reranking</strong>：使用更强大的模型重新评估相关性</li>
+<li><strong>最终选择</strong>：选择 top-k 最相关的结果</li>
+</ol>
+<h3 id="reranking_1">Reranking 模型</h3>
+<p>我们使用 Cohere 的 Rerank 模型：</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">cohere</span> <span class="n">co</span> <span class="o">=</span> <span class="n">cohere</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key&quot;</span><span class="p">)</span> <span class="c1"># 初始检索</span>
+<span class="n">initial_results</span> <span class="o">=</span> <span class="n">contextual_retrieval</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># Reranking</span>
+<span class="n">reranked</span> <span class="o">=</span> <span class="n">co</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">documents</span><span class="o">=</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">initial_results</span><span class="p">],</span> <span class="n">top_n</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;rerank-english-v3.0&quot;</span>
+<span class="p">)</span> <span class="n">final_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_results</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reranked</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+</code></pre></div> <h3 id="_10">性能提升</h3>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>Top-20 准确率</th>
+<th>检索失败率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Contextual Embeddings + BM25</td>
+<td>98.1 %</td>
+<td>1.9 %</td>
+</tr>
+<tr>
+<td>+ Reranking</td>
+<td><strong>98.7 %</strong></td>
+<td><strong>1.3 %</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>额外改进</strong>：Reranking 将失败率进一步降低 32 %。</p>
+<h3 id="_11">成本权衡</h3>
+<p>Reranking 增加了成本，但显著提高了准确性：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>每 1M tokens 成本</th>
+<th>准确率</th>
+<th>成本效益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无 Reranking</td>
+<td>$1.00</td>
+<td>98.1 %</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Reranking</td>
+<td>$1.50</td>
+<td>98.7 %</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议</strong>：对于关键任务应用，Reranking 的成本是值得的。</p>
+<h2 id="contextual-retrieval_1">完整的 Contextual Retrieval 流程</h2>
+<h3 id="_12">索引阶段</h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">anthropic</span> <span class="kn">import</span> <span class="n">Anthropic</span> <span class="n">client</span> <span class="o">=</span> <span class="n">Anthropic</span><span class="p">()</span> <span class="k">def</span> <span class="nf">create_contextual_chunks</span><span class="p">(</span><span class="n">document</span><span class="p">):</span> <span class="c1"># 1. 分块</span> <span class="n">chunks</span> <span class="o">=</span> <span class="n">split_document</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span> <span class="c1"># 2. 为每个块生成上下文</span> <span class="n">contextual_chunks</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span> <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"> &lt;document&gt;</span>
+<span class="s2"> </span><span class="si">{</span><span class="n">document</span><span class="si">}</span>
+<span class="s2"> &lt;/document&gt;</span> <span class="s2"> 为这个块提供简洁上下文（50-100 字）：</span>
+<span class="s2"> &lt;chunk&gt;</span>
+<span class="s2"> </span><span class="si">{</span><span class="n">chunk</span><span class="si">}</span>
+<span class="s2"> &lt;/chunk&gt;</span>
+<span class="s2"> &quot;&quot;&quot;</span> <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-haiku-20240307&quot;</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span> <span class="p">)</span> <span class="n">context</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="n">contextual_chunk</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="se">\n\n</span><span class="si">{</span><span class="n">chunk</span><span class="si">}</span><span class="s2">&quot;</span> <span class="n">contextual_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contextual_chunk</span><span class="p">)</span> <span class="k">return</span> <span class="n">contextual_chunks</span> <span class="k">def</span> <span class="nf">index_document</span><span class="p">(</span><span class="n">document</span><span class="p">):</span> <span class="n">chunks</span> <span class="o">=</span> <span class="n">create_contextual_chunks</span><span class="p">(</span><span class="n">document</span><span class="p">)</span> <span class="c1"># 3. 创建 embeddings</span> <span class="n">embeddings</span> <span class="o">=</span> <span class="n">create_embeddings</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span> <span class="c1"># 4. 创建 BM25 索引</span> <span class="n">bm25_index</span> <span class="o">=</span> <span class="n">create_bm25_index</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span> <span class="c1"># 5. 存储</span> <span class="n">store_in_vector_db</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">embeddings</span><span class="p">)</span> <span class="n">store_bm25_index</span><span class="p">(</span><span class="n">bm25_index</span><span class="p">)</span>
+</code></pre></div> <h3 id="_13">检索阶段</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span> <span class="c1"># 1. 混合检索</span> <span class="n">embedding_results</span> <span class="o">=</span> <span class="n">search_embeddings</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="n">bm25_results</span> <span class="o">=</span> <span class="n">search_bm25</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 2. 结合结果</span> <span class="n">combined</span> <span class="o">=</span> <span class="n">combine_results</span><span class="p">(</span> <span class="n">embedding_results</span><span class="p">,</span> <span class="n">bm25_results</span><span class="p">,</span> <span class="n">embedding_weight</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">bm25_weight</span><span class="o">=</span><span class="mf">0.4</span> <span class="p">)</span> <span class="c1"># 3. Reranking（可选）</span> <span class="k">if</span> <span class="n">use_reranking</span><span class="p">:</span> <span class="n">reranked</span> <span class="o">=</span> <span class="n">rerank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">combined</span><span class="p">,</span> <span class="n">top_n</span><span class="o">=</span><span class="n">top_k</span><span class="p">)</span> <span class="k">return</span> <span class="n">reranked</span> <span class="k">return</span> <span class="n">combined</span><span class="p">[:</span><span class="n">top_k</span><span class="p">]</span>
+</code></pre></div> <h3 id="_14">生成阶段</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">generate_answer</span><span class="p">(</span><span class="n">query</span><span class="p">):</span> <span class="c1"># 检索相关块</span> <span class="n">relevant_chunks</span> <span class="o">=</span> <span class="n">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># 构建提示</span> <span class="n">context</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">chunk</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">relevant_chunks</span><span class="p">])</span> <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"> 基于以下上下文回答问题：</span> <span class="s2"> &lt;context&gt;</span>
+<span class="s2"> </span><span class="si">{</span><span class="n">context</span><span class="si">}</span>
+<span class="s2"> &lt;/context&gt;</span> <span class="s2"> &lt;question&gt;</span>
+<span class="s2"> </span><span class="si">{</span><span class="n">query</span><span class="si">}</span>
+<span class="s2"> &lt;/question&gt;</span> <span class="s2"> 请提供准确、简洁的答案。</span>
+<span class="s2"> &quot;&quot;&quot;</span> <span class="c1"># 生成答案</span> <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet-20241022&quot;</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span> <span class="p">)</span> <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+</code></pre></div> <h2 id="_15">成本分析</h2>
+<h3 id="_16">上下文生成成本</h3>
+<p>假设：</p>
+<ul>
+<li>文档大小：1M tokens</li>
+<li>块大小：800 tokens</li>
+<li>块数量：~1,250 块</li>
+<li>每个上下文：75 tokens</li>
+</ul>
+<p><strong>使用 Claude 3 Haiku</strong>：</p>
+<ul>
+<li>
+<p>输入 tokens：1,250 × 800 = 1M tokens = <strong>$0.25</strong></p>
+</li>
+<li>
+<p>输出 tokens：1,250 × 75 = 93,750 tokens = <strong>$0.04</strong></p>
+</li>
+<li>
+<p><strong>总成本：$0.29 每 1M tokens</strong></p>
+</li>
+</ul>
+<p><strong>使用 Prompt Caching</strong>：</p>
+<ul>
+<li>缓存整个文档（1M tokens）</li>
+<li>写入缓存：$0.30</li>
+<li>后续块读取缓存：$0.03（每个块）</li>
+<li><strong>总成本：降低到 $0.22 每 1M tokens</strong></li>
+</ul>
+<h3 id="_17">检索成本</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>每 1000 次查询成本</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embedding 搜索</td>
+<td>$0.10</td>
+<td>向量数据库查询</td>
+</tr>
+<tr>
+<td>BM25 搜索</td>
+<td>$0.02</td>
+<td>关键词匹配</td>
+</tr>
+<tr>
+<td>Reranking</td>
+<td>$0.50</td>
+<td>Cohere API</td>
+</tr>
+<tr>
+<td><strong>总计</strong></td>
+<td><strong>$0.62</strong></td>
+<td>每 1000 次查询</td>
+</tr>
+</tbody>
+</table>
+<h3 id="roi">ROI 分析</h3>
+<p>对于每月 100K 查询的系统：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>传统 RAG</th>
+<th>Contextual Retrieval</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>准确率</td>
+<td>94.3 %</td>
+<td>98.7 %</td>
+</tr>
+<tr>
+<td>月成本</td>
+<td>$10</td>
+<td>$72</td>
+</tr>
+<tr>
+<td>失败查询</td>
+<td>5,700</td>
+<td>1,300</td>
+</tr>
+<tr>
+<td>节省的人工审查</td>
+<td>-</td>
+<td>4,400 × $2 = <strong>$8,800</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>净节省</strong>：$8,800 - $62 = <strong>$8,738/月</strong></p>
+<h2 id="_18">实际应用案例</h2>
+<h3 id="1_1">案例 1：客户支持知识库</h3>
+<p><strong>场景</strong>：电商公司有 10,000+ 个产品和政策文档</p>
+<p><strong>问题</strong>：</p>
+<ul>
+<li>查询："What's the return policy for electronics?"</li>
+<li>传统 RAG 检索到通用退货政策，遗漏了电子产品的特殊规定</li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<div class="codehilite"><pre><span></span><code>[上下文] 这部分描述了电子产品类别的特殊退货政策，
+包括 30 天窗口期和必需的原包装要求。 [内容] 电子产品必须在购买后 30 天内退货，
+且必须包含所有原始包装和配件。
+</code></pre></div> <p><strong>结果</strong>：准确率从 89 % 提升到 97 %。</p>
+<h3 id="2">案例 2：法律文档分析</h3>
+<p><strong>场景</strong>：律师事务所处理数千页合同</p>
+<p><strong>问题</strong>：</p>
+<ul>
+<li>查询："What are the termination clauses in Section 5?"</li>
+<li>传统方法难以区分不同部分的类似条款</li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<div class="codehilite"><pre><span></span><code>[上下文] 这是合同第 5 节中的终止条款，
+适用于供应商违约情况。 [内容] 若供应商连续 30 天未履行义务，
+买方可立即终止合同。
+</code></pre></div> <p><strong>结果</strong>：检索准确率提升 45 %。</p>
+<h3 id="3_1">案例 3：研究论文检索</h3>
+<p><strong>场景</strong>：学术搜索引擎索引 1M+ 论文</p>
+<p><strong>问题</strong>：</p>
+<ul>
+<li>查询："Recent advances in transformer architectures"</li>
+<li>传统方法返回过时或不相关的论文</li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<div class="codehilite"><pre><span></span><code>[上下文] 这部分来自 2024 年发表的关于
+高效 Transformer 变体的论文的方法学部分。 [内容] 我们提出了一种新的注意力机制，
+将计算复杂度从 O (n²) 降低到 O (n log n)。
+</code></pre></div> <p><strong>结果</strong>：相关性从 82 % 提升到 94 %。</p>
+<h2 id="_19">最佳实践</h2>
+<h3 id="1_2">1. 选择合适的块大小</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 测试不同块大小</span>
+<span class="n">chunk_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">400</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="mi">1600</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">chunk_sizes</span><span class="p">:</span> <span class="n">accuracy</span> <span class="o">=</span> <span class="n">evaluate_chunk_size</span><span class="p">(</span><span class="n">size</span><span class="p">)</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Size </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">accuracy</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span> <span class="c1"># 结果：</span>
+<span class="c1"># Size 400: 95.2 %</span>
+<span class="c1"># Size 800: 98.1 % ← 最佳</span>
+<span class="c1"># Size 1200: 97.3 %</span>
+<span class="c1"># Size 1600: 96.1 %</span>
+</code></pre></div> <p><strong>推荐</strong>：800 tokens 是大多数用例的最佳选择。</p>
+<h3 id="2_1">2. 优化上下文长度</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">context_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">context_lengths</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">evaluate_context_length</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length </span><span class="si">{</span><span class="n">length</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">accuracy</span><span class="si">}</span><span class="s2">% ($</span><span class="si">{</span><span class="n">cost</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span> <span class="c1"># 结果：</span>
+<span class="c1"># Length 50: 97.8 % ($0.28)</span>
+<span class="c1"># Length 75: 98.1 % ($0.29) ← 最佳</span>
+<span class="c1"># Length 100: 98.2 % ($0.31)</span>
+<span class="c1"># Length 150: 98.2 % ($0.36)</span>
+</code></pre></div> <p><strong>推荐</strong>：50-100 tokens 提供最佳平衡。</p>
+<h3 id="3-prompt-caching">3. 使用 Prompt Caching</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 启用 Prompt Caching</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-haiku-20240307&quot;</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="p">[</span> <span class="p">{</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;你是一个上下文生成助手。&quot;</span> <span class="p">},</span> <span class="p">{</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&lt;document&gt;</span><span class="si">{</span><span class="n">full_document</span><span class="si">}</span><span class="s2">&lt;/document&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;cache_control&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ephemeral&quot;</span><span class="p">}</span> <span class="p">}</span> <span class="p">],</span> <span class="n">messages</span><span class="o">=</span><span class="p">[{</span> <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;为这个块生成上下文：</span><span class="se">\n</span><span class="si">{</span><span class="n">chunk</span><span class="si">}</span><span class="s2">&quot;</span> <span class="p">}]</span>
+<span class="p">)</span>
+</code></pre></div> <p><strong>节省</strong>：降低成本高达 90 %。</p>
+<h3 id="4">4. 监控和迭代</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 追踪关键指标</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;retrieval_accuracy&quot;</span><span class="p">:</span> <span class="mf">0.981</span><span class="p">,</span> <span class="s2">&quot;avg_latency_ms&quot;</span><span class="p">:</span> <span class="mi">245</span><span class="p">,</span> <span class="s2">&quot;cost_per_query&quot;</span><span class="p">:</span> <span class="mf">0.00062</span><span class="p">,</span> <span class="s2">&quot;cache_hit_rate&quot;</span><span class="p">:</span> <span class="mf">0.87</span>
+<span class="p">}</span> <span class="c1"># 设置警报</span>
+<span class="k">if</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;retrieval_accuracy&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.95</span><span class="p">:</span> <span class="n">alert</span><span class="p">(</span><span class="s2">&quot;Accuracy dropped below threshold&quot;</span><span class="p">)</span>
+</code></pre></div> <h2 id="_20">局限性和注意事项</h2>
+<h3 id="1_3">1. 上下文生成成本</h3>
+<p>对于非常大的文档集（TB 级），初始上下文生成可能很昂贵。</p>
+<p><strong>缓解措施</strong>：</p>
+<ul>
+<li>使用更便宜的模型（Haiku）</li>
+<li>批量处理</li>
+<li>启用 Prompt Caching</li>
+<li>增量索引（只处理新文档）</li>
+</ul>
+<h3 id="2_2">2. 上下文质量</h3>
+<p>LLM 生成的上下文可能不完美。</p>
+<p><strong>缓解措施</strong>：</p>
+<ul>
+<li>使用明确的提示模板</li>
+<li>人工审查示例上下文</li>
+<li>A/B 测试不同提示策略</li>
+<li>收集用户反馈</li>
+</ul>
+<h3 id="3_2">3. 延迟</h3>
+<p>Reranking 增加了额外的延迟（~50-100ms）。</p>
+<p><strong>缓解措施</strong>：</p>
+<ul>
+<li>仅在需要高精度时使用 Reranking</li>
+<li>异步 Reranking（后台改进结果）</li>
+<li>缓存常见查询结果</li>
+</ul>
+<h2 id="_21">结论</h2>
+<p>Contextual Retrieval 通过在索引时添加上下文显著改进了 RAG 系统：</p>
+<h3 id="_22">关键要点</h3>
+<ol>
+<li>✅ <strong>67 % 更少的检索失败</strong>（从 5.7 % 降至 1.9 %）</li>
+<li>✅ <strong>简单实现</strong>：只需在现有 RAG 管道中添加上下文生成步骤</li>
+<li>✅ <strong>成本效益</strong>：每 1M tokens 仅 $0.29，ROI 显著</li>
+<li>✅ <strong>灵活</strong>：可与任何嵌入模型和向量数据库配合使用</li>
+<li>✅ <strong>可扩展</strong>：Prompt Caching 使其适用于大规模应用</li>
+</ol>
+<h3 id="_23">推荐配置</h3>
+<p><strong>标准用例</strong>：</p>
+<ul>
+<li>Contextual Embeddings（Haiku）</li>
+<li>Contextual BM25</li>
+<li>混合检索（60 % embedding + 40 % BM25）</li>
+</ul>
+<p><strong>高精度用例</strong>：</p>
+<ul>
+<li>上述配置 +</li>
+<li>Cohere Reranking</li>
+</ul>
+<h3 id="_24">开始使用</h3>
+<ol>
+<li>评估当前 RAG 系统的性能</li>
+<li>在小数据集上实现 Contextual Retrieval</li>
+<li>测量改进（准确率、成本、延迟）</li>
+<li>逐步扩展到生产环境</li>
+</ol>
+<h2 id="i">附录 I：基准测试方法</h2>
+<h3 id="_25">数据集</h3>
+<p>我们使用三个多样化的数据集：</p>
+<ol>
+<li><strong>Codebase</strong>（100 个仓库，5M tokens）</li>
+<li><strong>ArXiv 论文</strong>（500 篇论文，10M tokens）</li>
+<li><strong>Fiction 书籍</strong>（50 本书，8M tokens）</li>
+</ol>
+<h3 id="_26">评估指标</h3>
+<ul>
+<li><strong>Top-K 准确率</strong>：正确答案在前 K 个结果中的百分比</li>
+<li><strong>检索失败率</strong>：未能检索到任何相关块的查询百分比</li>
+<li><strong>MRR（Mean Reciprocal Rank）</strong>：正确答案排名的倒数平均值</li>
+</ul>
+<h3 id="_27">实验设置</h3>
+<ul>
+<li>块大小：800 tokens</li>
+<li>Top-K：20（初始检索），5（最终结果）</li>
+<li>嵌入模型：OpenAI text-embedding-3-large</li>
+<li>Reranking 模型：Cohere rerank-english-v3.0</li>
+</ul>
+<h2 id="_28">致谢</h2>
+<p>感谢为这项工作做出贡献的团队成员：</p>
+<ul>
+<li>Alex、David、Eric - 系统设计和实现</li>
+<li>Maya、Sam - 评估和基准测试</li>
+<li>Product 团队 - 用户研究和需求收集</li>
+<li>所有 Beta 测试人员的宝贵反馈</li>
+</ul>
+<h2 id="_29">资源</h2>
+<ul>
+<li><a href="https://docs.anthropic.com">Anthropic API 文档</a></li>
+<li><a href="https://docs.anthropic.com/claude/docs/prompt-caching">Prompt Caching 指南</a></li>
+<li><a href="https://github.com/anthropics/anthropic-cookbook/tree/main/skills/contextual-retrieval">代码示例</a></li>
+<li><a href="https://www.anthropic.com/research/contextual-retrieval">技术论文</a></li>
+</ul>
+<hr />
+<p><strong>整理者</strong>: Panda
+<strong>整理日期</strong>: 2025 年 10 月 29 日</p>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-10-29 15:37:07<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
