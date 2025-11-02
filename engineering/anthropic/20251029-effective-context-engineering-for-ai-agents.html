@@ -468,8 +468,16 @@
 </ol>
 <p><strong>性能曲线 (典型模型)</strong>：</p>
 <pre class="ascii-art">
-100 % │ ╱╲ │ ╱ ╲
-精度 │ ╱ ╲___ │ ╱ ╲___ │ ╱ ╲___ 50 % │ ╱ ╲____ │╱_____________________╲____ └──────────────────────────── 0 % 50 % 100 % 150 % 200 % 相对训练上下文长度
+100 % │           ╱╲
+      │          ╱  ╲
+精度  │         ╱    ╲___
+      │        ╱         ╲___
+      │       ╱              ╲___
+50 %  │      ╱                   ╲____
+      │╱_____________________        ╲____
+      └──────────────────────────────────────
+      0 %   50 %  100 %  150 %  200 %
+         相对训练上下文长度
 </pre>
 <p><img alt="提示工程 vs 上下文工程的对比" src="images/9a396bc6892c.png" /></p>
 <p><em>与编写提示的离散任务不同，上下文工程是迭代的，每次我们决定向模型传递什么时都会进行策划。</em></p>
@@ -569,7 +577,16 @@ tools = [ Tool (&quot;list_tables&quot;), # 返回 100 令牌 Tool (&quot;query&
 │ (只加载需要的)
 │
 └──────────────────────────────────────── ↓ [渐进式披露] 每次交互 → 改进检索策略 </pre> <p><strong>Claude Code 的实现</strong>：</p>
-<pre class="ascii-art"> 初始状态: CLAUDE.md (项目上下文) + 5 个最近文件引用 查询时: bash: head -20 large_data.csv (不加载全部) → 模型推断结构 → 发出 targeted 查询 结果: 令牌用量: 固定 (不随数据量线性增长) </pre> <hr />
+<pre class="ascii-art"> 初始状态:
+    CLAUDE.md (项目上下文) + 5 个最近文件引用
+
+查询时:
+    bash: head -20 large_data.csv (不加载全部)
+    → 模型推断结构
+    → 发出 targeted 查询
+
+结果:
+    令牌用量: 固定 (不随数据量线性增长) </pre> <hr />
 <h2 id="_4">三、上下文管理的三大策略</h2>
 <h3 id="31-compaction">3.1 压缩（Compaction）</h3>
 <p><strong>适用场景</strong>：长对话、迭代任务、保持流畅交互</p>
@@ -580,11 +597,34 @@ tools = [ Tool (&quot;list_tables&quot;), # 返回 100 令牌 Tool (&quot;query&
 新窗口 = 压缩摘要 + 最近 5 个文件 + 新输入 </pre> <p><strong>实现要点</strong>（基于文章）：</p>
 <pre class="ascii-art">
 # ⚠️ 常见错误：过度激进的压缩
-def bad_compaction (history): """丢弃所有实现细节 - 灾难性""" return "User asked for feature X" # 后续: "为什么要这样做?" → 上下文丢失 # ✅ 平衡方案：回忆优先，精度次之
-def good_compaction (history): """第一阶段：最大化回忆""" summary = model.summarize ( history, constraints={ "include": [ "architectural_decisions", "unresolved_bugs", "implementation_approach", "error_patterns" ], "exclude": [ "raw_tool_outputs", "duplicate_messages", "debug_logs" ] } ) """第二阶段：迭代消除冗余""" return compress_summary (summary, target_length=800) </pre> <h3 id="32-agentic-memory">3.2 结构化笔记（Agentic Memory）</h3>
+def bad_compaction(history):
+    """丢弃所有实现细节 - 灾难性"""
+    return "User asked for feature X"
+    # 后续: "为什么要这样做?" → 上下文丢失
+
+# ✅ 平衡方案：回忆优先，精度次之
+def good_compaction(history): """第一阶段：最大化回忆""" summary = model.summarize ( history, constraints={ "include": [ "architectural_decisions", "unresolved_bugs", "implementation_approach", "error_patterns" ], "exclude": [ "raw_tool_outputs", "duplicate_messages", "debug_logs" ] } ) """第二阶段：迭代消除冗余""" return compress_summary (summary, target_length=800) </pre> <h3 id="32-agentic-memory">3.2 结构化笔记（Agentic Memory）</h3>
 <p><strong>适用场景</strong>：长地平线任务、多阶段项目、知识积累</p>
 <p><strong>架构示例</strong>：</p>
-<pre class="ascii-art"> Agent 行为循环: 每 N 步 → [决策点] ├─ 更新 PROGRESS.md │ ├─ 当前目标 │ ├─ 已完成里程碑 │ └─ 待办事项 │ ├─ 更新 LEARNINGS.md │ ├─ 有效策略 │ ├─ 失败模式 │ └─ 发现的约束 │ └─ 更新 STATE.md ├─ 当前位置/配置 ├─ 探索过的分支 └─ 关键决策树 上下文检索时: 新窗口 ← PROGRESS.md + LEARNINGS.md + 当前任务文件 </pre> <p><strong>Pokemon 示例分析</strong>（文章引用）：</p>
+<pre class="ascii-art"> Agent 行为循环:
+    每 N 步 → [决策点]
+        ├─ 更新 PROGRESS.md
+        │   ├─ 当前目标
+        │   ├─ 已完成里程碑
+        │   └─ 待办事项
+        │
+        ├─ 更新 LEARNINGS.md
+        │   ├─ 有效策略
+        │   ├─ 失败模式
+        │   └─ 发现的约束
+        │
+        └─ 更新 STATE.md
+            ├─ 当前位置/配置
+            ├─ 探索过的分支
+            └─ 关键决策树
+
+上下文检索时:
+    新窗口 ← PROGRESS.md + LEARNINGS.md + 当前任务文件 </pre> <p><strong>Pokemon 示例分析</strong>（文章引用）：</p>
 <pre class="ascii-art"> Agent 维护笔记示例:
 "Route 1: Pikachu training
 - Current level: 2→10 (step 1234 of 5000)
@@ -596,8 +636,35 @@ def good_compaction (history): """第一阶段：最大化回忆""" summary = mo
 ✓ 令牌成本: 固定 (~200-300/次) </pre> <h3 id="33-agent-multi-agent-orchestration">3.3 子 Agent 架构（Multi-Agent Orchestration）</h3>
 <p><strong>适用场景</strong>：复杂研究、并行探索、清晰的任务分解</p>
 <p><strong>架构拓扑</strong>：</p>
-<pre class="ascii-art"> [主 Agent] (高级规划) │ ┌─────────────┼─────────────┐ ↓ ↓ ↓ [SubAgent-1] [SubAgent-2] [SubAgent-3] (文献检索) (数据分析) (方法验证) │ │ │ 10K 令牌 15K 令牌 12K 令牌 深度搜索 复杂计算 严格测试 │ │ │ └─────────────┼─────────────┘ ↓ [提炼摘要 1-2K 令牌] ↓ [主 Agent 汇总] </pre> <p><strong>令牌成本模型</strong>：</p>
-<pre class="ascii-art"> 单 Agent 方案: 总消耗: 5K (历史) + 20K (探索) + 5K (推理) = 30K 令牌 Multi-Agent 方案: 分解: 3K (规划) SubAgent1: 10K → 1.5K (摘要) SubAgent2: 15K → 2K (摘要) SubAgent3: 12K → 1.5K (摘要) 集成: 3K (汇总) ───────────────────────── 总消耗: ~21K 令牌 (节省 30 %) 收益: 更深度的探索 + 令牌高效 </pre> <hr />
+<pre class="ascii-art">     [主 Agent] (高级规划)
+           │
+    ┌──────┼──────┐
+    ↓      ↓      ↓
+[SubAgent-1] [SubAgent-2] [SubAgent-3]
+(文献检索)   (数据分析)   (方法验证)
+    │          │          │
+  10K 令牌   15K 令牌   12K 令牌
+  深度搜索   复杂计算   严格测试
+    │          │          │
+    └──────────┼──────────┘
+               ↓
+      [提炼摘要 1-2K 令牌]
+               ↓
+         [主 Agent 汇总] </pre> <p><strong>令牌成本模型</strong>：</p>
+<pre class="ascii-art"> 单 Agent 方案:
+    总消耗: 5K (历史) + 20K (探索) + 5K (推理) = 30K 令牌
+
+Multi-Agent 方案:
+    分解: 3K (规划)
+    SubAgent1: 10K → 1.5K (摘要)
+    SubAgent2: 15K → 2K (摘要)
+    SubAgent3: 12K → 1.5K (摘要)
+    集成: 3K (汇总)
+    ─────────────────────────
+    总消耗: ~21K 令牌 (节省 30 %)
+    
+收益:
+    更深度的探索 + 令牌高效 </pre> <hr />
 <h2 id="_5">四、关键工程洞察</h2>
 <h3 id="41">4.1 为什么上下文是稀缺资源？</h3>
 <p><strong>多维分析</strong>：</p>
@@ -645,7 +712,24 @@ def good_compaction (history): """第一阶段：最大化回忆""" summary = mo
 </blockquote>
 <h3 id="43-vs">4.3 提示工程 vs 系统设计的平衡</h3>
 <p><strong>进化路径</strong>：</p>
-<pre class="ascii-art"> 第一代 (2022-2023): 提示工程时代 ├─ One-shot 分类 ├─ 微调 few-shot 示例 └─ 局部优化 问题: 无法处理多轮、长期任务 ↓ 第二代 (2023-2024): 上下文工程时代 ├─ 工具使用和检索 ├─ 动态上下文管理 ├─ Agent 循环 └─ 全局令牌预算优化 优势: 处理数小时任务 ↓ 第三代 (2024+): 智能自适应 ├─ 动态工具选择 ├─ 自优化压缩策略 ├─ 学习型记忆 └─ 能力驱动的任务分解 </pre> <hr />
+<pre class="ascii-art"> 第一代 (2022-2023): 提示工程时代
+    ├─ One-shot 分类
+    ├─ 微调 few-shot 示例
+    └─ 局部优化
+    问题: 无法处理多轮、长期任务
+         ↓
+第二代 (2023-2024): 上下文工程时代
+    ├─ 工具使用和检索
+    ├─ 动态上下文管理
+    ├─ Agent 循环
+    └─ 全局令牌预算优化
+    优势: 处理数小时任务
+         ↓
+第三代 (2024+): 智能自适应
+    ├─ 动态工具选择
+    ├─ 自优化压缩策略
+    ├─ 学习型记忆
+    └─ 能力驱动的任务分解 </pre> <hr />
 <h2 id="_6">五、实践建议总结</h2>
 <h3 id="51">5.1 系统提示设计检查清单</h3>
 <div class="codehilite"><pre><span></span><code>def validate_system_prompt (prompt: str) -&gt; List[str]: &quot;&quot;&quot;系统架构师审查清单&quot;&quot;&quot; issues = [] # 1. 高度检查 if prompt.count (&quot;IF&quot;) &gt; 3: issues.append (&quot;❌ 逻辑过于具体，违反高度原则&quot;) # 2. 令牌效率 if len (prompt.split ()) &gt; 500: issues.append (&quot;⚠️ 考虑精简：通常 150-300 词足够&quot;) # 3. 示例多样性 if prompt.count (&quot;example&quot;) == 0: issues.append (&quot;❌ 缺少具体示例（图片价值千言）&quot;) # 4. 灵活性 if &quot;must&quot; in prompt and &quot;should&quot; not in prompt: issues.append (&quot;⚠️ 过于刚性，考虑启发式指导&quot;) return issues if issues else [&quot;✅ 设计合理&quot;]
@@ -731,7 +815,7 @@ def good_compaction (history): """第一阶段：最大化回忆""" summary = mo
         </footer>
     </div>
 
-    <!-- Mermaid.js for flowcharts and diagrams -->
+    <\!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({

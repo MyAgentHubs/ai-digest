@@ -436,18 +436,45 @@
 </ol>
 <p><strong>传统 MCP 服务器架构</strong></p>
 <pre class="ascii-art">
-┌─────────────────┐
-│ Claude Desktop │
-└────────┬────────┘ │ JSON-RPC │ over stdio
-┌────────▼────────────────────────┐
-│ MCP Server (Node.js/Python) │
-│ ┌──────────────────────────┐ │
-│ │ Tool Implementations │ │
-│ │ - filesystem operations │ │
-│ │ - API integrations │ │
-│ │ - database queries │ │
-│ └──────────────────────────┘ │
-└─────────────────────────────────┘
+┌─────────────────
+┐
+│ Claude Desktop 
+│
+└────────┬────────
+┘ 
+│ JSON-RPC 
+│ over stdio
+┌────────▼────────────────────────
+┐
+│ MCP 
+Server (Node.js/Python) 
+│
+│ 
+┌──────────────────────────
+┐ 
+│
+│ 
+│ Tool Implementations 
+│ 
+│
+│ 
+│ - filesystem operations 
+│ 
+│
+│ 
+│ - API integrations 
+│ 
+│
+│ 
+│ - database queries 
+│ 
+│
+│ 
+└──────────────────────────
+┘ 
+│
+└─────────────────────────────────
+┘
 </pre>
 <p><strong>架构痛点分析</strong></p>
 <p>传统 MCP 部署存在显著的工程摩擦：</p>
@@ -470,12 +497,17 @@
 <pre class="ascii-art"> extension.mcpb/
 ├── manifest.json # 元数据 + 运行时配置
 ├── server/ # MCP 服务器实现代码
-│ ├── index.js # 入口点
-│ └── handlers/ # 工具实现
+│ 
+├── index.js # 入口点
+│ 
+└── handlers/ # 工具实现
 ├── dependencies/ # 打包的 npm/pip 依赖
-│ └── node_modules/
-├── icon.png # 视觉资产 (可选)
-└── README.md # 文档 (可选) </pre> <p><strong>manifest.json 核心架构</strong></p>
+│ 
+└── node_modules/
+├── icon.png # 
+视觉资产 (可选)
+└── README.md # 
+文档 (可选) </pre> <p><strong>manifest.json 核心架构</strong></p>
 <div class="codehilite"><pre><span></span><code>{ &quot;mcpb_version&quot;: &quot;0.1&quot;, &quot;name&quot;: &quot;github-integration&quot;, &quot;version&quot;: &quot;1.2.3&quot;, &quot;author&quot;: { &quot;name&quot;: &quot;Anthropic&quot;, &quot;email&quot;: &quot;support@anthropic.com&quot; }, &quot;server&quot;: { &quot;command&quot;: &quot;node&quot;, &quot;args&quot;: [&quot;${__dirname}/server/index.js&quot;], &quot;env&quot;: { &quot;GITHUB_TOKEN&quot;: &quot;${user_config.github_token}&quot; } }, &quot;tools&quot;: [ { &quot;name&quot;: &quot;search_repositories&quot;, &quot;description&quot;: &quot;搜索 GitHub 仓库&quot;, &quot;parameters&quot;: { &quot;query&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;required&quot;: true} } } ], &quot;user_config&quot;: { &quot;github_token&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;title&quot;: &quot;GitHub Personal Access Token&quot;, &quot;sensitive&quot;: true, &quot;required&quot;: true, &quot;validation&quot;: &quot;^ghp_[a-zA-Z0-9]{36}$&quot; } }
 }
 </code></pre></div> <hr />
@@ -536,35 +568,70 @@
 <h3 id="22">2.2 一键安装的技术实现</h3>
 <p><strong>安装流程状态机</strong></p>
 <pre class="ascii-art">
-┌──────────────┐
-│ 用户双击 .mcpb│
-└──────┬───────┘ │ ▼
-┌──────────────────────┐
-│ 1. 文件关联处理 │
-│ OS 调用 Claude │
-│ Desktop 打开 │
-└──────┬───────────────┘ │ ▼
-┌──────────────────────┐
-│ 2. 清单验证 │
-│ - JSON schema 校验│
-│ - 签名验证 (可选) │
-│ - 权限检查 │
-└──────┬───────────────┘ │ ▼
-┌──────────────────────┐
-│ 3. 用户配置 UI │
-│ 根据 user_config │
-│ 自动生成对话框 │
-└──────┬───────────────┘ │ ▼
-┌──────────────────────┐
-│ 4. 解压和安装 │
-│ - 提取到沙箱目录 │
-│ - 注册到 Claude │
-└──────┬───────────────┘ │ ▼
-┌──────────────────────┐
-│ 5. 启动和连接 │
-│ 启动 MCP 进程 │
-│ 建立 JSON-RPC 通道│
-└──────────────────────┘
+┌──────────────
+┐
+│ 用户双击 .mcpb
+│
+└──────┬───────
+┘ 
+│ ▼
+┌──────────────────────
+┐
+│ 1. 文件关联处理 
+│
+│ OS 调用 Claude 
+│
+│ Desktop 打开 
+│
+└──────┬───────────────
+┘ 
+│ ▼
+┌──────────────────────
+┐
+│ 2. 清单验证 
+│
+│ - JSON schema 校验
+│
+│ - 
+签名验证 (可选) 
+│
+│ - 权限检查 
+│
+└──────┬───────────────
+┘ 
+│ ▼
+┌──────────────────────
+┐
+│ 3. 用户配置 UI 
+│
+│ 根据 user_config 
+│
+│ 自动生成对话框 
+│
+└──────┬───────────────
+┘ 
+│ ▼
+┌──────────────────────
+┐
+│ 4. 解压和安装 
+│
+│ - 提取到沙箱目录 
+│
+│ - 注册到 Claude 
+│
+└──────┬───────────────
+┘ 
+│ ▼
+┌──────────────────────
+┐
+│ 5. 启动和连接 
+│
+│ 启动 MCP 进程 
+│
+│ 建立 JSON-RPC 通道
+│
+└──────────────────────
+┘
 </pre>
 <p><strong>配置 UI 自动生成机制</strong></p>
 <p><strong>声明式 UI 定义</strong></p>
@@ -614,30 +681,96 @@ async function packExtension () { // 1. 验证 manifest const manifest = await v
 <p><strong>案例 1: PyBoy GameBoy 模拟器集成</strong></p>
 <p><strong>业务场景</strong>: 使 Claude 能够直接控制 GameBoy 游戏环境，用于强化学习和游戏 AI 研究。</p>
 <p><strong>架构设计</strong></p>
-<pre class="ascii-art"> ┌─────────────────────────────────────┐
-│ Claude Desktop │
-│ ┌─────────────────────────────┐ │
-│ │ 用户对话: "玩俄罗斯方块" │ │
-│ └──────────┬──────────────────┘ │
-│ │ tool_use: start_game │
-└─────────────┼─────────────────────────┘ │ JSON-RPC
-┌─────────────▼─────────────────────────┐
-│ PyBoy MCP Server │
-│ ┌────────────────────────────────┐ │
-│ │ Tools: │ │
-│ │ - start_game (rom_path) │ │
-│ │ - press_button (button) │ │
-│ │ - get_screen () → base64 image│ │
-│ │ - get_game_state () → RAM dump│ │
-│ └────────┬───────────────────────┘ │
-│ │ │
-│ ┌────────▼───────────────────────┐ │
-│ │ PyBoy Emulator Engine │ │
-│ │ - CPU emulation │ │
-│ │ - Memory management │ │
-│ │ - Video rendering │ │
-│ └────────────────────────────────┘ │
-└───────────────────────────────────────┘ </pre> <p><strong>manifest.json 配置</strong></p>
+<pre class="ascii-art"> 
+┌─────────────────────────────────────
+┐
+│ Claude Desktop 
+│
+│ 
+┌─────────────────────────────
+┐ 
+│
+│ 
+│ 用户对话: "玩俄罗斯方块" 
+│ 
+│
+│ 
+└──────────┬──────────────────
+┘ 
+│
+│ 
+│ tool_use: start_game 
+│
+└─────────────┼─────────────────────────
+┘ 
+│ JSON-RPC
+┌─────────────▼─────────────────────────
+┐
+│ PyBoy MCP Server 
+│
+│ 
+┌────────────────────────────────
+┐ 
+│
+│ 
+│ Tools: 
+│ 
+│
+│ 
+│ - 
+start_game (rom_path) 
+│ 
+│
+│ 
+│ - 
+press_button (button) 
+│ 
+│
+│ 
+│ - 
+get_screen ()
+→ base64 image
+│ 
+│
+│ 
+│ - 
+get_game_state ()
+→ RAM dump
+│ 
+│
+│ 
+└────────┬───────────────────────
+┘ 
+│
+│ 
+│ 
+│
+│ 
+┌────────▼───────────────────────
+┐ 
+│
+│ 
+│ PyBoy Emulator Engine 
+│ 
+│
+│ 
+│ - CPU emulation 
+│ 
+│
+│ 
+│ - Memory management 
+│ 
+│
+│ 
+│ - Video rendering 
+│ 
+│
+│ 
+└────────────────────────────────
+┘ 
+│
+└───────────────────────────────────────
+┘ </pre> <p><strong>manifest.json 配置</strong></p>
 <div class="codehilite"><pre><span></span><code>{ &quot;mcpb_version&quot;: &quot;0.1&quot;, &quot;name&quot;: &quot;pyboy-emulator&quot;, &quot;version&quot;: &quot;1.0.0&quot;, &quot;server&quot;: { &quot;command&quot;: &quot;python&quot;, &quot;args&quot;: [ &quot;${__dirname}/server/pyboy_server.py&quot; ], &quot;env&quot;: { &quot;ROM_DIR&quot;: &quot;${HOME}/.claude/roms&quot; } }, &quot;tools&quot;: [ { &quot;name&quot;: &quot;start_game&quot;, &quot;description&quot;: &quot;启动 GameBoy 游戏&quot;, &quot;parameters&quot;: { &quot;rom_name&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;ROM 文件名 (例如: tetris.gb)&quot; } } }, { &quot;name&quot;: &quot;press_button&quot;, &quot;description&quot;: &quot;按下按钮&quot;, &quot;parameters&quot;: { &quot;button&quot;: { &quot;type&quot;: &quot;enum&quot;, &quot;values&quot;: [&quot;up&quot;, &quot;down&quot;, &quot;left&quot;, &quot;right&quot;, &quot;a&quot;, &quot;b&quot;, &quot;start&quot;, &quot;select&quot;] } } }, { &quot;name&quot;: &quot;get_screen&quot;, &quot;description&quot;: &quot;获取当前屏幕截图 (base64 编码的 PNG)&quot; } ]
 }
 </code></pre></div> <p><strong>Python 服务器实现 (核心代码)</strong></p>
@@ -917,7 +1050,7 @@ class ExtensionUpdateManager { async checkUpdates (installedExtension) { const m
         </footer>
     </div>
 
-    <!-- Mermaid.js for flowcharts and diagrams -->
+    <\!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({

@@ -429,9 +429,15 @@
 <h2 id="_1">一、核心概念框架</h2>
 <h3 id="1">1. 确定性与非确定性系统的根本差异</h3>
 <p><strong>传统软件契约</strong>（确定性系统间）</p>
-<pre class="ascii-art"> getWeather ("NYC") → 始终返回纽约天气（相同输入=相同输出） </pre> <p><strong>Agent 工具契约</strong>（确定性系统↔非确定性 Agent）</p>
+<pre class="ascii-art"> 
+getWeather ("NYC")
+→ 始终返回纽约天气（相同输入=相同输出） </pre> <p><strong>Agent 工具契约</strong>（确定性系统↔非确定性 Agent）</p>
 <pre class="ascii-art"> 用户问: "需要带伞吗？"
-Agent 可能的决策路径: ├─ 调用天气工具 ├─ 使用内部知识回答 ├─ 先请求位置信息 └─ 产生幻觉或误用工具 </pre> <p><strong>关键差异</strong>：工具需为 Agent 的多种推理路径设计，而非假设单一确定性调用链。</p>
+Agent 可能的决策路径: 
+├─ 调用天气工具 
+├─ 使用内部知识回答 
+├─ 先请求位置信息 
+└─ 产生幻觉或误用工具 </pre> <p><strong>关键差异</strong>：工具需为 Agent 的多种推理路径设计，而非假设单一确定性调用链。</p>
 <h3 id="2-agent-affordances">2. Agent Affordances（可供性）理论</h3>
 <p>传统 API 设计：<code>list_contacts ()</code>
 Agent 友好设计：<code>search_contacts (query="Jane")</code></p>
@@ -446,18 +452,29 @@ Agent 友好设计：<code>search_contacts (query="Jane")</code></p>
 <h2 id="_2">二、架构设计模式</h2>
 <h3 id="1_1">1. 工具粒度权衡矩阵</h3>
 <h4 id="api">❌ 反模式：API 包装式工具设计</h4>
-<pre class="ascii-art"> 单独实现：
-├─ list_users ()
-├─ list_events ()
-├─ create_event ()
-└─ send_notification () 问题：
+<pre class="ascii-art"> 
+单独实现：
+├─ 
+list_users ()
+├─ 
+list_events ()
+├─ 
+create_event ()
+└─ 
+send_notification () 
+问题：
 • Agent 需多次往返调用
 • 每个中间结果消耗上下文
 • 工具过多导致选择困难 </pre> <h4 id="_3">✅ 最佳实践：工作流聚合式工具</h4>
-<pre class="ascii-art"> 统一实现：
-schedule_event ( participant_name: str, topic: str, preferred_time: Optional[str]
-) → { availability_found: bool, event_id: str, notification_sent: bool, conflict_warnings: List[str]
-} 优势：
+<pre class="ascii-art"> 
+统一实现：
+s
+chedule_event ( participant_name: str, topic: str, preferred_time: Optional[str]
+)
+→ 
+{ availability_found: bool, event_id: str, notification_sent: bool, conflict_warnings: List[str]
+} 
+优势：
 • 单次调用完成多步操作
 • 降低 Agent 决策复杂度
 • 封装业务逻辑（查询可用性+创建+通知） </pre> <h3 id="2">2. 命名空间设计模式</h3>
@@ -482,9 +499,12 @@ update_jira_ticket ()
 }
 </code></pre></div> <p><strong>响应格式枚举模式</strong></p>
 <pre class="ascii-art">
-enum ResponseFormat { DETAILED = "detailed", # 包含技术 ID 供下游工具调用 CONCISE = "concise" # 仅返回语义信息，节省令牌
-} search_threads ( query: str, response_format: ResponseFormat = CONCISE
-) → Union[DetailedThreadList, ConciseThreadList] </pre> <p><strong>设计原则</strong>：</p>
+enum ResponseFormat 
+{ DETAILED = "detailed", # 包含技术 ID 供下游工具调用 CONCISE = "concise" # 仅返回语义信息，节省令牌
+} 
+search_threads ( query: str, response_format: ResponseFormat = CONCISE
+)
+→ Union[DetailedThreadList, ConciseThreadList] </pre> <p><strong>设计原则</strong>：</p>
 <ul>
 <li>优先返回语义字段（<code>name</code> &gt; <code>uuid</code>）</li>
 <li>用 <code>0-indexed IDs</code> 替代 UUID，减少幻觉</li>
@@ -544,7 +564,10 @@ def verify_with_claude (response: str, expected_outcome: str) -&gt; bool: judgme
 ↓
 原始执行记录（工具调用顺序、参数、返回值）
 ↓
-Agent 未说出的隐含行为 └─ 工具调用了但未提及原因 └─ 放弃了某种策略的迹象 └─ 重复的无效尝试 引用："keep in mind that what agents omit in their feedback
+Agent 未说出的隐含行为 
+└─ 工具调用了但未提及原因 
+└─ 放弃了某种策略的迹象 
+└─ 重复的无效尝试 引用："keep in mind that what agents omit in their feedback
 and responses can often be more important than what they include" </pre> <p><strong>案例：搜索工具的偏见修复</strong></p>
 <p>Claude 自动在搜索查询末尾附加 "2025"，导致结果偏向当年信息。通过改进工具描述纠正了此行为。</p>
 <hr />
@@ -554,18 +577,28 @@ and responses can often be more important than what they include" </pre> <p><str
 ├─ 这个工具做什么？
 ├─ 何时使用它？
 ├─ 哪些隐含假设需明确化？
-│ └─ 查询格式（模糊词汇定义）
-│ └─ 资源间的关系
-│ └─ 限制和边界
+│ 
+└─ 查询格式（模糊词汇定义）
+│ 
+└─ 资源间的关系
+│ 
+└─ 限制和边界
 ├─ 参数名称要明确无歧义
 │ ❌ user
 │ ✅ user_id
 └─ 举例演示 </pre> <h3 id="2_2">2. 工具定义最佳实践</h3>
 <pre class="ascii-art">
 # ❌ 模糊的描述
-def search (query: str) -> List[str]: """搜索数据库""" pass # ✅ 精确的描述
-def search_customer_by_name ( first_name: str, last_name: Optional[str] = None, include_inactive: bool = False
-) -> List[CustomerProfile]: """ 按名字搜索客户。 返回包含的字段： - name: 客户全名 - customer_id: 用于后续调用（如 send_invoice） - account_status: "active", "inactive", "suspended" 注意：若 last_name 为空，按 first_name 模糊匹配 （可能返回多个结果） 示例： search_customer_by_name ("Jane", "Doe") → [{"name": "Jane Doe", "customer_id": 12345, ...}] """ pass </pre> <h3 id="3-swe-bench-verified">3. SWE-Bench Verified 优化案例</h3>
+def 
+search (query: str) -> List[str]: """搜索数据库""" pass # ✅ 精确的描述
+def 
+search_customer_by_name ( first_name: str, last_name: Optional[str] = None, include_inactive: bool = False
+) -> List[CustomerProfile]: """ 按名字搜索客户。 返回包含的字段： - name: 客户全名 - customer_id: 用于后续调用（如 send_invoice） - account_status: "active", "inactive", "suspended" 注意：若 last_name 为空，按 first_name 模糊匹配 （可能返回多个结果） 
+示例： 
+search_customer_by_name ("Jane", "Doe")
+→ [
+{"name": "Jane Doe", "customer_id": 12345, ...
+}] """ pass </pre> <h3 id="3-swe-bench-verified">3. SWE-Bench Verified 优化案例</h3>
 <p>Claude Sonnet 3.5 通过精确的工具描述调整达到 SOTA：</p>
 <ul>
 <li><strong>具体化</strong>了工具的预期行为</li>
@@ -700,7 +733,7 @@ def search_customer_by_name ( first_name: str, last_name: Optional[str] = None, 
         </footer>
     </div>
 
-    <!-- Mermaid.js for flowcharts and diagrams -->
+    <\!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({

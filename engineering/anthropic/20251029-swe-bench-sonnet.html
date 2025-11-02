@@ -490,7 +490,8 @@
 # 反模式：最小化 Schema（传统 API 设计）
 { "name": "edit_file", "parameters": { "path": "string", "old_str": "string", "new_str": "string" }
 } # 最佳实践：Rich Description（LLM Agent 设计）
-{ "name": "edit_file", "description": """ Performs string replacement in files with the following guarantees: RELIABILITY: Uses exact string matching (highest reliability compared to line-based or regex approaches). If old_str appears 0 or >1 times, the operation fails with an error message prompting you to add more context. PATH HANDLING: ALWAYS use absolute paths. The agent may change directories during execution - relative paths will fail. Example: /repo/src/main.py ERROR RECOVERY: On match failures, you'll receive: - "0 matches found" → add more surrounding code to old_str - ">1 matches found" → add more context to make match unique UNDO CAPABILITY: Use undo_edit to revert the last change if needed. """, "parameters": { ... }
+{ "name": "edit_file", "description": """ Performs string replacement in files with the following guarantees: RELIABILITY: Uses exact string matching (highest reliability compared to line-based or regex approaches). If old_str appears 0 or >1 times, the operation fails with an error message prompting you to add more context. PATH HANDLING: ALWAYS use absolute paths. The agent may change directories during execution
+- relative paths will fail. Example: /repo/src/main.py ERROR RECOVERY: On match failures, you'll receive: - "0 matches found" → add more surrounding code to old_str - ">1 matches found" → add more context to make match unique UNDO CAPABILITY: Use undo_edit to revert the last change if needed. """, "parameters": { ... }
 } </pre> <h4 id="_6">设计原理</h4>
 <ol>
 <li><strong>预防性错误处理</strong>：在工具描述中预先说明所有可能的失败模式</li>
@@ -582,7 +583,25 @@
 <h4 id="_12">模式定义</h4>
 <p><strong>核心原则</strong>：将控制权最大化交给语言模型，系统提供工具和指导，但不强制执行固定流程。</p>
 <p><strong>架构对比</strong>：</p>
-<pre class="ascii-art"> 传统 Agent 架构（状态机模式）： ┌──────┐ │ 初始 │ └───┬──┘ ↓ ┌──────────┐ │ 规划阶段 │ (强制) └─────┬────┘ ↓ ┌──────────┐ │ 执行阶段 │ (强制) └─────┬────┘ ↓ ┌──────────┐ │ 验证阶段 │ (强制) └──────────┘ Anthropic 最小化脚手架架构： ┌──────────────────────────────┐ │ LLM with Suggested Workflow │ │ (非强制，模型自主决策) │ └──────────┬───────────────────┘ ↓ ┌──────────────────────────────┐ │ 工具 1: Bash │ │ 工具 2: Edit │ │ 工具 N: ... │ └──────────┬───────────────────┘ ↓ 自主决定步骤、顺序、重试策略 </pre> <h4 id="_13">实现细节</h4>
+<pre class="ascii-art"> 传统 Agent 架构（状态机模式）：
+┌──────┐ │ 初始 │
+└───┬──┘
+↓
+┌──────────┐ │ 规划阶段 │ (强制) 
+└─────┬────┘
+↓
+┌──────────┐ │ 执行阶段 │ (强制) 
+└─────┬────┘
+↓
+┌──────────┐ │ 验证阶段 │ (强制) 
+└──────────┘
+Anthropic 最小化脚手架架构：
+┌──────────────────────────────┐ │ LLM with Suggested Workflow │ │ (非强制，模型自主决策) │
+└──────────┬───────────────────┘
+↓
+┌──────────────────────────────┐ │ 工具 1: Bash │ │ 工具 2: Edit │ │ 工具 N: ... │
+└──────────┬───────────────────┘
+↓ 自主决定步骤、顺序、重试策略 </pre> <h4 id="_13">实现细节</h4>
 <p><strong>提示工程策略</strong>：</p>
 <div class="codehilite"><pre><span></span><code>建议的工作流（非强制）：
 1. 探索仓库结构
@@ -638,7 +657,8 @@ class EditTool: &quot;&quot;&quot; 架构设计原则： 1. 每个操作有明�
 │ 最佳实践："0 matches found. Add more │
 │ surrounding code to old_str" │
 └────────────────────────────────────────────────┘ </pre> <p><strong>洞察 2：约束即能力</strong></p>
-<pre class="ascii-art"> 通过限制提升可靠性： - 强制绝对路径 → 消除路径歧义
+<pre class="ascii-art"> 通过限制提升可靠性：
+- 强制绝对路径 → 消除路径歧义
 - 要求唯一匹配 → 防止误修改
 - 禁止覆盖创建 → 避免数据丢失 </pre> <p><strong>洞察 3：可撤销性</strong></p>
 <div class="codehilite"><pre><span></span><code>错误恢复层次：
@@ -674,7 +694,8 @@ class EditTool: &quot;&quot;&quot; 架构设计原则： 1. 每个操作有明�
 │ 返回探索阶段，重新理解问题 │
 └─────────────────────────────────────────────────┘ </pre> <h4 id="_20">自我纠错机制的进化</h4>
 <p><strong>观察到的行为变化</strong>：</p>
-<pre class="ascii-art"> Claude 3 Opus / 旧版 3.5 Sonnet： 尝试 1: str_replace with X 失败 → 错误消息 尝试 2: str_replace with X (完全相同) 失败 → 错误消息 尝试 3: str_replace with X (仍然相同) [循环重复相同错误] 新版 Claude 3.5 Sonnet： 尝试 1: str_replace with X 失败 → "0 matches, add context" 尝试 2: str_replace with X + surrounding code 失败 → "still 0 matches" 尝试 3: view file to verify content 成功 → 发现内容与预期不符 尝试 4: str_replace with corrected old_str 成功 ✓ 改进点： - 不重复相同错误
+<pre class="ascii-art"> Claude 3 Opus / 旧版 3.5 Sonnet： 尝试 1: str_replace with X 失败 → 错误消息 尝试 2: str_replace with X (完全相同) 失败 → 错误消息 尝试 3: str_replace with X (仍然相同) [循环重复相同错误] 新版 Claude 3.5 Sonnet： 尝试 1: str_replace with X 失败 → "0 matches, add context" 尝试 2: str_replace with X + surrounding code 失败 → "still 0 matches" 尝试 3: view file to verify content 成功 → 发现内容与预期不符 尝试 4: str_replace with corrected old_str 成功 ✓ 改进点：
+- 不重复相同错误
 - 主动收集更多信息（view file）
 - 调整策略而非参数 </pre> <hr />
 <h2 id="3-vs">3. 代码示例：反模式 vs 最佳实践</h2>
@@ -1047,7 +1068,8 @@ from typing import Union, Literal class EditError (Enum): NO_MATCH = &quot;no_ma
 - 提高响应速度 基线对比：
 当前值 vs 人类工程师 vs 其他 AI 系统
 </code></pre></div> <p><strong>维度 3：工具使用质量</strong></p>
-<pre class="ascii-art"> 指标： - 工具调用成功率（按工具类型）
+<pre class="ascii-art"> 指标：
+- 工具调用成功率（按工具类型）
 - 无效工具调用比例
 - 参数错误率
 - 重试收敛速度 分析：
@@ -1613,7 +1635,7 @@ Anthropic 的选择：选项 B
         </footer>
     </div>
 
-    <!-- Mermaid.js for flowcharts and diagrams -->
+    <\!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({

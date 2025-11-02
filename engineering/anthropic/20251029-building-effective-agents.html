@@ -566,8 +566,11 @@ def generate_and_translate_chained (topic: str) -&gt; str: # 步骤 1: 生成文
 <p><strong>原理</strong>：根据输入分类，路由到专用 LLM 或提示。</p>
 <p><strong>架构图</strong>：</p>
 <pre class="ascii-art">
-路由器模式 ┌─→ LLM_技术支持 → 技术方案
-用户输入 → 分类器 LLM ├─→ LLM_退款处理 → 退款流程 └─→ LLM_销售咨询 → 产品推荐
+路由器模式 
+┌─→ LLM_技术支持 → 技术方案
+用户输入 → 分类器 LLM 
+├─→ LLM_退款处理 → 退款流程 
+└─→ LLM_销售咨询 → 产品推荐
 </pre>
 <p><strong>代码示例</strong>：</p>
 <div class="codehilite"><pre><span></span><code># ❌ 反模式：单一超大提示处理所有场景
@@ -592,7 +595,10 @@ class TechnicalSupportAgent: PROMPT = &quot;&quot;&quot; 你是技术支持专�
 <h4 id="asectioning">子模式 A：Sectioning（分段并行）</h4>
 <p><strong>原理</strong>：将独立子任务并行执行，聚合结果。</p>
 <pre class="ascii-art">
-并行分段处理 输入文档 ├─→ LLM₁(第 1-10 页) ──┐ ├─→ LLM₂(第 11-20 页) ─┤ └─→ LLM₃(第 21-30 页) ─┴→ 聚合 LLM → 最终摘要
+并行分段处理 输入文档 
+├─→ LLM₁(第 1-10 页) ──┐ 
+├─→ LLM₂(第 11-20 页) ─┤ 
+└─→ LLM₃(第 21-30 页) ─┴→ 聚合 LLM → 最终摘要
 </pre> <div class="codehilite"><pre><span></span><code># 并行分段代码审查
 import asyncio async def parallel_code_review (files: list[str]): # 并行审查每个文件 reviews = await asyncio.gather (*[ review_file (f) for f in files ]) # 聚合发现的问题 all_issues = aggregate_issues (reviews) # LLM 优先级排序 prioritized = llm.call ( f&quot;对以下代码问题按严重性排序：\n{all_issues}&quot; ) return prioritized async def review_file (filepath: str): code = read_file (filepath) return await llm.call_async ( f&quot;审查以下代码的安全性和性能问题：\n{code}&quot; )
 </code></pre></div> <h4 id="bvoting">子模式 B：Voting（投票并行）</h4>
@@ -1045,7 +1051,7 @@ def transparent_agent (task): print (f&quot;📋 任务：{task}&quot;) plan = c
         </footer>
     </div>
 
-    <!-- Mermaid.js for flowcharts and diagrams -->
+    <\!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({

@@ -466,7 +466,57 @@
 <p><strong>三大核心场景</strong></p>
 </li>
 </ol>
-<pre class="ascii-art"> ┌─────────────────────────────────────────────────────┐ │ Think Tool 适用场景 │ ├─────────────────────────────────────────────────────┤ │ │ │ ┌─────────────────────────────────────────────┐ │ │ │ 1. Tool Output Analysis │ │ │ │ 处理前序工具调用结果后再采取行动 │ │ │ └─────────────────────────────────────────────┘ │ │ │ │ ┌─────────────────────────────────────────────┐ │ │ │ 2. Policy-Heavy Environments │ │ │ │ 遵循详细指南并验证合规性 │ │ │ └─────────────────────────────────────────────┘ │ │ │ │ ┌─────────────────────────────────────────────┐ │ │ │ 3. Sequential Decision-Making │ │ │ │ 处理早期决策影响后续步骤的多步骤任务 │ │ │ └─────────────────────────────────────────────┘ │ │ │ └─────────────────────────────────────────────────────┘
+<pre class="ascii-art">
+┌─────────────────────────────────────────────────────┐
+│
+ Think Tool 适用场景 │
+
+├─────────────────────────────────────────────────────┤
+│
+│ │
+
+┌─────────────────────────────────────────────┐
+│
+│ │
+ 1. Tool Output Analysis │
+│ │
+│
+ 处理前序工具调用结果后再采取行动 │
+│ │
+
+└─────────────────────────────────────────────┘
+│
+│ │
+│
+
+┌─────────────────────────────────────────────┐
+│
+│ │
+ 2. Policy-Heavy Environments │
+│ │
+│
+ 遵循详细指南并验证合规性 │
+│ │
+
+└─────────────────────────────────────────────┘
+│
+│ │
+│
+
+┌─────────────────────────────────────────────┐
+│
+│ │
+ 3. Sequential Decision-Making │
+│ │
+│
+ 处理早期决策影响后续步骤的多步骤任务 │
+│ │
+
+└─────────────────────────────────────────────┘
+│
+│ │
+
+└─────────────────────────────────────────────────────┘
 </pre> <h3 id="12-cot">1.2 与链式思维（CoT）的关系</h3>
 <p><strong>架构层面的对比</strong>：</p>
 <table>
@@ -508,7 +558,35 @@
 <p><strong>技术洞察</strong>：Think 工具可以理解为 <strong>工具链中的 CoT 检查点</strong>。它不是替代 CoT，而是将 CoT 的思想延伸到 agentic 系统的执行阶段，形成一个"行动-反思-再行动"的闭环。</p>
 <h3 id="13">1.3 扩展推理时间的技术原理</h3>
 <p><strong>推理时间扩展的两种范式</strong>：</p>
-<pre class="ascii-art"> Pre-Generation Reasoning (Extended Thinking) ↓ ┌─────────────────────────────────────────┐ │ 深度规划阶段 │ │ - 制定整体策略 │ │ - 预见潜在问题 │ │ - 构建执行路径 │ └─────────────────────────────────────────┘ ↓ Response Generation with Think Tool ↓ ┌─────────────────────────────────────────┐ │ 动态插入推理检查点 │ │ Tool Call 1 → [Think] → Tool Call 2 │ │ - 评估当前状态 │ │ - 验证策略有效性 │ │ - 决定下一步行动 │ └─────────────────────────────────────────┘ </pre> <p><strong>关键技术原理</strong>：</p>
+<pre class="ascii-art">
+Pre-Generation Reasoning (Extended Thinking) ↓
+┌─────────────────────────────────────────┐
+│
+ 深度规划阶段 │
+│
+ - 制定整体策略 │
+│
+ - 预见潜在问题 │
+│
+ - 构建执行路径 │
+
+└─────────────────────────────────────────┘
+↓
+Response Generation with Think Tool ↓
+┌─────────────────────────────────────────┐
+│
+ 动态插入推理检查点 │
+│
+ Tool Call 1 → [Think] → Tool Call 2 │
+│
+ - 评估当前状态 │
+│
+ - 验证策略有效性 │
+│
+ - 决定下一步行动 │
+
+└─────────────────────────────────────────┘
+</pre> <p><strong>关键技术原理</strong>：</p>
 <ol>
 <li>
 <p><strong>惰性计算模式</strong> Think 工具不是每次都触发，而是模型根据复杂度自主决策。这类似于编译器的惰性求值（lazy evaluation）。</p>
@@ -547,7 +625,58 @@
 </ol>
 <h3 id="22-think">2.2 何时触发 Think 工具</h3>
 <p><strong>决策触发的架构模式</strong>：</p>
-<pre class="ascii-art"> ┌───────────────────────────────────────────────┐ │ Tool Execution Decision Tree │ └───────────────────────────────────────────────┘ │ ▼ ┌─────────────────────┐ │ 接收到工具输出 │ └─────────────────────┘ │ ▼ ┌─────────────────────┐ │ 评估复杂度 │ └─────────────────────┘ │ ┌─────────────┴─────────────┐ ▼ ▼ ┌──────────┐ ┌──────────┐ │ 简单场景 │ │ 复杂场景 │ └──────────┘ └──────────┘ │ │ ▼ ▼ 直接执行下 ┌──────────┐ 一个工具调用 │ 触发 think│ └──────────┘ │ ▼ ┌──────────────────┐ │ 推理后再决策 │ └──────────────────┘ </pre> <p><strong>触发条件分析</strong>：</p>
+<pre class="ascii-art">
+┌───────────────────────────────────────────────┐
+│
+ Tool Execution Decision Tree │
+
+└───────────────────────────────────────────────┘
+│
+ ▼
+┌─────────────────────┐
+│
+ 接收到工具输出 │
+
+└─────────────────────┘
+│
+ ▼
+┌─────────────────────┐
+│
+ 评估复杂度 │
+
+└─────────────────────┘
+│
+
+┌─────────────┴─────────────┐
+▼
+▼
+┌──────────┐
+┌──────────┐
+│
+ 简单场景 │
+│
+ 复杂场景 │
+
+└──────────┘
+└──────────┘
+│
+│
+ ▼
+▼
+直接执行下
+┌──────────┐
+一个工具调用 │
+ 触发 think│
+
+└──────────┘
+│
+ ▼
+┌──────────────────┐
+│
+ 推理后再决策 │
+
+└──────────────────┘
+</pre> <p><strong>触发条件分析</strong>：</p>
 <ul>
 <li><strong>复杂策略环境</strong>：当存在大量约束条件时（如航空公司退改签政策）</li>
 <li><strong>信息完整性检查</strong>：需要验证是否收集齐全所有必需信息</li>
@@ -565,7 +694,8 @@
 <p>"prompting matters significantly on difficult domains"</p>
 </blockquote>
 <p><strong>航空领域优化示例</strong>：</p>
-<pre class="ascii-art"> ## Using the think tool Before taking any action or responding to the user after receiving tool results, use the think tool as a scratchpad to:
+<pre class="ascii-art">
+## Using the think tool Before taking any action or responding to the user after receiving tool results, use the think tool as a scratchpad to:
 - List the specific rules that apply to the current request
 - Check if all required information is collected
 - Verify that the planned action complies with all policies
@@ -586,7 +716,8 @@ User wants to book 3 tickets to NYC with 2 checked bags each
 3. Check which payment methods in profile and if their combination is allowed
 4. Calculate total: ticket price + any bag fees
 5. Get explicit confirmation for booking
-</think_tool_example_2> </pre> <p><strong>优化策略的架构原则</strong>：</p>
+</think_tool_example_2>
+</pre> <p><strong>优化策略的架构原则</strong>：</p>
 <ol>
 <li>
 <p><strong>Few-Shot Learning 强化</strong> 通过具体示例教会模型如何使用工具，而非抽象描述。</p>
@@ -609,9 +740,14 @@ User wants to book 3 tickets to NYC with 2 checked bags each
 <li>错误操作可能导致财务损失</li>
 </ul>
 <p><strong>Think 工具应用</strong>：</p>
-<pre class="ascii-art"> 用户请求 → 工具调用（查询预订）→ [Think: 分析政策适用性]
-→ 工具调用（检查会员状态）→ [Think: 验证费用计算]
-→ 最终响应 </pre> <p><strong>场景 2：代码仓库调试（SWE-Bench）</strong></p>
+<pre class="ascii-art">
+用户请求 →
+工具调用（查询预订）→ [Think: 分析政策适用性]
+→
+工具调用（检查会员状态）→ [Think: 验证费用计算]
+→
+最终响应
+</pre> <p><strong>场景 2：代码仓库调试（SWE-Bench）</strong></p>
 <p><strong>问题背景</strong>：</p>
 <ul>
 <li>需要探索大型代码库</li>
@@ -619,8 +755,14 @@ User wants to book 3 tickets to NYC with 2 checked bags each
 <li>需要评估方案的简洁性和有效性</li>
 </ul>
 <p><strong>Think 工具应用</strong>：</p>
-<pre class="ascii-art"> 探索代码 → [Think: 头脑风暴修复方案] 方案 A: 修改接口定义 方案 B: 添加错误处理 方案 C: 重构数据流 评估: 方案 B 最简单且风险最低
-→ 实施方案 B </pre> <p><strong>场景 3：零售客服（中等复杂度）</strong></p>
+<pre class="ascii-art">
+探索代码 → [Think: 头脑风暴修复方案]
+  方案 A: 修改接口定义
+  方案 B: 添加错误处理
+  方案 C: 重构数据流
+  评估: 方案 B 最简单且风险最低
+→ 实施方案 B
+</pre> <p><strong>场景 3：零售客服（中等复杂度）</strong></p>
 <p>在零售领域，think 工具即使无提示优化也能产生效果，因为策略相对简单且一致。</p>
 <h3 id="32">3.2 性能提升数据</h3>
 <h4 id="-bench">τ-Bench 航空领域结果</h4>
@@ -745,7 +887,40 @@ User wants to book 3 tickets to NYC with 2 checked bags each
 <p>这说明即使在复杂的软件工程任务中，think 工具也能产生<strong>稳定且显著</strong>的性能提升。</p>
 <h3 id="33-agent">3.3 集成到 Agent 系统</h3>
 <p><strong>三步实施策略</strong>：</p>
-<pre class="ascii-art"> Step 1: 测试 Agentic 场景 ┌──────────────────────────────────┐ │ 识别目标场景： │ │ - Claude 在策略合规性上挣扎 │ │ - 多步骤推理频繁出错 │ └──────────────────────────────────┘ ↓ Step 2: 添加工具定义 ┌──────────────────────────────────┐ │ 实施领域特定的 think 工具： │ │ - 定义 JSON schema │ │ - 在系统提示中添加使用示例 │ └──────────────────────────────────┘ ↓ Step 3: 监控与优化 ┌──────────────────────────────────┐ │ 观察使用模式： │ │ - 调整提示以鼓励有效推理 │ │ - 收集反馈并迭代优化 │ └──────────────────────────────────┘ </pre> <p><strong>集成建议</strong>：</p>
+<pre class="ascii-art">
+Step 1: 测试 Agentic 场景
+┌──────────────────────────────────┐
+│
+ 识别目标场景： │
+│
+ - Claude 在策略合规性上挣扎 │
+│
+ - 多步骤推理频繁出错 │
+
+└──────────────────────────────────┘
+↓
+Step 2: 添加工具定义
+┌──────────────────────────────────┐
+│
+ 实施领域特定的 think 工具： │
+│
+ - 定义 JSON schema │
+│
+ - 在系统提示中添加使用示例 │
+
+└──────────────────────────────────┘
+↓
+Step 3: 监控与优化
+┌──────────────────────────────────┐
+│
+ 观察使用模式： │
+│
+ - 调整提示以鼓励有效推理 │
+│
+ - 收集反馈并迭代优化 │
+
+└──────────────────────────────────┘
+</pre> <p><strong>集成建议</strong>：</p>
 <ol>
 <li>
 <p><strong>日志与可观测性</strong> 记录每次 think 调用的内容，用于分析模型的推理过程。这对调试和优化至关重要。</p>
@@ -821,8 +996,11 @@ for tool in tool_chain: result = execute_tool (tool) force_think (result) # 不�
 </ul>
 <p><strong>反模式 2：在简单场景中使用</strong></p>
 <p>❌ <strong>错误做法</strong>：</p>
-<pre class="ascii-art"> 用户："今天天气如何？"
-Agent: [调用天气 API] → [Think: 分析天气数据...] → 响应 </pre> <p><strong>问题</strong>：单步查询无需额外推理，think 工具成为累赘。</p>
+<pre class="ascii-art">
+用户："今天天气如何？"
+Agent: [调用天气 API] → [Think: 分析天气数据...] →
+响应
+</pre> <p><strong>问题</strong>：单步查询无需额外推理，think 工具成为累赘。</p>
 <p><strong>反模式 3：缺乏领域定制</strong></p>
 <p>❌ <strong>错误做法</strong>：</p>
 <div class="codehilite"><pre><span></span><code>{ &quot;name&quot;: &quot;think&quot;, &quot;description&quot;: &quot;Use this to think.&quot; // 过于笼统
@@ -858,14 +1036,121 @@ Phase 4: 在生产环境中灰度发布，持续监控
 <h2 id="5">5. 深度架构洞察</h2>
 <h3 id="51">5.1 认知架构的演进</h3>
 <p><strong>从 System 1 到 System 2 思维</strong>：</p>
-<pre class="ascii-art"> Traditional LLM (System 1) ┌────────────────────────────┐ │ 输入 → 快速推理 → 输出 │ │ (单一前向传播) │ └────────────────────────────┘ LLM with Think Tool (System 2) ┌────────────────────────────────────────┐ │ 输入 → 快速推理 → [暂停] │ │ ↓ │ │ [Think: 元认知评估] │ │ ↓ │ │ 深度推理 → 验证 → 决策 │ │ ↓ │ │ 继续执行 → 输出 │ └────────────────────────────────────────┘ </pre> <p>这与 Daniel Kahneman 的"快与慢"思维模型高度一致：</p>
+<pre class="ascii-art">
+Traditional LLM (System 1)
+┌────────────────────────────┐
+│
+ 输入 → 快速推理 → 输出 │
+│
+ (单一前向传播) │
+
+└────────────────────────────┘
+LLM with Think Tool (System 2)
+┌────────────────────────────────────────┐
+│
+ 输入 → 快速推理 → [暂停] │
+│
+ ↓
+│
+│
+ [Think: 元认知评估] │
+│
+ ↓
+│
+│
+ 深度推理 → 验证 → 决策 │
+│
+ ↓
+│
+│
+ 继续执行 → 输出 │
+
+└────────────────────────────────────────┘
+</pre> <p>这与 Daniel Kahneman 的"快与慢"思维模型高度一致：</p>
 <ul>
 <li><strong>System 1（快）</strong>：直觉性、自动化的推理（标准 LLM 响应）</li>
 <li><strong>System 2（慢）</strong>：深思熟虑、需要努力的推理（think 工具激活的阶段）</li>
 </ul>
 <h3 id="52">5.2 分布式认知系统</h3>
 <p><strong>Think 工具的本质是分布式认知的实现</strong>：</p>
-<pre class="ascii-art"> 认知任务分解 ┌────────────────────────────────────┐ │ │ │ ┌──────────┐ ┌──────────┐ │ │ │ Planning │───▶│ Execution│ │ │ │ (前期) │ │ (中期) │ │ │ └──────────┘ └──────────┘ │ │ │ │ │ ▼ │ │ ┌──────────┐ │ │ │ Thinking │ │ │ │ (检查点) │ │ │ └──────────┘ │ │ │ │ │ ▼ │ │ ┌──────────┐ │ │ │ Execution│ │ │ │ (后期) │ │ │ └──────────┘ │ │ │ │ │ ▼ │ │ ┌──────────┐ │ │ │Validation│ │ │ │ (终态) │ │ │ └──────────┘ │ │ │ └────────────────────────────────────┘ </pre> <p>这种设计允许模型在<strong>长程依赖</strong>（long-range dependencies）中维护一致性。</p>
+<pre class="ascii-art">
+认知任务分解
+┌────────────────────────────────────┐
+│
+│ │
+
+┌──────────┐
+┌──────────┐
+│
+│ │
+ Planning │
+───▶│
+ Execution│
+│ │
+│
+ (前期) │
+│
+ (中期) │
+│ │
+
+└──────────┘
+└──────────┘
+│
+│ │
+│ │
+ ▼
+│
+│
+
+┌──────────┐
+│
+│ │
+ Thinking │
+│ │
+│
+ (检查点) │
+│ │
+
+└──────────┘
+│
+│ │
+│ │
+ ▼
+│
+│
+
+┌──────────┐
+│
+│ │
+ Execution│
+│ │
+│
+ (后期) │
+│ │
+
+└──────────┘
+│
+│ │
+│ │
+ ▼
+│
+│
+
+┌──────────┐
+│
+│ │
+Validation│
+│ │
+│
+ (终态) │
+│ │
+
+└──────────┘
+│
+│ │
+
+└────────────────────────────────────┘
+</pre> <p>这种设计允许模型在<strong>长程依赖</strong>（long-range dependencies）中维护一致性。</p>
 <h3 id="53">5.3 零成本抽象的实现</h3>
 <p>引用关键特性：</p>
 <blockquote>
@@ -902,7 +1187,48 @@ Phase 4: 在生产环境中灰度发布，持续监控
 <hr />
 <h2 id="6">6. 生产环境应用指南</h2>
 <h3 id="61-think">6.1 决策树：是否采用 Think 工具</h3>
-<pre class="ascii-art"> 开始 │ ▼ ┌─────────────────────────────┐ │ 任务是否涉及多步骤工具链？ │ └─────────────────────────────┘ │ │ 是 否 │ │ ▼ ▼ ┌──────────┐ ┌──────────┐ │ 策略复杂？│ │ 不需要 │ └──────────┘ └──────────┘ │ │ 是 否 │ │ ▼ ▼ ┌────┐ ┌────────┐ │采用│ │ 测试后 │ │ │ │ 决定 │ └────┘ └────────┘ </pre> <h3 id="62">6.2 成本效益分析框架</h3>
+<pre class="ascii-art">
+开始 │
+ ▼
+┌─────────────────────────────┐
+│
+ 任务是否涉及多步骤工具链？ │
+
+└─────────────────────────────┘
+│
+│
+ 是 否 │
+│
+ ▼
+▼
+┌──────────┐
+┌──────────┐
+│
+ 策略复杂？│
+│
+ 不需要 │
+
+└──────────┘
+└──────────┘
+│
+│
+ 是 否 │
+│
+ ▼
+▼
+┌────┐
+┌────────┐
+│
+采用│
+│
+ 测试后 │
+│ │
+│
+ 决定 │
+
+└────┘
+└────────┘
+</pre> <h3 id="62">6.2 成本效益分析框架</h3>
 <p><strong>ROI 计算公式</strong>：</p>
 <div class="codehilite"><pre><span></span><code>ROI = (性能提升带来的价值 - 实施成本) / 实施成本 其中： - 性能提升带来的价值 = 错误率降低 × 单次错误成本
 - 实施成本 = 工程时间 + 额外 token 成本 + 维护成本
@@ -1138,7 +1464,7 @@ Agent B: [Think: 根据 Agent A 的分析，我应该准备改签选项]
         </footer>
     </div>
 
-    <!-- Mermaid.js for flowcharts and diagrams -->
+    <\!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({
