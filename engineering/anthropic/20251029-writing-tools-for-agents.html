@@ -30,6 +30,129 @@
             font-size: 16px;
         }
 
+/* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        
+
+
         .container {
             max-width: 920px;
             margin: 0 auto;
@@ -369,6 +492,29 @@
     </style>
 </head>
 <body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">AI Agent 工具设计架构深度分析</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
     <div class="container">
         <header>
             <h1>AI Agent 工具设计架构深度分析</h1>
@@ -429,15 +575,30 @@
 <h2 id="_1">一、核心概念框架</h2>
 <h3 id="1">1. 确定性与非确定性系统的根本差异</h3>
 <p><strong>传统软件契约</strong>（确定性系统间）</p>
-<pre class="ascii-art"> 
-getWeather ("NYC")
-→ 始终返回纽约天气（相同输入=相同输出） </pre> <p><strong>Agent 工具契约</strong>（确定性系统↔非确定性 Agent）</p>
-<pre class="ascii-art"> 用户问: "需要带伞吗？"
-Agent 可能的决策路径: 
-├─ 调用天气工具 
-├─ 使用内部知识回答 
-├─ 先请求位置信息 
-└─ 产生幻觉或误用工具 </pre> <p><strong>关键差异</strong>：工具需为 Agent 的多种推理路径设计，而非假设单一确定性调用链。</p>
+<div class="mermaid">
+graph LR
+    A["getWeather('NYC')"] --> B[纽约天气数据]
+    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
+    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+
+    note1[相同输入 = 相同输出]
+    style note1 fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+</div> <p><strong>Agent 工具契约</strong>（确定性系统↔非确定性 Agent）</p>
+<div class="mermaid">
+graph TD
+    A["用户问: 需要带伞吗?"] --> B{Agent 决策}
+    B --> C[调用天气工具]
+    B --> D[使用内部知识回答]
+    B --> E[先请求位置信息]
+    B --> F[产生幻觉或误用工具]
+
+    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
+    style B fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
+    style C fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style D fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style E fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style F fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+</div> <p><strong>关键差异</strong>：工具需为 Agent 的多种推理路径设计，而非假设单一确定性调用链。</p>
 <h3 id="2-agent-affordances">2. Agent Affordances（可供性）理论</h3>
 <p>传统 API 设计：<code>list_contacts ()</code>
 Agent 友好设计：<code>search_contacts (query="Jane")</code></p>
@@ -452,32 +613,51 @@ Agent 友好设计：<code>search_contacts (query="Jane")</code></p>
 <h2 id="_2">二、架构设计模式</h2>
 <h3 id="1_1">1. 工具粒度权衡矩阵</h3>
 <h4 id="api">❌ 反模式：API 包装式工具设计</h4>
-<pre class="ascii-art"> 
-单独实现：
-├─ 
-list_users ()
-├─ 
-list_events ()
-├─ 
-create_event ()
-└─ 
-send_notification () 
-问题：
-• Agent 需多次往返调用
-• 每个中间结果消耗上下文
-• 工具过多导致选择困难 </pre> <h4 id="_3">✅ 最佳实践：工作流聚合式工具</h4>
-<pre class="ascii-art"> 
-统一实现：
-s
-chedule_event ( participant_name: str, topic: str, preferred_time: Optional[str]
-)
-→ 
-{ availability_found: bool, event_id: str, notification_sent: bool, conflict_warnings: List[str]
-} 
-优势：
-• 单次调用完成多步操作
-• 降低 Agent 决策复杂度
-• 封装业务逻辑（查询可用性+创建+通知） </pre> <h3 id="2">2. 命名空间设计模式</h3>
+<div class="mermaid">
+graph TB
+    subgraph 单独实现
+        A[list_users]
+        B[list_events]
+        C[create_event]
+        D[send_notification]
+    end
+
+    subgraph 问题
+        E[Agent 需多次往返调用]
+        F[每个中间结果消耗上下文]
+        G[工具过多导致选择困难]
+    end
+
+    style A fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style B fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style C fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style D fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style E fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+    style F fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+    style G fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+</div> <h4 id="_3">✅ 最佳实践：工作流聚合式工具</h4>
+<div class="mermaid">
+graph TB
+    A["schedule_event(<br/>participant_name: str,<br/>topic: str,<br/>preferred_time: Optional[str])"]
+    A --> B[返回结果]
+
+    B --> C[availability_found: bool]
+    B --> D[event_id: str]
+    B --> E[notification_sent: bool]
+    B --> F["conflict_warnings: List[str]"]
+
+    subgraph 优势
+        G[单次调用完成多步操作]
+        H[降低 Agent 决策复杂度]
+        I[封装业务逻辑<br/>查询可用性+创建+通知]
+    end
+
+    style A fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style G fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style H fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style I fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+</div> <h3 id="2">2. 命名空间设计模式</h3>
 <p><strong>前缀式命名</strong>（Service-first）</p>
 <div class="codehilite"><pre><span></span><code>asana_search_tasks ()
 asana_create_project ()
@@ -498,13 +678,24 @@ update_jira_ticket ()
 <div class="codehilite"><pre><span></span><code>{ &quot;content&quot;: &quot;Project discussion...&quot;, &quot;participants&quot;: [&quot;Alice&quot;, &quot;Bob&quot;]
 }
 </code></pre></div> <p><strong>响应格式枚举模式</strong></p>
-<pre class="ascii-art">
-enum ResponseFormat 
-{ DETAILED = "detailed", # 包含技术 ID 供下游工具调用 CONCISE = "concise" # 仅返回语义信息，节省令牌
-} 
-search_threads ( query: str, response_format: ResponseFormat = CONCISE
-)
-→ Union[DetailedThreadList, ConciseThreadList] </pre> <p><strong>设计原则</strong>：</p>
+<div class="mermaid">
+graph TB
+    A[search_threads<br/>query: str<br/>response_format: ResponseFormat]
+
+    B{ResponseFormat}
+    B --> C[DETAILED<br/>包含技术 ID<br/>供下游工具调用]
+    B --> D[CONCISE 默认<br/>仅返回语义信息<br/>节省令牌]
+
+    C --> E[DetailedThreadList]
+    D --> F[ConciseThreadList]
+
+    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
+    style B fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
+    style C fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style D fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style E fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style F fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+</div> <p><strong>设计原则</strong>：</p>
 <ul>
 <li>优先返回语义字段（<code>name</code> &gt; <code>uuid</code>）</li>
 <li>用 <code>0-indexed IDs</code> 替代 UUID，减少幻觉</li>
@@ -560,45 +751,84 @@ def verify_with_claude (response: str, expected_outcome: str) -&gt; bool: judgme
 <li>工具错误率及类型</li>
 </ul>
 <p><strong>关键洞察来源</strong>：</p>
-<pre class="ascii-art"> Agent CoT（思维链）中的显式说明
-↓
-原始执行记录（工具调用顺序、参数、返回值）
-↓
-Agent 未说出的隐含行为 
-└─ 工具调用了但未提及原因 
-└─ 放弃了某种策略的迹象 
-└─ 重复的无效尝试 引用："keep in mind that what agents omit in their feedback
-and responses can often be more important than what they include" </pre> <p><strong>案例：搜索工具的偏见修复</strong></p>
+<div class="mermaid">
+graph TD
+    A[Agent CoT 思维链中的显式说明] --> B[原始执行记录<br/>工具调用顺序、参数、返回值]
+    B --> C[Agent 未说出的隐含行为]
+
+    C --> D[工具调用了但未提及原因]
+    C --> E[放弃了某种策略的迹象]
+    C --> F[重复的无效尝试]
+
+    G["关键引用:<br/>Agent 省略的信息<br/>往往比包含的信息更重要"]
+
+    style A fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style B fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style C fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
+    style D fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+    style E fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+    style F fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
+    style G fill:#F5F2ED,stroke:#CC785C,stroke-width:3px
+</div> <p><strong>案例：搜索工具的偏见修复</strong></p>
 <p>Claude 自动在搜索查询末尾附加 "2025"，导致结果偏向当年信息。通过改进工具描述纠正了此行为。</p>
 <hr />
 <h2 id="_9">四、工具描述的提示工程</h2>
 <h3 id="1_3">1. 描述编写框架</h3>
-<pre class="ascii-art"> 为新入职员工描述工具时会说什么？
-├─ 这个工具做什么？
-├─ 何时使用它？
-├─ 哪些隐含假设需明确化？
-│ 
-└─ 查询格式（模糊词汇定义）
-│ 
-└─ 资源间的关系
-│ 
-└─ 限制和边界
-├─ 参数名称要明确无歧义
-│ ❌ user
-│ ✅ user_id
-└─ 举例演示 </pre> <h3 id="2_2">2. 工具定义最佳实践</h3>
-<pre class="ascii-art">
-# ❌ 模糊的描述
-def 
-search (query: str) -> List[str]: """搜索数据库""" pass # ✅ 精确的描述
-def 
-search_customer_by_name ( first_name: str, last_name: Optional[str] = None, include_inactive: bool = False
-) -> List[CustomerProfile]: """ 按名字搜索客户。 返回包含的字段： - name: 客户全名 - customer_id: 用于后续调用（如 send_invoice） - account_status: "active", "inactive", "suspended" 注意：若 last_name 为空，按 first_name 模糊匹配 （可能返回多个结果） 
-示例： 
-search_customer_by_name ("Jane", "Doe")
-→ [
-{"name": "Jane Doe", "customer_id": 12345, ...
-}] """ pass </pre> <h3 id="3-swe-bench-verified">3. SWE-Bench Verified 优化案例</h3>
+<div class="mermaid">
+graph TD
+    A[为新入职员工描述工具时会说什么?]
+
+    A --> B[这个工具做什么?]
+    A --> C[何时使用它?]
+    A --> D[哪些隐含假设需明确化?]
+    A --> E[参数名称要明确无歧义]
+    A --> F[举例演示]
+
+    D --> D1[查询格式<br/>模糊词汇定义]
+    D --> D2[资源间的关系]
+    D --> D3[限制和边界]
+
+    E --> E1["❌ user"]
+    E --> E2["✅ user_id"]
+
+    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:3px
+    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style C fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style D fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style E fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
+    style F fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style E1 fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style E2 fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+</div> <h3 id="2_2">2. 工具定义最佳实践</h3>
+<div class="mermaid">
+graph TB
+    subgraph bad["❌ 模糊的描述"]
+        A["search(query: str)<br/>搜索数据库"]
+    end
+
+    subgraph good["✅ 精确的描述"]
+        B["search_customer_by_name(<br/>first_name: str,<br/>last_name: Optional[str],<br/>include_inactive: bool)"]
+
+        B --> C[返回字段说明]
+        C --> C1[name: 客户全名]
+        C --> C2[customer_id: 用于后续调用]
+        C --> C3["account_status: active/inactive/suspended"]
+
+        B --> D[注意事项]
+        D --> D1[last_name 为空时<br/>按 first_name 模糊匹配]
+
+        B --> E[使用示例]
+        E --> E1["search_customer_by_name('Jane', 'Doe')"]
+    end
+
+    style bad fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style A fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    style good fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    style C fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    style D fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
+    style E fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
+</div> <h3 id="3-swe-bench-verified">3. SWE-Bench Verified 优化案例</h3>
 <p>Claude Sonnet 3.5 通过精确的工具描述调整达到 SOTA：</p>
 <ul>
 <li><strong>具体化</strong>了工具的预期行为</li>
@@ -733,7 +963,7 @@ search_customer_by_name ("Jane", "Doe")
         </footer>
     </div>
 
-    <\!-- Mermaid.js for flowcharts and diagrams -->
+    <!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({
@@ -749,5 +979,55 @@ search_customer_by_name ("Jane", "Doe")
             }
         });
     </script>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
 </body>
 </html>

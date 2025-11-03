@@ -30,6 +30,129 @@
             font-size: 16px;
         }
 
+/* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        
+
+
         .container {
             max-width: 920px;
             margin: 0 auto;
@@ -369,6 +492,29 @@
     </style>
 </head>
 <body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Desktop Extensions 技术深度分析</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
     <div class="container">
         <header>
             <h1>Desktop Extensions 技术深度分析</h1>
@@ -435,47 +581,19 @@
 <li><strong>运行时隔离</strong>: 每个 MCP 服务器作为独立进程运行，提供故障隔离和资源管理</li>
 </ol>
 <p><strong>传统 MCP 服务器架构</strong></p>
-<pre class="ascii-art">
-┌─────────────────
-┐
-│ Claude Desktop 
-│
-└────────┬────────
-┘ 
-│ JSON-RPC 
-│ over stdio
-┌────────▼────────────────────────
-┐
-│ MCP 
-Server (Node.js/Python) 
-│
-│ 
-┌──────────────────────────
-┐ 
-│
-│ 
-│ Tool Implementations 
-│ 
-│
-│ 
-│ - filesystem operations 
-│ 
-│
-│ 
-│ - API integrations 
-│ 
-│
-│ 
-│ - database queries 
-│ 
-│
-│ 
-└──────────────────────────
-┘ 
-│
-└─────────────────────────────────
-┘
-</pre>
+<div class="mermaid">
+graph TB
+    desktop["Claude Desktop"]
+    server["MCP Server<br/>(Node.js/Python)"]
+    tools["Tool Implementations<br/>• filesystem operations<br/>• API integrations<br/>• database queries"]
+
+    desktop -->|"JSON-RPC<br/>over stdio"| server
+    server --> tools
+
+    style desktop fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
+    style server fill:#FFE082,stroke:#F57F17,stroke-width:3px
+    style tools fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+</div>
 <p><strong>架构痛点分析</strong></p>
 <p>传统 MCP 部署存在显著的工程摩擦：</p>
 <ul>
@@ -494,20 +612,37 @@ Server (Node.js/Python)
 </ol>
 <p><strong>MCPB (MCP Bundle) 格式定义</strong></p>
 <p>Desktop Extensions 引入 <code>.mcpb</code> 文件格式，本质上是一个包含特定结构的 ZIP 归档：</p>
-<pre class="ascii-art"> extension.mcpb/
-├── manifest.json # 元数据 + 运行时配置
-├── server/ # MCP 服务器实现代码
-│ 
-├── index.js # 入口点
-│ 
-└── handlers/ # 工具实现
-├── dependencies/ # 打包的 npm/pip 依赖
-│ 
-└── node_modules/
-├── icon.png # 
-视觉资产 (可选)
-└── README.md # 
-文档 (可选) </pre> <p><strong>manifest.json 核心架构</strong></p>
+<div class="mermaid">
+graph TB
+    root["extension.mcpb/"]
+    manifest["manifest.json<br/># 元数据 + 运行时配置"]
+    server["server/<br/># MCP 服务器实现代码"]
+    index["index.js<br/># 入口点"]
+    handlers["handlers/<br/># 工具实现"]
+    deps["dependencies/<br/># 打包的 npm/pip 依赖"]
+    modules["node_modules/"]
+    icon["icon.png<br/># 视觉资产 (可选)"]
+    readme["README.md<br/># 文档 (可选)"]
+
+    root --> manifest
+    root --> server
+    server --> index
+    server --> handlers
+    root --> deps
+    deps --> modules
+    root --> icon
+    root --> readme
+
+    style root fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
+    style manifest fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style server fill:#FFE082,stroke:#F57F17,stroke-width:2px
+    style index fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style handlers fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style deps fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
+    style modules fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
+    style icon fill:#F5F5F5,stroke:#9E9E9E,stroke-width:1px
+    style readme fill:#F5F5F5,stroke:#9E9E9E,stroke-width:1px
+</div> <p><strong>manifest.json 核心架构</strong></p>
 <div class="codehilite"><pre><span></span><code>{ &quot;mcpb_version&quot;: &quot;0.1&quot;, &quot;name&quot;: &quot;github-integration&quot;, &quot;version&quot;: &quot;1.2.3&quot;, &quot;author&quot;: { &quot;name&quot;: &quot;Anthropic&quot;, &quot;email&quot;: &quot;support@anthropic.com&quot; }, &quot;server&quot;: { &quot;command&quot;: &quot;node&quot;, &quot;args&quot;: [&quot;${__dirname}/server/index.js&quot;], &quot;env&quot;: { &quot;GITHUB_TOKEN&quot;: &quot;${user_config.github_token}&quot; } }, &quot;tools&quot;: [ { &quot;name&quot;: &quot;search_repositories&quot;, &quot;description&quot;: &quot;搜索 GitHub 仓库&quot;, &quot;parameters&quot;: { &quot;query&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;required&quot;: true} } } ], &quot;user_config&quot;: { &quot;github_token&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;title&quot;: &quot;GitHub Personal Access Token&quot;, &quot;sensitive&quot;: true, &quot;required&quot;: true, &quot;validation&quot;: &quot;^ghp_[a-zA-Z0-9]{36}$&quot; } }
 }
 </code></pre></div> <hr />
@@ -567,72 +702,28 @@ Server (Node.js/Python)
 </ol>
 <h3 id="22">2.2 一键安装的技术实现</h3>
 <p><strong>安装流程状态机</strong></p>
-<pre class="ascii-art">
-┌──────────────
-┐
-│ 用户双击 .mcpb
-│
-└──────┬───────
-┘ 
-│ ▼
-┌──────────────────────
-┐
-│ 1. 文件关联处理 
-│
-│ OS 调用 Claude 
-│
-│ Desktop 打开 
-│
-└──────┬───────────────
-┘ 
-│ ▼
-┌──────────────────────
-┐
-│ 2. 清单验证 
-│
-│ - JSON schema 校验
-│
-│ - 
-签名验证 (可选) 
-│
-│ - 权限检查 
-│
-└──────┬───────────────
-┘ 
-│ ▼
-┌──────────────────────
-┐
-│ 3. 用户配置 UI 
-│
-│ 根据 user_config 
-│
-│ 自动生成对话框 
-│
-└──────┬───────────────
-┘ 
-│ ▼
-┌──────────────────────
-┐
-│ 4. 解压和安装 
-│
-│ - 提取到沙箱目录 
-│
-│ - 注册到 Claude 
-│
-└──────┬───────────────
-┘ 
-│ ▼
-┌──────────────────────
-┐
-│ 5. 启动和连接 
-│
-│ 启动 MCP 进程 
-│
-│ 建立 JSON-RPC 通道
-│
-└──────────────────────
-┘
-</pre>
+<div class="mermaid">
+graph TB
+    start["用户双击 .mcpb"]
+    step1["1. 文件关联处理<br/>OS 调用 Claude Desktop 打开"]
+    step2["2. 清单验证<br/>• JSON schema 校验<br/>• 签名验证 (可选)<br/>• 权限检查"]
+    step3["3. 用户配置 UI<br/>根据 user_config<br/>自动生成对话框"]
+    step4["4. 解压和安装<br/>• 提取到沙箱目录<br/>• 注册到 Claude"]
+    step5["5. 启动和连接<br/>启动 MCP 进程<br/>建立 JSON-RPC 通道"]
+
+    start --> step1
+    step1 --> step2
+    step2 --> step3
+    step3 --> step4
+    step4 --> step5
+
+    style start fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
+    style step1 fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style step2 fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style step3 fill:#FFE082,stroke:#F57F17,stroke-width:3px
+    style step4 fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style step5 fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px
+</div>
 <p><strong>配置 UI 自动生成机制</strong></p>
 <p><strong>声明式 UI 定义</strong></p>
 <div class="codehilite"><pre><span></span><code>{ &quot;user_config&quot;: { &quot;api_key&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;title&quot;: &quot;API Key&quot;, &quot;description&quot;: &quot;从 https://example.com/settings 获取&quot;, &quot;sensitive&quot;: true, &quot;required&quot;: true, &quot;placeholder&quot;: &quot;sk-...&quot; }, &quot;region&quot;: { &quot;type&quot;: &quot;enum&quot;, &quot;title&quot;: &quot;服务区域&quot;, &quot;options&quot;: [&quot;us-east-1&quot;, &quot;eu-west-1&quot;, &quot;ap-southeast-1&quot;], &quot;default&quot;: &quot;us-east-1&quot; }, &quot;enable_cache&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;title&quot;: &quot;启用缓存&quot;, &quot;default&quot;: true } }
@@ -681,96 +772,25 @@ async function packExtension () { // 1. 验证 manifest const manifest = await v
 <p><strong>案例 1: PyBoy GameBoy 模拟器集成</strong></p>
 <p><strong>业务场景</strong>: 使 Claude 能够直接控制 GameBoy 游戏环境，用于强化学习和游戏 AI 研究。</p>
 <p><strong>架构设计</strong></p>
-<pre class="ascii-art"> 
-┌─────────────────────────────────────
-┐
-│ Claude Desktop 
-│
-│ 
-┌─────────────────────────────
-┐ 
-│
-│ 
-│ 用户对话: "玩俄罗斯方块" 
-│ 
-│
-│ 
-└──────────┬──────────────────
-┘ 
-│
-│ 
-│ tool_use: start_game 
-│
-└─────────────┼─────────────────────────
-┘ 
-│ JSON-RPC
-┌─────────────▼─────────────────────────
-┐
-│ PyBoy MCP Server 
-│
-│ 
-┌────────────────────────────────
-┐ 
-│
-│ 
-│ Tools: 
-│ 
-│
-│ 
-│ - 
-start_game (rom_path) 
-│ 
-│
-│ 
-│ - 
-press_button (button) 
-│ 
-│
-│ 
-│ - 
-get_screen ()
-→ base64 image
-│ 
-│
-│ 
-│ - 
-get_game_state ()
-→ RAM dump
-│ 
-│
-│ 
-└────────┬───────────────────────
-┘ 
-│
-│ 
-│ 
-│
-│ 
-┌────────▼───────────────────────
-┐ 
-│
-│ 
-│ PyBoy Emulator Engine 
-│ 
-│
-│ 
-│ - CPU emulation 
-│ 
-│
-│ 
-│ - Memory management 
-│ 
-│
-│ 
-│ - Video rendering 
-│ 
-│
-│ 
-└────────────────────────────────
-┘ 
-│
-└───────────────────────────────────────
-┘ </pre> <p><strong>manifest.json 配置</strong></p>
+<div class="mermaid">
+graph TB
+    user["用户对话:<br/>'玩俄罗斯方块'"]
+    desktop["Claude Desktop"]
+    server["PyBoy MCP Server"]
+    tools["Tools:<br/>• start_game(rom_path)<br/>• press_button(button)<br/>• get_screen() → base64 image<br/>• get_game_state() → RAM dump"]
+    engine["PyBoy Emulator Engine<br/>• CPU emulation<br/>• Memory management<br/>• Video rendering"]
+
+    user --> desktop
+    desktop -->|"tool_use: start_game<br/>JSON-RPC"| server
+    server --> tools
+    tools --> engine
+
+    style user fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
+    style desktop fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
+    style server fill:#FFE082,stroke:#F57F17,stroke-width:3px
+    style tools fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style engine fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
+</div> <p><strong>manifest.json 配置</strong></p>
 <div class="codehilite"><pre><span></span><code>{ &quot;mcpb_version&quot;: &quot;0.1&quot;, &quot;name&quot;: &quot;pyboy-emulator&quot;, &quot;version&quot;: &quot;1.0.0&quot;, &quot;server&quot;: { &quot;command&quot;: &quot;python&quot;, &quot;args&quot;: [ &quot;${__dirname}/server/pyboy_server.py&quot; ], &quot;env&quot;: { &quot;ROM_DIR&quot;: &quot;${HOME}/.claude/roms&quot; } }, &quot;tools&quot;: [ { &quot;name&quot;: &quot;start_game&quot;, &quot;description&quot;: &quot;启动 GameBoy 游戏&quot;, &quot;parameters&quot;: { &quot;rom_name&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;ROM 文件名 (例如: tetris.gb)&quot; } } }, { &quot;name&quot;: &quot;press_button&quot;, &quot;description&quot;: &quot;按下按钮&quot;, &quot;parameters&quot;: { &quot;button&quot;: { &quot;type&quot;: &quot;enum&quot;, &quot;values&quot;: [&quot;up&quot;, &quot;down&quot;, &quot;left&quot;, &quot;right&quot;, &quot;a&quot;, &quot;b&quot;, &quot;start&quot;, &quot;select&quot;] } } }, { &quot;name&quot;: &quot;get_screen&quot;, &quot;description&quot;: &quot;获取当前屏幕截图 (base64 编码的 PNG)&quot; } ]
 }
 </code></pre></div> <p><strong>Python 服务器实现 (核心代码)</strong></p>
@@ -1050,7 +1070,7 @@ class ExtensionUpdateManager { async checkUpdates (installedExtension) { const m
         </footer>
     </div>
 
-    <\!-- Mermaid.js for flowcharts and diagrams -->
+    <!-- Mermaid.js for flowcharts and diagrams -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({
@@ -1066,5 +1086,55 @@ class ExtensionUpdateManager { async checkUpdates (installedExtension) { const m
             }
         });
     </script>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
 </body>
 </html>
