@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>长运行 Agent 的有效框架 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
+        }
+
+        /* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">长运行 Agent 的有效框架</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>长运行 Agent 的有效框架</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank">https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2025年11月26日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-12-19</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#_2">核心问题</a></li>
+  <li><a href="#_3">两种典型失败模式</a></li>
+<li><a href="#_4">解决方案架构</a></li>
+  <li><a href="#_5">两部分框架</a></li>
+<li><a href="#_6">环境管理最佳实践</a></li>
+  <li><a href="#_7">功能列表设置</a></li>
+  <li><a href="#_8">增量进度</a></li>
+  <li><a href="#_9">测试策略</a></li>
+<li><a href="#_10">启动新会话的标准流程</a></li>
+<li><a href="#_11">失败模式与解决方案表</a></li>
+<li><a href="#_12">未来方向</a></li>
+<li><a href="#_13">致谢</a></li>
+<li><a href="#_14">注脚</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="agent">长运行 Agent 的有效框架</h1>
+<p><strong>发布日期</strong>: 2025 年 11 月 26 日</p>
+<h2 id="_1">概述</h2>
+<p>Anthropic 发布的这篇工程博客介绍了如何让 AI Agent 在多个 context window 中持续高效工作。文章通过实践经验总结了一套两部分解决方案：初始化 agent 和编码 agent，帮助开发者构建能够跨越多个上下文窗口的长运行 Agent 系统。</p>
+<h2 id="_2">核心问题</h2>
+<p>长运行 Agent 面临的主要挑战在于"离散会话"性质。"每个新会话开始时都没有前一个会话的记忆"。这类似于工程师轮班制工作——每位新员工都对前一班发生的事一无所知。</p>
+<p>即使使用 context compaction（上下文压缩），Claude Opus 4.5 在仅接收"构建一个 claude.ai 克隆"这样的高层次提示时，仍然无法构建生产级别的 Web 应用。</p>
+<h3 id="_3">两种典型失败模式</h3>
+<p><strong>模式一：过度一次性实现</strong>
+Agent 倾向于一次做太多事，导致在实现过程中耗尽上下文，留下半实现且无文档的功能。下一会话必须猜测之前发生了什么，浪费大量时间恢复基础应用。</p>
+<p><strong>模式二：过早宣布完成</strong>
+在进行多项功能后，后续 Agent 会看到进度，声称任务已完成。</p>
+<h2 id="_4">解决方案架构</h2>
+<h3 id="_5">两部分框架</h3>
+<h4 id="1-agent">1. 初始化 Agent</h4>
+<p>首个会话使用特殊提示，负责建立初始环境：</p>
+<ul>
+<li><strong>init.sh 脚本</strong>：用于启动开发服务器</li>
+<li><strong>claude-progress.txt 文件</strong>：记录 Agent 完成的工作日志</li>
+<li><strong>初始 git 提交</strong>：展示添加的文件</li>
+</ul>
+<h4 id="2-agent">2. 编码 Agent</h4>
+<p>后续每个会话的 Agent：</p>
+<ul>
+<li>逐个功能地增量实现</li>
+<li>使用 git 提交保存进度</li>
+<li>更新进度文件</li>
+<li>留下清晰的工作工件供下一会话使用</li>
+</ul>
+<p>核心洞察："通过 claude-progress.txt 文件与 git 历史配合，帮助 Agent 在新 context window 启动时快速理解工作状态。"</p>
+<h2 id="_6">环境管理最佳实践</h2>
+<h3 id="_7">功能列表设置</h3>
+<div class="codehilite"><pre><span></span><code>{
+    &quot;category&quot;: &quot;functional&quot;,
+    &quot;description&quot;: &quot;New chat button creates a fresh conversation&quot;,
+    &quot;steps&quot;: [
+      &quot;Navigate to main interface&quot;,
+      &quot;Click the &#39;New Chat&#39; button&quot;,
+      &quot;Verify a new conversation is created&quot;,
+      &quot;Check that chat area shows welcome state&quot;,
+      &quot;Verify conversation appears in sidebar&quot;
+    ],
+    &quot;passes&quot;: false
+}
+</code></pre></div> <p>claude.ai 克隆示例包含 200+ 个功能特性，所有功能初始标记为"failing"。使用 JSON 格式而非 Markdown，因为 Claude 不太可能不恰当地修改 JSON 文件。</p>
+<p>强制要求："仅通过修改 passes 字段来编辑此文件。不能删除或编辑测试，因为这会导致功能缺失或 bug。"</p>
+<h3 id="_8">增量进度</h3>
+<p>将工作分解为单个功能的增量实现。每次代码变更后，Agent 必须：</p>
+<ul>
+<li>提交到 git（附带描述性提交信息）</li>
+<li>在进度文件中编写总结</li>
+</ul>
+<p>这使 Agent 能够使用 git 回滚坏改动并恢复工作状态，同时提高效率。</p>
+<h3 id="_9">测试策略</h3>
+<p>"Claude 倾向于在没有适当测试的情况下将功能标记为完成。"显式要求 Agent 使用浏览器自动化工具进行端到端测试。</p>
+<p>使用 Puppeteer MCP 服务器进行测试可"显著改进性能，使 Agent 能够识别并修复代码中不明显的 bug"。</p>
+<p><strong>测试截图示例</strong>：
+<img alt="Claude 通过 Puppeteer MCP 服务器截图测试 claude.ai 克隆" src="images/f94c2257964fb2d623f1e81f874977ebfc0986bc-1920x1080.gif" /></p>
+<p>注意：当前存在局限，如 Claude 无法通过 Puppeteer MCP 看到浏览器原生警告框，导致依赖这些模式的功能更容易出现 bug。</p>
+<h2 id="_10">启动新会话的标准流程</h2>
+<p>每个编码 Agent 会话开始时运行一系列步骤：</p>
+<ol>
+<li><strong>运行 <code>pwd</code></strong> 查看工作目录</li>
+<li><strong>读取 git 日志和进度文件</strong> 了解最近工作</li>
+<li><strong>读取功能列表文件</strong> 选择最高优先级未完成功能</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">I</span><span class="err">&#39;</span><span class="n">ll</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">getting</span><span class="w"> </span><span class="n">my</span><span class="w"> </span><span class="n">bearings</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">understanding</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">project</span><span class="p">.</span>
+<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">bash</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">pwd</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">read</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">claude</span><span class="o">-</span><span class="n">progress</span><span class="p">.</span><span class="n">txt</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">read</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">feature_list</span><span class="p">.</span><span class="n">json</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="n">log</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="n">recent</span><span class="w"> </span><span class="n">work</span><span class="p">.</span>
+<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">bash</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="n">log</span><span class="w"> </span><span class="o">--</span><span class="n">oneline</span><span class="w"> </span><span class="mi">-20</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Now</span><span class="w"> </span><span class="n">let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">there</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">init</span><span class="p">.</span><span class="n">sh</span><span class="w"> </span><span class="n">script</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">restart</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">servers</span><span class="p">.</span>
+<span class="o">&lt;</span><span class="n">Starts</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">development</span><span class="w"> </span><span class="n">server</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Excellent</span><span class="o">!</span><span class="w"> </span><span class="n">Now</span><span class="w"> </span><span class="n">let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">navigate</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">application</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">verify</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">fundamental</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">still</span><span class="w"> </span><span class="n">working</span><span class="p">.</span>
+<span class="o">&lt;</span><span class="n">Tests</span><span class="w"> </span><span class="n">basic</span><span class="w"> </span><span class="n">functionality</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Based</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">my</span><span class="w"> </span><span class="n">verification</span><span class="w"> </span><span class="n">testing</span><span class="p">,</span><span class="w"> </span><span class="n">I</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">fundamental</span><span class="w"> </span><span class="n">functionality</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">working</span><span class="w"> </span><span class="n">well</span><span class="p">.</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">core</span><span class="w"> </span><span class="n">chat</span><span class="w"> </span><span class="n">features</span><span class="p">,</span><span class="w"> </span><span class="n">theme</span><span class="w"> </span><span class="n">switching</span><span class="p">,</span><span class="w"> </span><span class="n">conversation</span><span class="w"> </span><span class="n">loading</span><span class="p">,</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">error</span><span class="w"> </span><span class="n">handling</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">functioning</span><span class="w"> </span><span class="n">correctly</span><span class="p">.</span><span class="w"> </span><span class="n">Now</span><span class="w"> </span><span class="n">let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">review</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">tests</span><span class="p">.</span><span class="n">json</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">more</span><span class="w"> </span><span class="n">comprehensively</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">understand</span><span class="w"> </span><span class="n">what</span><span class="w"> </span><span class="n">needs</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">implemented</span><span class="w"> </span><span class="n">next</span><span class="p">.</span>
+<span class="o">&lt;</span><span class="n">Starts</span><span class="w"> </span><span class="n">work</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">new</span><span class="w"> </span><span class="n">feature</span><span class="o">&gt;</span>
+</code></pre></div> <p>此方法在每个会话中节省 token，因为 Agent 不需要自行找出测试方法。</p>
+<h2 id="_11">失败模式与解决方案表</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>初始化 Agent 行为</th>
+<th>编码 Agent 行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude 过早宣布整个项目完成</td>
+<td>建立功能列表文件：基于输入规范，创建包含端到端功能描述的结构化 JSON 文件</td>
+<td>在会话开始读取功能列表。选择单个功能着手处理</td>
+</tr>
+<tr>
+<td>Claude 留下含 bug 或未记录进度的环境</td>
+<td>编写初始 git repo 和进度备注文件</td>
+<td>会话开始时读取进度和 git 日志，在开发服务器上运行基础测试捕获未记录的 bug；会话结束时编写 git 提交和进度更新</td>
+</tr>
+<tr>
+<td>Claude 过早标记功能完成</td>
+<td>建立功能列表文件</td>
+<td>自我验证所有功能。仅在仔细测试后标记功能"通过"</td>
+</tr>
+<tr>
+<td>Claude 浪费时间了解如何运行应用</td>
+<td>编写能运行开发服务器的 <code>init.sh</code> 脚本</td>
+<td>会话开始时读取 <code>init.sh</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_12">未来方向</h2>
+<p>研究表明，单一通用编码 Agent 是否在多个 context 中表现最好仍不确定。使用专门的 Agent（测试 Agent、质量保证 Agent、代码清理 Agent）进行子任务可能效果更佳。</p>
+<p>此演示针对全栈 Web 应用开发优化。泛化这些发现到其他领域（如科学研究或财务建模）是有前景的方向。</p>
+<h2 id="_13">致谢</h2>
+<p>由 Justin Young 撰写。感谢 David Hershey、Prithvi Rajasakeran、Jeremy Hadfield、Naia Bouscal、Michael Tingley、Jesse Mu、Jake Eaton、Marius Buleandara、Maggie Vo、Pedram Navid、Nadine Yasser 和 Alex Notov 的贡献。</p>
+<p>此工作得到 Anthropic 多个团队的支持，特别是代码 RL 和 Claude Code 团队。感兴趣的候选人欢迎在 <a href="http://anthropic.com/careers">anthropic.com/careers</a> 申请。</p>
+<h2 id="_14">注脚</h2>
+<ol>
+<li>仅因初始用户提示不同而称之为"单独的 Agent"。系统提示、工具集和整体 Agent harness 在其他方面相同。</li>
+</ol>
+<hr />
+<p><strong>相关资源</strong>：</p>
+<ul>
+<li><a href="https://platform.claude.com/docs/en/agent-sdk/overview">Claude Agent SDK 文档</a></li>
+<li><a href="https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding">快速入门代码示例</a></li>
+<li><a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices#multi-context-window-workflows">Claude 4 提示工程最佳实践</a></li>
+</ul>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-12-19 16:00:10<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
+</body>
+</html>

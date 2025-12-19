@@ -1,11 +1,51 @@
 [
   {
+    "title": "The \"Think\" Tool: 让 Claude 在复杂工具使用中停下来思考",
+    "filename": "20251029-claude-think-tool.html",
+    "original_url": "https://www.anthropic.com/engineering/claude-think-tool",
+    "publish_date": "2025年3月20日",
+    "created_at": "2025-10-29 20:59:56",
+    "updated_at": "2025-12-19 16:18:49",
+    "summary": "本文深度剖析了 Claude 的 Think Tool 设计，这是一个将 AI 推理过程可视化的创新机制。核心价值在于提升决策透明度：Agent 通过显式的思维链展示问题分析、方案评估、以及决策依据，使开发者能够理解、调试和优化 Agent 行为。文章详细阐述了 Think Tool 的技术实现（结构化输出、上下文管理）、使用模式（复杂推理、多步骤规划）、以及性能影响评估。通过对比有无 Think Tool 的任务完成质量，验证了显式推理对提升 Agent 可靠性和可解释性的显著作用。"
+  },
+  {
+    "title": "Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破",
+    "filename": "20251029-swe-bench-sonnet.html",
+    "original_url": "https://www.anthropic.com/engineering/swe-bench-sonnet",
+    "publish_date": "2025年1月6日",
+    "created_at": "2025-10-29 21:02:59",
+    "updated_at": "2025-12-19 16:26:40",
+    "summary": "本文深度剖析了 Claude 3.5 Sonnet 在 SWE-bench Verified 上达成 49% 准确率的技术突破（相比前代 33%）。核心洞察是工具设计哲学的范式转变：从最小化 API Schema 转向人类级别的接口文档，包含使用意图、错误预防和恢复指导。文章系统阐述了最小化脚手架架构模式、高可靠性编辑工具设计（精确字符串匹配、绝对路径、幂等性）、以及错误处理机制。通过对比反模式与最佳实践，提供了可复用的工具设计检查清单和性能优化策略。"
+  },
+  {
+    "title": "Code Execution with MCP: Building More Efficient Agents",
+    "filename": "20251104-code-execution-with-mcp.html",
+    "original_url": "https://www.anthropic.com/engineering/code-execution-with-mcp",
+    "publish_date": "2025年11月4日",
+    "created_at": "2025-12-19 16:06:04"
+  },
+  {
+    "title": "长运行 Agent 的有效框架",
+    "filename": "20251126-effective-harnesses-for-long-running-agents.html",
+    "original_url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "publish_date": "2025年11月26日",
+    "created_at": "2025-12-19 16:00:10"
+  },
+  {
+    "title": "Claude 开发者平台高级 Tool Use 功能介绍",
+    "filename": "20251124-advanced-tool-use.html",
+    "original_url": "https://www.anthropic.com/engineering/advanced-tool-use",
+    "publish_date": "2025年11月24日",
+    "created_at": "2025-12-19 16:04:31"
+  },
+  {
     "title": "上下文工程深度技术分析",
     "filename": "20251029-effective-context-engineering-for-ai-agents.html",
     "original_url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "publish_date": "2025 年 9 月 29 日",
     "created_at": "2025-10-29 20:50:00",
-    "updated_at": "2025-10-30 11:07:54"
+    "updated_at": "2025-12-19 16:26:40",
+    "summary": "本文系统阐述了 AI Agent 上下文工程的核心技术原则：通过上下文最小化和渐进式披露设计，有效管理上下文窗口资源。文章深入分析了工具调用的上下文开销、动态内容加载策略、以及如何平衡信息完整性与token效率的权衡。基于 Claude Code 等生产系统的实践，提供了具体的优化模式（按需加载、分层披露、缓存复用）和量化指标，帮助开发者构建高效的 Agent 系统，避免上下文溢出导致的性能下降和成本激增。"
   },
   {
     "title": "三个近期问题的事后分析",
@@ -13,7 +53,8 @@
     "original_url": "https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues",
     "publish_date": "2025 年 9 月 17 日",
     "created_at": "2025-10-29 09:41:14",
-    "updated_at": "2025-10-29 09:41:45"
+    "updated_at": "2025-10-29 09:41:45",
+    "summary": "本文通过三个真实生产环境故障的深度复盘，展示了 Anthropic 的系统可靠性工程实践。每个案例都详细剖析了故障根因（API限流、并发冲突、资源泄漏）、影响范围、检测机制缺陷以及完整的修复方案。文章强调了预防性监控、优雅降级、故障隔离的重要性，并提供了可复用的错误处理模式和告警策略。通过透明的事后分析流程和改进措施，为构建高可用 AI 系统提供了宝贵的工程经验和最佳实践参考。"
   },
   {
     "title": "AI Agent 工具设计架构深度分析",
@@ -21,7 +62,8 @@
     "original_url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
     "publish_date": "2025 年 9 月 11 日",
     "created_at": "2025-10-29 20:53:44",
-    "updated_at": "2025-10-30 11:07:54"
+    "updated_at": "2025-10-30 11:07:54",
+    "summary": "本文揭示了 LLM Agent 工具设计的范式转变：从传统的 API Schema 转向人类级别的接口文档。核心洞察是工具描述需要包含使用意图、错误预防指导和恢复策略，而非仅提供参数定义。文章系统分析了高可靠性工具的设计模式（精确字符串匹配、绝对路径、幂等性保证）、参数验证策略、以及错误处理机制。通过对比反模式与最佳实践，提供了可操作的设计检查清单，帮助开发者构建 Agent 能够正确理解和有效使用的工具接口。"
   },
   {
     "title": "Desktop Extensions 技术深度分析",
@@ -29,7 +71,8 @@
     "original_url": "https://www.anthropic.com/engineering/desktop-extensions",
     "publish_date": "2025 年 6 月 26 日",
     "created_at": "2025-10-29 20:58:33",
-    "updated_at": "2025-10-30 11:07:54"
+    "updated_at": "2025-10-30 11:07:54",
+    "summary": "本文深入探讨了 Claude Desktop Extensions 的系统架构设计，实现了 AI Agent 与本地桌面环境的安全集成。核心技术包括：基于 MCP（Model Context Protocol）的扩展协议、进程级沙箱隔离、细粒度权限管理（文件系统、网络、进程）、以及跨平台兼容性方案。文章详细阐述了安全模型的设计权衡、扩展发现与加载机制、通信协议优化、以及资源管理策略。通过具体的实现案例和性能分析，为构建安全可控的桌面 AI 应用提供了完整的技术框架。"
   },
   {
     "title": "我们如何构建多 Agent 研究系统",
@@ -37,7 +80,8 @@
     "original_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
     "publish_date": "2025 年 6 月 13 日",
     "created_at": "2025-10-29 15:14:27",
-    "updated_at": "2025-10-29 15:14:45"
+    "updated_at": "2025-10-29 15:14:45",
+    "summary": "本文系统介绍了 Anthropic 多 Agent 研究系统的架构设计与工程实践。核心创新在于分层协作模式：通过编排器（Orchestrator）分解复杂研究任务，专门化 Agent 并行执行子任务（文献检索、数据分析、假设验证），最终通过结果聚合与一致性检查生成高质量输出。文章深入分析了任务分解策略、Agent 间通信协议、并发控制机制、以及质量保证流程。基于真实研究场景的评估数据，展示了多 Agent 系统在准确性和效率上的显著提升。"
   },
   {
     "title": "Claude Code：Agent 编码的最佳实践",
@@ -45,15 +89,8 @@
     "original_url": "https://www.anthropic.com/engineering/claude-code-best-practices",
     "publish_date": "2025 年 4 月 18 日",
     "created_at": "2025-10-29 15:10:08",
-    "updated_at": "2025-10-29 15:10:26"
-  },
-  {
-    "title": "The \"Think\" Tool: AI 架构师深度分析",
-    "filename": "20251029-claude-think-tool.html",
-    "original_url": "",
-    "publish_date": "未知",
-    "created_at": "2025-10-29 20:59:56",
-    "updated_at": "2025-10-30 11:07:54"
+    "updated_at": "2025-10-29 15:10:26",
+    "summary": "本文提炼了 Claude Code 在代码生成场景的核心最佳实践，基于大规模生产环境的验证数据。关键原则包括：测试驱动的迭代开发（先测试后实现）、渐进式修改策略（小步提交、快速验证）、版本控制深度集成（语义化提交、分支管理）、以及多层次的代码质量保证（静态分析、单元测试、人工审查）。文章提供了具体的工作流模式、常见陷阱警告、以及性能优化技巧，帮助开发者最大化 AI 辅助编程的效率和代码质量。"
   },
   {
     "title": "超越权限提示：让 Claude Code 更安全、更自主",
@@ -61,7 +98,8 @@
     "original_url": "https://www.anthropic.com/engineering/claude-code-sandboxing",
     "publish_date": "2025 年 10 月 20 日",
     "created_at": "2025-10-29 15:28:18",
-    "updated_at": "2025-10-29 15:28:36"
+    "updated_at": "2025-10-29 15:28:36",
+    "summary": "本文介绍了 Claude Code 的沙箱安全架构，实现了 AI Agent 自主代码执行与系统安全的平衡。核心技术包括：基于操作系统级隔离的沙箱模型（文件系统白名单、网络访问控制、进程资源限制）、细粒度权限管理、以及运行时安全策略。文章深入分析了安全与自主性的设计权衡、沙箱逃逸防护机制、性能开销优化、以及用户可配置的安全策略。通过消除频繁的权限提示，显著提升了 Agent 的工作效率，同时保持了企业级的安全保障。"
   },
   {
     "title": "Agent Skills - 为真实世界的 Agent 提供技能",
@@ -69,7 +107,8 @@
     "original_url": "https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
     "publish_date": "2025 年 10 月 16 日",
     "created_at": "2025-10-29 09:41:14",
-    "updated_at": "2025-10-29 09:41:45"
+    "updated_at": "2025-10-29 09:41:45",
+    "summary": "本文系统阐述了 Agent Skills 的创新架构：通过 SKILL.md 文件组织的模块化能力系统，实现了 Agent 知识的高效管理和动态加载。核心设计原则是渐进式内容披露：Skills 通过元数据（名称、触发器）快速匹配需求，按需加载详细指令和可执行代码，避免上下文窗口浪费。文章详细展示了 Skill 的解剖结构（元数据、文档、脚本）、触发机制、以及与代码执行的集成模式。基于 Claude Code 的实践，验证了该架构在支持 100+ Skills 同时保持高性能的可行性。"
   },
   {
     "title": "使用 Claude Agent SDK 构建 Agent",
@@ -77,15 +116,8 @@
     "original_url": "https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk",
     "publish_date": "2025 年 10 月 16 日",
     "created_at": "2025-10-29 09:41:14",
-    "updated_at": "2025-10-29 09:41:45"
-  },
-  {
-    "title": "Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析",
-    "filename": "20251029-swe-bench-sonnet.html",
-    "original_url": "https://www.anthropic.com/engineering/swe-bench-sonnet",
-    "publish_date": "2025年1月6日",
-    "created_at": "2025-10-29 21:02:59",
-    "updated_at": "2025-10-30 11:07:54"
+    "updated_at": "2025-10-29 09:41:45",
+    "summary": "本文全面介绍了 Claude Agent SDK 的架构设计与开发实践，提供了构建生产级 Agent 的完整工具链。核心是三阶段反馈循环：收集上下文（文件系统访问、语义搜索、子 Agent 委派）、采取行动（Bash 执行、代码生成）、验证工作（规则检查、视觉反馈、LLM 评判）。文章深入分析了每个阶段的工具选择、最佳实践（渐进式信息披露、明确工具边界、迭代验证）、以及错误处理策略。通过代码审查 Agent 等真实案例，展示了 SDK 在简化复杂任务开发的有效性。"
   },
   {
     "title": "介绍上下文检索（Contextual Retrieval）",
@@ -93,7 +125,8 @@
     "original_url": "https://www.anthropic.com/engineering/contextual-retrieval",
     "publish_date": "2024 年 9 月 19 日",
     "created_at": "2025-10-29 15:37:07",
-    "updated_at": "2025-10-29 15:37:25"
+    "updated_at": "2025-10-29 15:37:25",
+    "summary": "本文提出了 Contextual Retrieval 技术，通过为文档块添加上下文解释，将 RAG 系统的检索失败率降低 67%（从 5.7% 降至 1.9%）。核心创新是索引时的上下文增强：使用 LLM 为每个块生成简洁的上下文说明（50-100 字），结合 Contextual Embeddings 和 Contextual BM25 实现混合检索。文章详细分析了实现细节（提示工程、模型选择、Prompt Caching 优化）、成本效益（每 1M tokens 仅 $0.29）、以及 Reranking 的进一步提升。基于三个真实数据集的基准测试，验证了该方法的普适性和性价比。"
   },
   {
     "title": "AI Agent 架构设计权威指南：从工作流到自主系统",
@@ -101,6 +134,7 @@
     "original_url": "https://www.anthropic.com/engineering/building-effective-agents",
     "publish_date": "2024 年 12 月 19 日",
     "created_at": "2025-10-29 21:04:56",
-    "updated_at": "2025-10-30 11:07:53"
+    "updated_at": "2025-10-30 11:07:53",
+    "summary": "本文是 Anthropic 基于数千个生产系统的实践总结，系统阐述了 AI Agent 架构设计的核心原则：从简单工作流到自主智能体的六种模式（提示链、路由、并行化、编排-工作者、评估-优化、自主 Agent），以及何时使用确定性工作流、何时需要自主决策的判断准则。文章强调简洁优于复杂的设计哲学，提供了完整的架构决策检查清单、反模式警告和真实案例分析（客户支持、SWE-bench 编码任务），是构建生产级 Agent 系统的权威实践指南。"
   }
 ]
