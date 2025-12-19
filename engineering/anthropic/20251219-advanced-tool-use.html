@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude 开发者平台高级 Tool Use 功能介绍 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
+        }
+
+        /* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Claude 开发者平台高级 Tool Use 功能介绍</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Claude 开发者平台高级 Tool Use 功能介绍</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/advanced-tool-use" target="_blank">https://www.anthropic.com/engineering/advanced-tool-use</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2025年11月24日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-12-19</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#_2">核心问题与解决方案</a></li>
+  <li><a href="#ai">AI 代理的三个关键需求</a></li>
+<li><a href="#tool-search-tool">功能一：Tool Search Tool</a></li>
+  <li><a href="#_3">问题背景</a></li>
+  <li><a href="#_4">解决方案</a></li>
+  <li><a href="#_5">工作原理</a></li>
+  <li><a href="#_6">使用场景</a></li>
+<li><a href="#programmatic-tool-calling">功能二：Programmatic Tool Calling</a></li>
+  <li><a href="#_7">问题背景</a></li>
+  <li><a href="#_8">解决方案</a></li>
+  <li><a href="#_9">实现步骤</a></li>
+  <li><a href="#_12">代码示例：预算合规检查</a></li>
+  <li><a href="#_13">使用场景</a></li>
+<li><a href="#tool-use-examples">功能三：Tool Use Examples</a></li>
+  <li><a href="#_14">问题背景</a></li>
+  <li><a href="#_15">解决方案</a></li>
+  <li><a href="#_16">使用场景</a></li>
+<li><a href="#_17">最佳实践</a></li>
+  <li><a href="#_18">分层应用功能</a></li>
+  <li><a href="#tool-search-tool_1">Tool Search Tool 优化建议</a></li>
+  <li><a href="#programmatic-tool-calling_1">Programmatic Tool Calling 优化建议</a></li>
+  <li><a href="#tool-use-examples_1">Tool Use Examples 优化建议</a></li>
+<li><a href="#_19">入门指南</a></li>
+  <li><a href="#api">API 调用示例</a></li>
+  <li><a href="#_20">资源链接</a></li>
+<li><a href="#_21">关键图片资源</a></li>
+  <li><a href="#1-tool-search-tool">1. Tool Search Tool 对比图</a></li>
+  <li><a href="#2-programmatic-tool-calling">2. Programmatic Tool Calling 流程图</a></li>
+<li><a href="#_22">总结</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="claude-tool-use">Claude 开发者平台高级 Tool Use 功能介绍</h1>
+<p><strong>发布日期</strong>: 2025 年 11 月 24 日</p>
+<h2 id="_1">概述</h2>
+<p>Anthropic 发布了三个新的 beta 功能，使 Claude 能够动态发现、学习和执行工具。这些功能旨在解决 AI 代理在处理大规模工具库时面临的核心挑战。</p>
+<hr />
+<h2 id="_2">核心问题与解决方案</h2>
+<h3 id="ai">AI 代理的三个关键需求</h3>
+<ol>
+<li>
+<p><strong>无上限工具库访问</strong>：代理需要在不将每个工具定义都加载到上下文的情况下，访问数百或数千个工具</p>
+</li>
+<li>
+<p><strong>高效代码执行能力</strong>：相比逐个调用工具，代理应该能通过代码编排多个工具调用，避免中间结果污染上下文</p>
+</li>
+<li>
+<p><strong>从示例学习</strong>：代理需要从具体用法示例而非仅 JSON Schema 学习工具的正确使用方式</p>
+</li>
+</ol>
+<hr />
+<h2 id="tool-search-tool">功能一：Tool Search Tool</h2>
+<h3 id="_3">问题背景</h3>
+<p>传统方法下，MCP 工具定义会大量消耗 token。以 5 服务器设置为例：</p>
+<ul>
+<li>GitHub: 35 工具 (~26K tokens)</li>
+<li>Slack: 11 工具 (~21K tokens)</li>
+<li>Sentry: 5 工具 (~3K tokens)</li>
+<li>Grafana: 5 工具 (~3K tokens)</li>
+<li>Splunk: 2 工具 (~2K tokens)</li>
+</ul>
+<p><strong>总计</strong>：58 个工具消耗约 55K tokens，加上 Jira (~17K tokens)，迅速突破 100K+ token 开销。</p>
+<p>Anthropic 内部甚至观察到单个项目的工具定义消耗 134K tokens。</p>
+<p>常见失败原因：工具选择错误、参数不正确（尤其是名称相似的工具，如 <code>notification-send-user</code> 与 <code>notification-send-channel</code>）</p>
+<h3 id="_4">解决方案</h3>
+<p>Tool Search Tool 允许动态发现工具，仅在需要时加载相关定义。</p>
+<p><strong>对比效果</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>初始加载</th>
+<th>按需加载</th>
+<th>总计</th>
+<th>保留上下文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>传统方案</td>
+<td>~72K tokens</td>
+<td>-</td>
+<td>~77K tokens</td>
+<td>5 %</td>
+</tr>
+<tr>
+<td>Tool Search Tool</td>
+<td>~500 tokens</td>
+<td>~3K tokens</td>
+<td>~8.7K tokens</td>
+<td>95 %</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token 节省</strong>: 85 % 减少</p>
+<p><strong>准确度提升</strong>：</p>
+<ul>
+<li>Opus 4: 49 % → 74 %</li>
+<li>Opus 4.5: 79.5 % → 88.1 %</li>
+</ul>
+<h3 id="_5">工作原理</h3>
+<p>通过 <code>defer_loading: true</code> 标记工具，使其可按需发现：</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;tools&quot;: [
+    {&quot;type&quot;: &quot;tool_search_tool_regex_20251119&quot;, &quot;name&quot;: &quot;tool_search_tool_regex&quot;},
+    {
+      &quot;name&quot;: &quot;github.createPullRequest&quot;,
+      &quot;description&quot;: &quot;Create a pull request&quot;,
+      &quot;input_schema&quot;: {...},
+      &quot;defer_loading&quot;: true
+    }
+  ]
+}
+</code></pre></div> <p>对于 MCP 服务器，可延迟加载整个服务器，同时保持常用工具加载：</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;type&quot;: &quot;mcp_toolset&quot;,
+  &quot;mcp_server_name&quot;: &quot;google-drive&quot;,
+  &quot;default_config&quot;: {&quot;defer_loading&quot;: true},
+  &quot;configs&quot;: {
+    &quot;search_files&quot;: {
+      &quot;defer_loading&quot;: false
+    }
+  }
+}
+</code></pre></div> <h3 id="_6">使用场景</h3>
+<p><strong>推荐使用</strong>：</p>
+<ul>
+<li>工具定义消耗 &gt;10K tokens</li>
+<li>工具选择准确性有问题</li>
+<li>多服务器 MCP 系统</li>
+<li>可用工具 10+ 个</li>
+</ul>
+<p><strong>不推荐</strong>：</p>
+<ul>
+<li>工具库较小 (&lt;10 个)</li>
+<li>每个会话都使用所有工具</li>
+<li>工具定义紧凑</li>
+</ul>
+<p><strong>Prompt Caching 兼容性</strong>：延迟加载工具被排除在初始 prompt 之外，系统 prompt 和核心工具定义保持可缓存性</p>
+<hr />
+<h2 id="programmatic-tool-calling">功能二：Programmatic Tool Calling</h2>
+<h3 id="_7">问题背景</h3>
+<p>传统 tool calling 存在两个根本问题：</p>
+<ol>
+<li>
+<p><strong>上下文污染</strong>：处理 10MB 日志文件时，整个文件进入上下文，尽管仅需错误频率摘要。多表数据查询时，所有记录累积在上下文中</p>
+</li>
+<li>
+<p><strong>推理开销</strong>：每次工具调用需要完整推理。5 个工具的工作流需要 5 次推理通过。中间数据在上下文中相互竞争</p>
+</li>
+</ol>
+<h3 id="_8">解决方案</h3>
+<p>代理通过 Python 代码编排工具，而非逐个调用。代码在沙箱环境执行，仅最终结果进入 Claude 的上下文。</p>
+<p><strong>效率提升</strong>：</p>
+<ul>
+<li><strong>Token 节省</strong>: 43,588 → 27,297 tokens（37 % 减少）</li>
+<li><strong>延迟减少</strong>: 消除 19+ 次推理通过</li>
+<li><strong>准确度</strong>: 知识检索 25.6 % → 28.5 %; GIA 基准 46.5 % → 51.2 %</li>
+</ul>
+<h3 id="_9">实现步骤</h3>
+<h4 id="_10">第一步：标记工具为代码可调用</h4>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;tools&quot;: [
+    {
+      &quot;type&quot;: &quot;code_execution_20250825&quot;,
+      &quot;name&quot;: &quot;code_execution&quot;
+    },
+    {
+      &quot;name&quot;: &quot;get_team_members&quot;,
+      &quot;description&quot;: &quot;Get all members of a department...&quot;,
+      &quot;input_schema&quot;: {...},
+      &quot;allowed_callers&quot;: [&quot;code_execution_20250825&quot;]
+    }
+  ]
+}
+</code></pre></div> <h4 id="claude">第二步：Claude 生成编排代码</h4>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;type&quot;: &quot;server_tool_use&quot;,
+  &quot;id&quot;: &quot;srvtoolu_abc&quot;,
+  &quot;name&quot;: &quot;code_execution&quot;,
+  &quot;input&quot;: {
+    &quot;code&quot;: &quot;team = get_team_members(&#39;engineering&#39;)\n...&quot;
+  }
+}
+</code></pre></div> <h4 id="claude_1">第三步：工具执行（不触及 Claude 上下文）</h4>
+<p>工具请求包含 caller 字段：</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;type&quot;: &quot;tool_use&quot;,
+  &quot;id&quot;: &quot;toolu_xyz&quot;,
+  &quot;name&quot;: &quot;get_expenses&quot;,
+  &quot;input&quot;: {&quot;user_id&quot;: &quot;emp_123&quot;, &quot;quarter&quot;: &quot;Q3&quot;},
+  &quot;caller&quot;: {
+    &quot;type&quot;: &quot;code_execution_20250825&quot;,
+    &quot;tool_id&quot;: &quot;srvtoolu_abc&quot;
+  }
+}
+</code></pre></div> <h4 id="_11">第四步：仅最终输出进入上下文</h4>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;type&quot;: &quot;code_execution_tool_result&quot;,
+  &quot;tool_use_id&quot;: &quot;srvtoolu_abc&quot;,
+  &quot;content&quot;: {
+    &quot;stdout&quot;: &quot;[{\&quot;name\&quot;: \&quot;Alice\&quot;, \&quot;spent\&quot;: 12500, \&quot;limit\&quot;: 10000}...]&quot;
+  }
+}
+</code></pre></div> <h3 id="_12">代码示例：预算合规检查</h3>
+<p>任务：查询哪些员工超出 Q3 差旅预算</p>
+<p>可用工具：</p>
+<ul>
+<li><code>get_team_members(department)</code> - 返回团队成员列表</li>
+<li><code>get_expenses(user_id, quarter)</code> - 返回用户支出明细</li>
+<li><code>get_budget_by_level(level)</code> - 返回各级别预算限额</li>
+</ul>
+<p><strong>传统方式</strong>：20 个人员 → 20 次工具调用 → 每次 50-100 条支出 → 2000+ 行项目进入上下文</p>
+<p><strong>代码编排方式</strong>：</p>
+<div class="codehilite"><pre><span></span><code>team = await get_team_members(&quot;engineering&quot;)
+
+# 获取各级别预算
+levels = list(set(m[&quot;level&quot;] for m in team))
+budget_results = await asyncio.gather(*[
+    get_budget_by_level(level) for level in levels
+])
+
+budgets = {level: budget for level, budget in zip(levels, budget_results)}
+
+# 并行获取所有支出
+expenses = await asyncio.gather(*[
+    get_expenses(m[&quot;id&quot;], &quot;Q3&quot;) for m in team
+])
+
+# 查找超预算员工
+exceeded = []
+for member, exp in zip(team, expenses):
+    budget = budgets[member[&quot;level&quot;]]
+    total = sum(e[&quot;amount&quot;] for e in exp)
+    if total &gt; budget[&quot;travel_limit&quot;]:
+        exceeded.append({
+            &quot;name&quot;: member[&quot;name&quot;],
+            &quot;spent&quot;: total,
+            &quot;limit&quot;: budget[&quot;travel_limit&quot;]
+        })
+
+print(json.dumps(exceeded))
+</code></pre></div> <p><strong>结果</strong>：从 200KB 原始数据压缩为 1KB 最终结果</p>
+<h3 id="_13">使用场景</h3>
+<p><strong>最有益</strong>：</p>
+<ul>
+<li>处理大数据集（仅需聚合或摘要）</li>
+<li>3+ 个依赖工具调用的多步工作流</li>
+<li>工具结果需要过滤、排序、转换</li>
+<li>中间数据不应影响 Claude 推理</li>
+<li>跨多个项目的并行操作（如检查 50 个端点）</li>
+</ul>
+<p><strong>较少有益</strong>：</p>
+<ul>
+<li>简单单工具调用</li>
+<li>Claude 应看到所有中间结果的任务</li>
+<li>快速查询，响应较小</li>
+</ul>
+<hr />
+<h2 id="tool-use-examples">功能三：Tool Use Examples</h2>
+<h3 id="_14">问题背景</h3>
+<p>JSON Schema 定义结构有效性，但无法表达使用模式：</p>
+<ul>
+<li>可选参数何时应包含</li>
+<li>哪些参数组合合理</li>
+<li>API 期望的约定</li>
+</ul>
+<p><strong>示例</strong>：支持工单 API</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;name&quot;: &quot;create_ticket&quot;,
+  &quot;input_schema&quot;: {
+    &quot;properties&quot;: {
+      &quot;title&quot;: {&quot;type&quot;: &quot;string&quot;},
+      &quot;priority&quot;: {&quot;enum&quot;: [&quot;low&quot;, &quot;medium&quot;, &quot;high&quot;, &quot;critical&quot;]},
+      &quot;labels&quot;: {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}},
+      &quot;reporter&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+          &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;},
+          &quot;name&quot;: {&quot;type&quot;: &quot;string&quot;},
+          &quot;contact&quot;: {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;properties&quot;: {
+              &quot;email&quot;: {&quot;type&quot;: &quot;string&quot;},
+              &quot;phone&quot;: {&quot;type&quot;: &quot;string&quot;}
+            }
+          }
+        }
+      },
+      &quot;due_date&quot;: {&quot;type&quot;: &quot;string&quot;},
+      &quot;escalation&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+          &quot;level&quot;: {&quot;type&quot;: &quot;integer&quot;},
+          &quot;notify_manager&quot;: {&quot;type&quot;: &quot;boolean&quot;},
+          &quot;sla_hours&quot;: {&quot;type&quot;: &quot;integer&quot;}
+        }
+      }
+    },
+    &quot;required&quot;: [&quot;title&quot;]
+  }
+}
+</code></pre></div> <p><strong>Schema 无法回答</strong>：</p>
+<ul>
+<li><code>due_date</code> 格式（"2024-11-06" vs "Nov 6, 2024"）？</li>
+<li><code>reporter.id</code> 约定（UUID vs "USR-12345"）？</li>
+<li>何时填充嵌套 <code>reporter.contact</code>？</li>
+<li><code>escalation.level</code> 与 <code>escalation.sla_hours</code> 如何关联？</li>
+</ul>
+<h3 id="_15">解决方案</h3>
+<p>提供具体使用示例：</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;name&quot;: &quot;create_ticket&quot;,
+  &quot;input_schema&quot;: { /* 同上 */ },
+  &quot;input_examples&quot;: [
+    {
+      &quot;title&quot;: &quot;Login page returns 500 error&quot;,
+      &quot;priority&quot;: &quot;critical&quot;,
+      &quot;labels&quot;: [&quot;bug&quot;, &quot;authentication&quot;, &quot;production&quot;],
+      &quot;reporter&quot;: {
+        &quot;id&quot;: &quot;USR-12345&quot;,
+        &quot;name&quot;: &quot;Jane Smith&quot;,
+        &quot;contact&quot;: {
+          &quot;email&quot;: &quot;jane@acme.com&quot;,
+          &quot;phone&quot;: &quot;+1-555-0123&quot;
+        }
+      },
+      &quot;due_date&quot;: &quot;2024-11-06&quot;,
+      &quot;escalation&quot;: {
+        &quot;level&quot;: 2,
+        &quot;notify_manager&quot;: true,
+        &quot;sla_hours&quot;: 4
+      }
+    },
+    {
+      &quot;title&quot;: &quot;Add dark mode support&quot;,
+      &quot;labels&quot;: [&quot;feature-request&quot;, &quot;ui&quot;],
+      &quot;reporter&quot;: {
+        &quot;id&quot;: &quot;USR-67890&quot;,
+        &quot;name&quot;: &quot;Alex Chen&quot;
+      }
+    },
+    {
+      &quot;title&quot;: &quot;Update API documentation&quot;
+    }
+  ]
+}
+</code></pre></div> <p><strong>Claude 学到</strong>：</p>
+<ul>
+<li>日期格式：YYYY-MM-DD</li>
+<li>ID 格式：USR-XXXXX</li>
+<li>Label 格式：kebab-case</li>
+<li>关键 bug 包含完整联系信息+紧急升级</li>
+<li>功能请求有 reporter 但无 contact/escalation</li>
+<li>内部任务仅需 title</li>
+</ul>
+<p><strong>准确度提升</strong>：72 % → 90 %</p>
+<h3 id="_16">使用场景</h3>
+<p><strong>最有益</strong>：</p>
+<ul>
+<li>复杂嵌套结构（有效 JSON 不保证正确使用）</li>
+<li>多可选参数，包含模式很重要</li>
+<li>领域特定 API 约定</li>
+<li>相似工具区分（<code>create_ticket</code> vs <code>create_incident</code>）</li>
+</ul>
+<p><strong>较少有益</strong>：</p>
+<ul>
+<li>简单单参数工具</li>
+<li>标准格式（URL、邮箱）</li>
+<li>JSON Schema 约束更好处理的验证</li>
+</ul>
+<hr />
+<h2 id="_17">最佳实践</h2>
+<h3 id="_18">分层应用功能</h3>
+<p>根据最大瓶颈选择：</p>
+<pre class="ascii-art">
+
+工具定义导致上下文膨胀 → Tool Search Tool
+中间结果污染上下文 → Programmatic Tool Calling
+参数错误和格式问题 → Tool Use Examples
+
+</pre> <p>然后按需叠加其他功能。</p>
+<h3 id="tool-search-tool_1">Tool Search Tool 优化建议</h3>
+<p>清晰、描述性的工具定义提升搜索准确性：</p>
+<div class="codehilite"><pre><span></span><code>// 好的示例
+{
+  &quot;name&quot;: &quot;search_customer_orders&quot;,
+  &quot;description&quot;: &quot;Search for customer orders by date range, status, or total amount. Returns order details including items, shipping, and payment info.&quot;
+}
+
+// 不好的示例
+{
+  &quot;name&quot;: &quot;query_db_orders&quot;,
+  &quot;description&quot;: &quot;Execute order query&quot;
+}
+</code></pre></div> <p>系统 prompt 指导：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">You</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">tools</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Slack</span><span class="w"> </span><span class="n">messaging</span><span class="p">,</span><span class="w"> </span><span class="n">Google</span><span class="w"> </span><span class="n">Drive</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">management</span><span class="p">,</span>
+<span class="n">Jira</span><span class="w"> </span><span class="n">ticket</span><span class="w"> </span><span class="n">tracking</span><span class="p">,</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">GitHub</span><span class="w"> </span><span class="n">repository</span><span class="w"> </span><span class="n">operations</span><span class="o">.</span><span class="w"> </span><span class="n">Use</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="k">tool</span><span class="w"> </span><span class="n">search</span>
+<span class="n">to</span><span class="w"> </span><span class="n">find</span><span class="w"> </span><span class="n">specific</span><span class="w"> </span><span class="n">capabilities</span><span class="o">.</span>
+</code></pre></div> <p>保持 3-5 个最常用工具始终加载，其余延迟加载。</p>
+<h3 id="programmatic-tool-calling_1">Programmatic Tool Calling 优化建议</h3>
+<p>明确文档化返回格式：</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;name&quot;: &quot;get_orders&quot;,
+  &quot;description&quot;: &quot;Retrieve orders for a customer.
+Returns:
+  List of order objects, each containing:
+  - id (str): Order identifier
+  - total (float): Order total in USD
+  - status (str): One of &#39;pending&#39;, &#39;shipped&#39;, &#39;delivered&#39;
+  - items (list): Array of {sku, quantity, price}
+  - created_at (str): ISO 8601 timestamp&quot;
+}
+</code></pre></div> <p>优先选择的工具特性：</p>
+<ul>
+<li>可并行执行（独立操作）</li>
+<li>幂等操作（可安全重试）</li>
+</ul>
+<h3 id="tool-use-examples_1">Tool Use Examples 优化建议</h3>
+<p>编写示例时的关键点：</p>
+<ul>
+<li>使用真实数据（实际城市名、合理价格，非占位符）</li>
+<li>展示多样性：最少、部分、完整规范模式</li>
+<li>保持精简：每工具 1-5 个示例</li>
+<li>仅关注模糊部分</li>
+</ul>
+<hr />
+<h2 id="_19">入门指南</h2>
+<h3 id="api">API 调用示例</h3>
+<div class="codehilite"><pre><span></span><code>client.beta.messages.create(
+    betas=[&quot;advanced-tool-use-2025-11-20&quot;],
+    model=&quot;claude-sonnet-4-5-20250929&quot;,
+    max_tokens=4096,
+    tools=[
+        {&quot;type&quot;: &quot;tool_search_tool_regex_20251119&quot;, &quot;name&quot;: &quot;tool_search_tool_regex&quot;},
+        {&quot;type&quot;: &quot;code_execution_20250825&quot;, &quot;name&quot;: &quot;code_execution&quot;},
+        # 你的工具，配置 defer_loading, allowed_callers, input_examples
+    ]
+)
+</code></pre></div> <h3 id="_20">资源链接</h3>
+<ul>
+<li><strong>Tool Search Tool</strong>：</li>
+<li><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool">文档</a></li>
+<li>
+<p><a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/tool_search_with_embeddings.ipynb">Cookbook</a></p>
+</li>
+<li>
+<p><strong>Programmatic Tool Calling</strong>：</p>
+</li>
+<li><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling">文档</a></li>
+<li>
+<p><a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/programmatic_tool_calling_ptc.ipynb">Cookbook</a></p>
+</li>
+<li>
+<p><strong>Tool Use Examples</strong>：</p>
+</li>
+<li><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use#providing-tool-use-examples">文档</a></li>
+</ul>
+<hr />
+<h2 id="_21">关键图片资源</h2>
+<h3 id="1-tool-search-tool">1. Tool Search Tool 对比图</h3>
+<p><img alt="Tool Search Tool 保留更多上下文空间" src="images/f359296f770706608901eadaffbff4ca0b67874c-1999x1125.png" /></p>
+<h3 id="2-programmatic-tool-calling">2. Programmatic Tool Calling 流程图</h3>
+<p><img alt="Programmatic Tool Calling 工作流程" src="images/65737d69a3290ed5c1f3c3b8dc873645a9dcc2eb-1999x1491.png" /></p>
+<hr />
+<h2 id="_22">总结</h2>
+<p>这三个功能共同构建了面向下一代 AI 代理的工具使用框架：</p>
+<ol>
+<li><strong>Tool Search Tool</strong> 解决规模问题（无限工具库，有限上下文）</li>
+<li><strong>Programmatic Tool Calling</strong> 解决效率问题（减少推理开销，避免上下文污染）</li>
+<li><strong>Tool Use Examples</strong> 解决准确性问题（从实例学习，非仅 schema）</li>
+</ol>
+<p>它们可独立使用，也可组合应用，为构建复杂 AI 代理打开新可能性。</p>
+<hr />
+<p><strong>文章贡献者</strong>: Bin Wu，以及 Adam Jones, Artur Renault, Henry Tay, Jake Noble, Nathan McCandlish, Noah Picard, Sam Jiang 和 Claude 开发者平台团队</p>
+<p><strong>灵感来源</strong>: Joel Pobar 的 LLMVM、Cloudflare 的 Code Mode、Code Execution as MCP</p>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-12-19 16:04:31<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
+</body>
+</html>

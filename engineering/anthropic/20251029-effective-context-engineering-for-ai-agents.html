@@ -28,9 +28,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +150,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -337,7 +335,6 @@
             color: #333;
         }
 
-
         /* Mermaid 图表 */
         .mermaid {
             background: white;
@@ -425,8 +422,6 @@
             border-top: 1px solid var(--border-color);
             color: var(--text-light);
             font-size: 0.9rem;
-            white-space: pre-wrap;
-            word-wrap: break-word;
         }
 
         .footer-links {
@@ -526,7 +521,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-30</span>
+                    <span>2025-12-19</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -538,409 +533,99 @@
         <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
-<li><a href="#_2">一、核心技术概念</a></li>
-  <li><a href="#11">1.1 上下文工程的本质</a></li>
-  <li><a href="#12-transformer">1.2 Transformer 架构的约束</a></li>
-  <li><a href="#13-context-rot">1.3 上下文衰减（Context Rot）原理</a></li>
-<li><a href="#_3">二、架构设计模式</a></li>
-  <li><a href="#21-altitude-problem">2.1 系统提示的"高度问题"（Altitude Problem）</a></li>
-  <li><a href="#22">2.2 工具设计的令牌效率模式</a></li>
-  <li><a href="#23-hybrid-retrieval">2.3 混合检索策略（Hybrid Retrieval）</a></li>
-<li><a href="#_4">三、上下文管理的三大策略</a></li>
-  <li><a href="#31-compaction">3.1 压缩（Compaction）</a></li>
-  <li><a href="#32-agentic-memory">3.2 结构化笔记（Agentic Memory）</a></li>
-  <li><a href="#33-agent-multi-agent-orchestration">3.3 子 Agent 架构（Multi-Agent Orchestration）</a></li>
-<li><a href="#_5">四、关键工程洞察</a></li>
-  <li><a href="#41">4.1 为什么上下文是稀缺资源？</a></li>
-  <li><a href="#42">4.2 工具设计如何影响上下文效率？</a></li>
-  <li><a href="#43-vs">4.3 提示工程 vs 系统设计的平衡</a></li>
-<li><a href="#_6">五、实践建议总结</a></li>
-  <li><a href="#51">5.1 系统提示设计检查清单</a></li>
-  <li><a href="#52">5.2 上下文窗口预算规划</a></li>
-  <li><a href="#53">5.3 何时使用各策略</a></li>
-<li><a href="#_7">六、技术权衡矩阵</a></li>
-<li><a href="#_8">七、结论与前沿</a></li>
+<li><a href="#_1">简介</a></li>
+<li><a href="#vs">上下文工程 vs. 提示工程</a></li>
+<li><a href="#_2">为什么上下文工程对构建强大的智能体很重要</a></li>
+<li><a href="#_3">有效上下文的构成</a></li>
+  <li><a href="#_4">系统提示</a></li>
+  <li><a href="#_5">工具</a></li>
+<li><a href="#_6">上下文检索和智能体搜索</a></li>
+  <li><a href="#_7">长期任务的上下文工程</a></li>
+<li><a href="#_11">结论</a></li>
+<li><a href="#_12">致谢</a></li>
 </ul>
 </nav>
 
         <article class="content">
-            <h1 id="_1">上下文工程深度技术分析</h1>
-<p><strong>原文链接</strong>：https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
-<strong>发布日期</strong>：2025 年 9 月 29 日</p>
+            <h1 id="ai">AI 智能体的有效上下文工程</h1>
+<p><strong>发布日期</strong>：2025 年 9 月 29 日</p>
+<h2 id="_1">简介</h2>
+<p>"上下文是 AI 智能体的关键但有限资源。"本文探讨了有效策划和管理驱动智能体的上下文的策略。</p>
+<p>经过几年的提示工程在应用 AI 中成为关注焦点后，一个新术语已经崭露头角：<strong>上下文工程</strong>。使用语言模型进行构建越来越少地关乎寻找提示的正确措辞，而更多地关乎回答这个更宽泛的问题："什么样的上下文配置最有可能产生我们模型的期望行为？"</p>
+<p><strong>上下文</strong>指从大型语言模型 (LLM) 进行采样时包含的令牌集合。<strong>工程</strong>问题在于针对 LLM 的固有约束优化这些令牌的实用性，以便始终如一地实现期望结果。有效地驾驭 LLM 通常需要<strong>在上下文中思考</strong>——换句话说：考虑 LLM 在任何给定时刻可用的整体状态，以及该状态可能产生的潜在行为。</p>
+<p>本文探讨了上下文工程这门新兴学科，并为构建可控、高效的智能体提供了精细化的思维模型。</p>
 <hr />
-<h2 id="_2">一、核心技术概念</h2>
-<h3 id="11">1.1 上下文工程的本质</h3>
-<p>文章将上下文工程定义为："一组策略，用于在 LLM 推理期间策划和维护最优的令牌集合"。</p>
-<p><strong>技术架构师视角的理解</strong>：</p>
-<p>这不仅是信息管理问题，而是<strong>有限注意力预算的优化问题</strong>。本质上涉及三个维度：</p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>技术挑战</th>
-<th>影响</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>容量限制</strong></td>
-<td>固定上下文窗口大小</td>
-<td>无法任意扩展输入</td>
-</tr>
-<tr>
-<td><strong>衰减曲线</strong></td>
-<td>"上下文衰减"现象</td>
-<td>长序列精度下降</td>
-</tr>
-<tr>
-<td><strong>计算复杂度</strong></td>
-<td>O (n²) 令牌关系</td>
-<td>线性扩展成本</td>
-</tr>
-</tbody>
-</table>
-<h3 id="12-transformer">1.2 Transformer 架构的约束</h3>
-<p><strong>关键引用</strong>："基于 transformer 架构，每个令牌都能 <strong>注意到所有其他令牌</strong>，这导致 n 个令牌产生 n² 的成对关系"。</p>
-<p><strong>技术影响分析</strong>：</p>
-<pre class="ascii-art"> 上下文长度: 4K 8K 16K 32K 200K
-─────────────────────────────────────────
-注意力计算: 16M 64M 256M 1024M 40B (单位：操作数)
-内存需求: ↑↑ ↑↑↑ ↑↑↑↑ ↑↑↑↑↑ ↑↑↑↑↑ 副作用: 位置编码插值 → 位置信息精度丧失 </pre> <h3 id="13-context-rot">1.3 上下文衰减（Context Rot）原理</h3>
-<p><strong>关键发现</strong>：模型在训练数据中接触短序列较多，因此：</p>
-<ol>
-<li><strong>参数分布不均</strong>：参数优化面向短序列</li>
-<li><strong>注意力分散</strong>：长序列中的依赖关系难以捕捉</li>
-<li><strong>检索精度下降</strong>：不是突然失效，而是<strong>梯度性能下降</strong></li>
-</ol>
-<p><strong>性能曲线 (典型模型)</strong>：</p>
-<pre class="ascii-art">
-100 % │           ╱╲
-      │          ╱  ╲
-精度  │         ╱    ╲___
-      │        ╱         ╲___
-      │       ╱              ╲___
-50 %  │      ╱                   ╲____
-      │╱_____________________        ╲____
-      └──────────────────────────────────────
-      0 %   50 %  100 %  150 %  200 %
-         相对训练上下文长度
-</pre>
-<p><img alt="提示工程 vs 上下文工程的对比" src="images/9a396bc6892c.png" /></p>
+<h2 id="vs">上下文工程 vs. 提示工程</h2>
+<p>在 Anthropic，我们将上下文工程视为提示工程的自然延伸。提示工程指为优化 LLM 结果而编写和组织指令的方法。<strong>上下文工程</strong>指的是在 LLM 推理期间策划和维护最优令牌集合的一套策略，包括可能出现在提示之外的所有其他信息。</p>
+<p>在使用 LLM 的早期，提示编写是 AI 工程工作的最大组成部分，因为日常聊天之外的大多数用例都需要为一次性分类或文本生成任务优化的提示。正如术语所暗示的，提示工程的主要焦点是如何编写有效提示，特别是系统提示。然而，随着我们朝着更强大的智能体工程迈进，这些智能体在多个推理轮次和更长时间范围内运作，我们需要管理整个上下文状态的策略（系统指令、工具、Model Context Protocol (MCP)、外部数据、消息历史等）。</p>
+<p>在循环中运行的智能体会生成越来越多<strong>可能</strong>与下一轮推理相关的数据，这些信息必须循环精炼。上下文工程是从不断演变的可能信息宇宙中，"艺术和科学地"策划哪些内容将进入有限上下文窗口的过程。</p>
+<p><img alt="提示工程 vs. 上下文工程的对比" src="images/9a396bc6892c.png" /></p>
 <p><em>与编写提示的离散任务不同，上下文工程是迭代的，每次我们决定向模型传递什么时都会进行策划。</em></p>
 <hr />
-<h2 id="_3">二、架构设计模式</h2>
-<h3 id="21-altitude-problem">2.1 系统提示的"高度问题"（Altitude Problem）</h3>
-<p><strong>反模式 vs 最佳实践</strong>：</p>
-<p><strong>❌ 反模式 1：过度具体的 if-else 逻辑</strong></p>
-<div class="codehilite"><pre><span></span><code>&lt;!-- 脆弱、难以维护 --&gt;
-&lt;instructions&gt;
-IF task == &quot;classification&quot;: IF confidence &lt; 0.7: IF num_classes &gt; 10: USE ensemble_method ELSE: USE single_classifier ELSE: ...
-&lt;!-- 灾难级别：嵌套 7 层 --&gt;
-</code></pre></div> <p><strong>❌ 反模式 2：模糊高层指导</strong></p>
-<div class="codehilite"><pre><span></span><code>&lt;!-- 假设共享上下文 --&gt;
-&lt;instructions&gt;
-You are a helpful assistant.
-Be accurate.
-Think carefully.
-&lt;!-- 模型无法推断具体行为 --&gt;
-</code></pre></div> <p><strong>✅ 最佳实践：平衡的启发式指导</strong></p>
-<div class="codehilite"><pre><span></span><code>&lt;instructions&gt;
-You are a data classification agent. &lt;key_behaviors&gt;
-- Classify by semantic meaning, not keywords
-- Flag ambiguous cases (confidence &lt; 0.6) for review
-- Prefer recall over precision for safety-critical tasks
-&lt;/key_behaviors&gt; &lt;example_ambiguous_case&gt;
-Input: &quot;I can&#39;t believe it&#39;s not butter&quot;
-Context: Food product review
-Classification: PRODUCT_REVIEW (not SENTIMENT)
-Reasoning: Semantic category matters more than emotional words
-&lt;/example_ambiguous_case&gt;
-</code></pre></div> <p><strong>关键洞察</strong>：高度问题的本质是<strong>信息密度 vs 灵活性的权衡</strong>。</p>
+<h2 id="_2">为什么上下文工程对构建强大的智能体很重要</h2>
+<p>尽管 LLM 速度快且能处理越来越多的数据，但我们观察到 LLM 与人类一样，在某一点会失去焦点或经历混淆。针对"干草堆中寻针"样式基准的研究发现了<strong>上下文衰减</strong>的概念：随着上下文窗口中的令牌数增加，模型从该上下文准确回忆信息的能力会降低。</p>
+<p>虽然某些模型表现出比其他模型更温和的性能下降，但这种特征在所有模型中出现。因此，上下文必须被视为具有收益递减的有限资源。如人类一样，LLM 拥有有限的"注意力预算"，在解析大量上下文时会消耗这个预算。引入的每个新令牌都会按某种程度消耗这个预算，增加了仔细策划可用于 LLM 的令牌的必要性。</p>
+<p>这种注意力稀缺源于 LLM 的架构约束。LLM 基于<strong>transformer 架构</strong>，该架构使每个令牌能够"注意到"整个上下文中的每个其他令牌。这导致 n 个令牌产生 n² 对对关系。</p>
+<p>随着上下文长度增加，模型捕获这些对对关系的能力变得捉襟见肘，在上下文大小和注意力焦点之间产生自然张力。此外，模型从训练数据分布发展其注意力模式，其中较短的序列通常比较长的序列更常见。这意味着模型对上下文范围依赖性的经验较少，参数也较专业。</p>
+<p>位置编码插值等技术允许模型通过适应原始训练的较小上下文来处理更长的序列，尽管令牌位置理解会有一定衰减。这些因素造成了性能梯度而非硬崖：模型在较长上下文中保持高度能力，但在信息检索和长距离推理中的精度可能低于较短上下文的性能。</p>
+<p>这些现实情况意味着深思熟虑的上下文工程对构建强大的智能体至关重要。</p>
+<hr />
+<h2 id="_3">有效上下文的构成</h2>
+<p>鉴于 LLM 受有限注意力预算的限制，<strong>好的</strong>上下文工程意味着找到<strong>最小</strong>的<strong>可能的</strong>高信号令牌集合，最大化某种期望结果的可能性。实施这一实践说起来容易，做起来难，但在以下部分中，我们概述了这一指导原则在上下文不同组成部分的实际含义。</p>
+<h3 id="_4">系统提示</h3>
+<p><strong>系统提示</strong>应非常清晰，使用简洁、直接的语言以<strong>正确的高度</strong>呈现思想。正确的高度是两种常见失败模式之间的"金发姑娘"区域。在一个极端，我们看到工程师在提示中硬编码复杂、脆弱的逻辑以引发精确的智能体行为。这种方法会造成脆弱性并随时间增加维护复杂性。在另一个极端，工程师有时提供模糊的高层级指导，未能为 LLM 提供所需输出的具体信号或错误地假设共享上下文。最优高度实现平衡：足够具体以有效指导行为，但足够灵活以为模型提供强有力的启发式。</p>
 <p><img alt="系统提示校准过程" src="images/861c370bac5c.png" /></p>
 <p><em>在频谱的一端，我们看到脆弱的 if-else 硬编码提示，在另一端是过于笼统或错误地假设共享上下文的提示。</em></p>
-<h3 id="22">2.2 工具设计的令牌效率模式</h3>
-<p><strong>模式对比</strong>：</p>
-<table>
-<thead>
-<tr>
-<th>指标</th>
-<th>单体工具</th>
-<th>微粒度工具</th>
-<th>最优设计</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>令牌用量/调用</td>
-<td>高</td>
-<td>低</td>
-<td>中等</td>
-</tr>
-<tr>
-<td>歧义决策点</td>
-<td>少</td>
-<td>多</td>
-<td>少</td>
-</tr>
-<tr>
-<td>上下文污染</td>
-<td>严重</td>
-<td>轻微</td>
-<td>可控</td>
-</tr>
-<tr>
-<td>可维护性</td>
-<td>好</td>
-<td>差</td>
-<td>优秀</td>
-</tr>
-</tbody>
-</table>
-<p><strong>反模式示例</strong>：</p>
-<div class="codehilite"><pre><span></span><code># ❌ 令牌浪费：工具功能重叠
-tools = [ Tool (&quot;query_database&quot;, returns_full_result), # 可能返回 10K 令牌 Tool (&quot;query_db_filtered&quot;, returns_subset), # 同样返回 5K 令牌 Tool (&quot;search_cache&quot;, ...), # 重复功能
-]
-# 问题：模型会困惑该用哪个；无论如何令牌开销都大 # ✅ 令牌高效：清晰的工具职责
-tools = [ Tool (&quot;list_tables&quot;), # 返回 100 令牌 Tool (&quot;query&quot;, params=[ &quot;table&quot;, &quot;filters&quot;, # 让模型精确查询 &quot;limit&quot;, # 控制返回大小 ]), Tool (&quot;get_schema&quot;, table_name) # 轻量元数据
-]
-</code></pre></div> <h3 id="23-hybrid-retrieval">2.3 混合检索策略（Hybrid Retrieval）</h3>
-<p><strong>策略图解</strong>：</p>
-<pre class="ascii-art"> 用户请求 ↓
-────────────────────────────────────────
-│ 混合检索策略 │
-├────────────────────────────────────────
-│
-│ [快速路径] ─→ 预加载 CLAUDE.md (文件)
-│ │
-│ └→ 直接提供背景信息 (500-1000 令牌)
-│
-│ [探索路径] ─→ glob/grep 工具导航
-│ │
-│ ├→ 文件系统语义信号
-│ │ (文件名、文件夹、大小)
-│ │
-│ └→ 动态加载相关文件
-│ (只加载需要的)
-│
-└──────────────────────────────────────── ↓ [渐进式披露] 每次交互 → 改进检索策略 </pre> <p><strong>Claude Code 的实现</strong>：</p>
-<pre class="ascii-art"> 初始状态:
-    CLAUDE.md (项目上下文) + 5 个最近文件引用
-
-查询时:
-    bash: head -20 large_data.csv (不加载全部)
-    → 模型推断结构
-    → 发出 targeted 查询
-
-结果:
-    令牌用量: 固定 (不随数据量线性增长) </pre> <hr />
-<h2 id="_4">三、上下文管理的三大策略</h2>
-<h3 id="31-compaction">3.1 压缩（Compaction）</h3>
-<p><strong>适用场景</strong>：长对话、迭代任务、保持流畅交互</p>
-<p><strong>技术流程</strong>：</p>
-<pre class="ascii-art"> 消息历史 (接近窗口限制) │ ↓
-[模型总结] ← "保留所有关键决策" │ "丢弃冗余工具输出" │ "保留错误和解决方案" ↓
-压缩摘要 (500-1000 令牌) │ ↓
-新窗口 = 压缩摘要 + 最近 5 个文件 + 新输入 </pre> <p><strong>实现要点</strong>（基于文章）：</p>
-<pre class="ascii-art">
-# ⚠️ 常见错误：过度激进的压缩
-def bad_compaction(history):
-    """丢弃所有实现细节 - 灾难性"""
-    return "User asked for feature X"
-    # 后续: "为什么要这样做?" → 上下文丢失
-
-# ✅ 平衡方案：回忆优先，精度次之
-def good_compaction(history): """第一阶段：最大化回忆""" summary = model.summarize ( history, constraints={ "include": [ "architectural_decisions", "unresolved_bugs", "implementation_approach", "error_patterns" ], "exclude": [ "raw_tool_outputs", "duplicate_messages", "debug_logs" ] } ) """第二阶段：迭代消除冗余""" return compress_summary (summary, target_length=800) </pre> <h3 id="32-agentic-memory">3.2 结构化笔记（Agentic Memory）</h3>
-<p><strong>适用场景</strong>：长地平线任务、多阶段项目、知识积累</p>
-<p><strong>架构示例</strong>：</p>
-<pre class="ascii-art"> Agent 行为循环:
-    每 N 步 → [决策点]
-        ├─ 更新 PROGRESS.md
-        │   ├─ 当前目标
-        │   ├─ 已完成里程碑
-        │   └─ 待办事项
-        │
-        ├─ 更新 LEARNINGS.md
-        │   ├─ 有效策略
-        │   ├─ 失败模式
-        │   └─ 发现的约束
-        │
-        └─ 更新 STATE.md
-            ├─ 当前位置/配置
-            ├─ 探索过的分支
-            └─ 关键决策树
-
-上下文检索时:
-    新窗口 ← PROGRESS.md + LEARNINGS.md + 当前任务文件 </pre> <p><strong>Pokemon 示例分析</strong>（文章引用）：</p>
-<pre class="ascii-art"> Agent 维护笔记示例:
-"Route 1: Pikachu training
-- Current level: 2→10 (step 1234 of 5000)
-- Strategy: Focus on Thunder Wave → Thunderbolt combo
-- Failed: Direct attack vs Geodude (CRITICAL: use Grass moves)
-- Next: Find Grass-type trainer for EXP farming" 效果:
-✓ 跨数小时维持策略一致性
-✓ 无需重新发现失败模式
-✓ 令牌成本: 固定 (~200-300/次) </pre> <h3 id="33-agent-multi-agent-orchestration">3.3 子 Agent 架构（Multi-Agent Orchestration）</h3>
-<p><strong>适用场景</strong>：复杂研究、并行探索、清晰的任务分解</p>
-<p><strong>架构拓扑</strong>：</p>
-<pre class="ascii-art">     [主 Agent] (高级规划)
-           │
-    ┌──────┼──────┐
-    ↓      ↓      ↓
-[SubAgent-1] [SubAgent-2] [SubAgent-3]
-(文献检索)   (数据分析)   (方法验证)
-    │          │          │
-  10K 令牌   15K 令牌   12K 令牌
-  深度搜索   复杂计算   严格测试
-    │          │          │
-    └──────────┼──────────┘
-               ↓
-      [提炼摘要 1-2K 令牌]
-               ↓
-         [主 Agent 汇总] </pre> <p><strong>令牌成本模型</strong>：</p>
-<pre class="ascii-art"> 单 Agent 方案:
-    总消耗: 5K (历史) + 20K (探索) + 5K (推理) = 30K 令牌
-
-Multi-Agent 方案:
-    分解: 3K (规划)
-    SubAgent1: 10K → 1.5K (摘要)
-    SubAgent2: 15K → 2K (摘要)
-    SubAgent3: 12K → 1.5K (摘要)
-    集成: 3K (汇总)
-    ─────────────────────────
-    总消耗: ~21K 令牌 (节省 30 %)
-    
-收益:
-    更深度的探索 + 令牌高效 </pre> <hr />
-<h2 id="_5">四、关键工程洞察</h2>
-<h3 id="41">4.1 为什么上下文是稀缺资源？</h3>
-<p><strong>多维分析</strong>：</p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>约束</th>
-<th>影响</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>容量</strong></td>
-<td>固定窗口</td>
-<td>无法随意扩展输入</td>
-</tr>
-<tr>
-<td><strong>关注力</strong></td>
-<td>O (n²) 复杂度</td>
-<td>长序列注意力分散</td>
-</tr>
-<tr>
-<td><strong>记忆</strong></td>
-<td>训练分布偏差</td>
-<td>超长序列性能衰减</td>
-</tr>
-<tr>
-<td><strong>成本</strong></td>
-<td>API 按令牌计费</td>
-<td>经济制约</td>
-</tr>
-</tbody>
-</table>
-<p><strong>最深层的原因</strong>：Transformer 的设计本质 - "注意力是全局的，但大脑容量有限"。</p>
-<h3 id="42">4.2 工具设计如何影响上下文效率？</h3>
-<p><strong>因果链</strong>：</p>
-<pre class="ascii-art"> 工具设计 ↓
-决策清晰性 ← 歧义多 = 多次尝试工具 = 令牌浪费 ↓
-返回值精度 ← 盲目返回 = 污染上下文 = 噪声增加 ↓
-自描述性 ← 隐式契约 = 误解 = 迭代修复 ↓
-上下文效率 (最终指标) </pre> <p><strong>关键原则</strong>（文章总结）：</p>
-<blockquote>
-<p>"如果人工工程师无法明确说出应该用哪个工具，AI Agent 也做不到更好"</p>
-</blockquote>
-<h3 id="43-vs">4.3 提示工程 vs 系统设计的平衡</h3>
-<p><strong>进化路径</strong>：</p>
-<pre class="ascii-art"> 第一代 (2022-2023): 提示工程时代
-    ├─ One-shot 分类
-    ├─ 微调 few-shot 示例
-    └─ 局部优化
-    问题: 无法处理多轮、长期任务
-         ↓
-第二代 (2023-2024): 上下文工程时代
-    ├─ 工具使用和检索
-    ├─ 动态上下文管理
-    ├─ Agent 循环
-    └─ 全局令牌预算优化
-    优势: 处理数小时任务
-         ↓
-第三代 (2024+): 智能自适应
-    ├─ 动态工具选择
-    ├─ 自优化压缩策略
-    ├─ 学习型记忆
-    └─ 能力驱动的任务分解 </pre> <hr />
-<h2 id="_6">五、实践建议总结</h2>
-<h3 id="51">5.1 系统提示设计检查清单</h3>
-<div class="codehilite"><pre><span></span><code>def validate_system_prompt (prompt: str) -&gt; List[str]: &quot;&quot;&quot;系统架构师审查清单&quot;&quot;&quot; issues = [] # 1. 高度检查 if prompt.count (&quot;IF&quot;) &gt; 3: issues.append (&quot;❌ 逻辑过于具体，违反高度原则&quot;) # 2. 令牌效率 if len (prompt.split ()) &gt; 500: issues.append (&quot;⚠️ 考虑精简：通常 150-300 词足够&quot;) # 3. 示例多样性 if prompt.count (&quot;example&quot;) == 0: issues.append (&quot;❌ 缺少具体示例（图片价值千言）&quot;) # 4. 灵活性 if &quot;must&quot; in prompt and &quot;should&quot; not in prompt: issues.append (&quot;⚠️ 过于刚性，考虑启发式指导&quot;) return issues if issues else [&quot;✅ 设计合理&quot;]
-</code></pre></div> <h3 id="52">5.2 上下文窗口预算规划</h3>
-<pre class="ascii-art"> 100 % 上下文窗口 = 200K 令牌 分配:
-├─ 系统提示: 2 % (4K)
-├─ 工具定义: 3 % (6K)
-├─ 用户输入: 10 % (20K)
-├─ 历史消息: 25 % (50K)
-├─ 检索/上下文: 40 % (80K)
-├─ 工作内存: 10 % (20K)
-└─ 响应空间: 10 % (20K) ──────────────────────── 总计: 100 % </pre> <h3 id="53">5.3 何时使用各策略</h3>
-<table>
-<thead>
-<tr>
-<th>任务特征</th>
-<th>推荐策略</th>
-<th>原因</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>迭代对话</td>
-<td>压缩</td>
-<td>维持流畅、避免窗口溢出</td>
-</tr>
-<tr>
-<td>单一长任务</td>
-<td>笔记</td>
-<td>积累知识、支持恢复</td>
-</tr>
-<tr>
-<td>复杂研究</td>
-<td>Multi-Agent</td>
-<td>并行探索、高效综合</td>
-</tr>
-<tr>
-<td>快速响应</td>
-<td>混合检索</td>
-<td>预加载 + 按需探索</td>
-</tr>
-</tbody>
-</table>
+<p>我们建议将提示组织成不同的部分（如 <code>&lt;background_information&gt;</code>、<code>&lt;instructions&gt;</code>、<code>## Tool guidance</code>、<code>## Output description</code> 等），并使用 XML 标签或 Markdown 头等技术来划分这些部分，尽管随着模型变得更强大，提示的确切格式可能变得不那么重要。</p>
+<p>无论如何构构系统提示，你应该力求找到完全概述期望行为的最少信息。（注意最少并不一定意味着简短；你仍需提前向智能体提供充分信息以确保其坚持期望行为。）最好从用最好可用的模型测试最少提示开始，以了解它在你的任务上的性能，然后根据初始测试中发现的失败模式添加清晰的指令和例子以改进性能。</p>
+<h3 id="_5">工具</h3>
+<p><strong>工具</strong>允许智能体与其环境互动并在工作过程中拉入新增上下文。因为工具定义了智能体与其信息/行为空间之间的契约，工具促进效率至关重要，既要返回令牌高效的信息，又要鼓励高效的智能体行为。</p>
+<p>在《为 AI 智能体编写工具》一文中，我们讨论了构建 LLM 理解且功能重叠最少的工具。类似于设计良好的代码库的函数，工具应自包含、鲁棒应对错误，并对其预期用途极其清晰。输入参数同样应描述性强、无歧义，并符合模型的固有优势。</p>
+<p>我们看到的最常见失败模式之一是过度膨胀的工具集，覆盖太多功能或导致关于应使用哪个工具的模糊决策点。如果人类工程师不能明确说出在给定情况下应使用哪个工具，AI 智能体也不能被期望做得更好。如我们稍后讨论的，为智能体策划最少可行工具集也可导致更可靠的维护和长期交互的上下文修剪。</p>
+<p>提供例子，即所谓的少样本提示，是一种众所周知的最佳实践，我们继续强烈建议。然而，团队经常将大量边界情况塞入提示中，试图阐明 LLM 对特定任务应遵循的每项可能规则。我们不建议这样做。相反，我们建议努力策划一套多样、规范的例子，有效传达智能体的期望行为。对于 LLM，例子是"一图胜千言"。</p>
+<p>我们对上下文的不同组成部分（<strong>系统提示、工具、例子、消息历史等</strong>）的总体指导是深思熟虑且保持上下文信息充分但紧凑。现在让我们深入了解在运行时动态检索上下文。</p>
 <hr />
-<h2 id="_7">六、技术权衡矩阵</h2>
-<pre class="ascii-art"> │ 延迟 │ 准确度 │ 成本 │ 复杂度
-────────┼──────┼────────┼─────┼────────
-压缩 │ 低 │ 中 │ 低 │ 中
-笔记 │ 低 │ 高 │ 中 │ 中
-多 Agent │ 高 │ 高 │ 高 │ 高
-混合检索 │ 中 │ 中 │ 中 │ 中 </pre> <hr />
-<h2 id="_8">七、结论与前沿</h2>
-<p><strong>Anthropic 的核心主张</strong>：</p>
-<blockquote>
-<p>在模型能力不断提升的未来，"上下文工程"会逐步演变为模型的<strong>自适应行为</strong>，而非人工精细设计。</p>
-</blockquote>
-<p><strong>架构演进方向</strong>：</p>
+<h2 id="_6">上下文检索和智能体搜索</h2>
+<p>在《构建有效的 AI 智能体》中，我们强调了基于 LLM 的工作流与智能体之间的差异。自那篇文章发布后，我们倾向于对智能体的一个<strong>简单定义</strong>：LLM 在循环中自主使用工具。</p>
+<p>与客户合作，我们看到该领域趋向于这一简单范式。随着底层模型变得更强大，智能体的自主程度可以扩展：更智能的模型允许智能体独立导航微妙问题空间并从错误中恢复。</p>
+<p>我们现在看到工程师思考智能体上下文设计方式的转变。如今，许多 AI 原生应用采用某种形式的基于嵌入的推理前检索，以为智能体要推理的内容呈现重要上下文。随着该领域过渡到更多智能体方法，我们越来越看到团队使用"即时"上下文策略增强这些检索系统。</p>
+<p>与其预先处理所有相关数据，以"即时"方法构建的智能体维护轻量标识符（文件路径、存储查询、网络链接等），并使用这些引用在运行时通过工具动态将数据加载到上下文中。Anthropic 的智能体编码解决方案 Claude Code 使用这种方法对大型数据库执行复杂数据分析。该模型可编写有针对性的查询、存储结果，并利用 Bash 命令如 <code>head</code> 和 <code>tail</code> 来分析大量数据，而无需将完整数据对象加载到上下文中。这种方法镜像人类认知：我们通常不记忆整个信息集，而是引入文件系统、收件箱和书签等外部组织和索引系统来按需检索相关信息。</p>
+<p>超越存储效率，这些引用的元数据提供了一种机制来有效精炼行为，无论是明确提供还是直观的。对于在文件系统中运行的智能体，名为 <code>test_utils.py</code> 的文件在 <code>tests</code> 文件夹中的出现暗示了与位于 <code>src/core_logic/</code> 文件夹中同名文件的不同目的。文件夹层级、命名约定和时间戳都提供了重要信号，帮助人类和智能体理解如何和何时利用信息。</p>
+<p>让智能体自主导航和检索数据也启用了<strong>渐进式披露</strong>——换句话说，允许智能体通过探索逐步发现相关上下文。每次交互产生通知下一决策的上下文：文件大小暗示复杂性；命名约定暗示目的；时间戳可作为相关性的代理。智能体可逐层组合理解，仅在工作记忆中维持必要的内容，并利用笔记策略以获得额外持久性。这种自管理上下文窗口使智能体专注于相关子集，而非溺水于详尽但可能无关的信息。</p>
+<p>当然，存在权衡：运行时探索比检索预先计算的数据慢。不仅如此，还需要有见地且深思熟虑的工程，确保 LLM 拥有正确的工具和启发式方法以有效导航其信息景观。没有适当指导，智能体可能因误用工具、追寻死胡同或未能识别关键信息而浪费上下文。</p>
+<p>在某些设置中，最有效的智能体可能采用混合策略，为速度预先检索某些数据，并自行选择进一步自主探索。"正确"自主程度的决策边界取决于任务。Claude Code 是采用这种混合模型的智能体：<code>CLAUDE.md</code> 文件被天真地放入前期上下文，而 <code>glob</code> 和 <code>grep</code> 等原语允许它导航其环境并即时检索文件，有效绕过了陈旧索引和复杂语法树的问题。</p>
+<p>混合策略可能更适合内容动态性较低的上下文，如法律或财务工作。随着模型能力改进，智能体设计将趋向于让智能模型智能地行动，逐步减少人工策划。鉴于该领域进展迅速，"做能工作的最简单事情"可能仍是我们对基于 Claude 构建智能体的团队最好的建议。</p>
+<h3 id="_7">长期任务的上下文工程</h3>
+<p>长期任务要求智能体在令牌计数超过 LLM 上下文窗口的一系列行为中维护连贯性、上下文和目标导向行为。对于跨越数十分钟到数小时连续工作的任务，如大型代码库迁移或全面研究项目，智能体需要专门技术来解决上下文窗口大小限制。</p>
+<p>等待更大的上下文窗口似乎是明显的策略。但在可预见的未来，所有大小的上下文窗口可能会受到上下文污染和信息相关性问题的约束——至少对于需要最强智能体性能的情况。为使智能体能够在扩展时间范围内有效工作，我们开发了几种直接应对这些上下文污染约束的技术：压缩、结构化笔记和多智能体架构。</p>
+<h4 id="_8">压缩</h4>
+<p><strong>压缩</strong>是指采用接近上下文窗口限制的对话，总结其内容，并用摘要重新启动新上下文窗口的实践。压缩通常充当上下文工程的第一个杠杆，以驱动更好的长期连贯性。从本质上说，压缩以高保真方式蒸馏上下文窗口的内容，使智能体能够以最少性能衰减继续。</p>
+<p>例如，在 Claude Code 中，我们通过将消息历史传递给模型以总结和压缩最关键细节来实现这一点。模型保留架构决策、未解决的错误和实现细节，同时丢弃冗余工具输出或消息。智能体随后可继续这个压缩上下文加最近访问的五个文件。用户获得连贯性，无需担心上下文窗口限制。</p>
+<p>压缩的艺术在于选择保留什么对比舍弃什么，因为过度激进的压缩可导致丧失微妙但关键的上下文，其重要性仅在稍后变得明显。对于实施压缩系统的工程师，我们建议在复杂智能体跟踪上仔细调整你的提示。首先通过最大化回忆来确保你的压缩提示从跟踪中捕获每个相关信息片段，然后通过消除多余内容迭代改进精度。</p>
+<p>低垂的多余内容的一个例子是清除工具调用和结果——一旦工具在消息历史深处被调用，智能体为什么需要再看一遍原始结果？最安全、最轻触形式的压缩之一是工具结果清除，最近在 Claude 开发者平台上推出为一项功能。</p>
+<h4 id="_9">结构化笔记</h4>
+<p><strong>结构化笔记</strong>或智能体记忆是一种技术，其中智能体定期编写持久化到上下文窗口外部记忆的笔记。这些笔记稍后被拉回到上下文窗口中。</p>
+<p>这种策略以最小开销提供持久记忆。如 Claude Code 创建待做事项清单，或你的自定义智能体维护 NOTES.md 文件，这个简单模式允许智能体跨复杂任务追踪进度，维护否则会在数十次工具调用中丢失的关键上下文和依赖项。</p>
+<p>Claude 玩 Pokémon 展示了记忆如何在非编码领域转变智能体能力。智能体维护了数千个游戏步骤的精确计数——追踪目标如"在过去 1,234 步中，我一直在路线 1 训练我的 Pokémon，Pikachu 朝着 10 级的目标获得了 8 级"。无需任何关于记忆结构的提示，它开发了已探索区域的地图，记住了它已解锁的关键成就，并维护了战斗策略的战略笔记，帮助它了解哪些招式对不同对手最有效。</p>
+<p>在上下文重置后，智能体阅读自己的笔记并继续数小时长的训练序列或地牢探索。这种跨总结步骤的连贯性启用了在仅将所有信息保存在 LLM 上下文窗口中时不可能的长期策略。</p>
+<p>作为 Sonnet 4.5 发布的一部分，我们在 Claude 开发者平台上的公开测试中发布了一个记忆工具，使通过基于文件的系统在上下文窗口外存储和查阅信息变得更容易。这允许智能体随时间构建知识库、跨会话维护项目状态，并引用之前的工作而无需将一切保持在上下文中。</p>
+<h4 id="_10">子智能体架构</h4>
+<p><strong>子智能体架构</strong>提供了绕过上下文限制的另一种方式。与其一个智能体试图维护整个项目的状态，专业化的子智能体可处理具有干净上下文窗口的聚焦任务。主智能体使用高级计划协调，同时子智能体执行深度技术工作或使用工具寻找相关信息。每个子智能体可广泛探索，使用数万个或更多令牌，但仅返回其工作的精缩、蒸馏摘要（通常 1,000-2,000 令牌）。</p>
+<p>这种方法实现了清晰的关切分离——详细搜索上下文保持在子智能体内隔离，而主智能体专注于合成和分析结果。这个模式在《我们如何构建多智能体研究系统》中讨论，在复杂研究任务上显示了相比单智能体系统的实质性改进。</p>
+<p>这些方法之间的选择取决于任务特征。例如：</p>
 <ul>
-<li>从人工管理 → 模型驱动的自优化</li>
-<li>从静态配置 → 动态适应</li>
-<li>从全局优化 → 局部贪心（足够好就够）</li>
+<li><strong>压缩</strong>维持对话流用于需要大量往返的任务；</li>
+<li><strong>笔记</strong>对具有清晰里程碑的迭代开发表现出色；</li>
+<li><strong>多智能体架构</strong>处理复杂研究和分析，其中平行探索回报丰厚。</li>
 </ul>
-<p><strong>最终建议</strong>："做最简单的有效方案"（Do the simplest thing that works）— 这比过度工程更符合当前阶段的认知水平。</p>
+<p>即使当模型继续改进时，维持跨扩展交互的连贯性的挑战将仍是构建更有效智能体的中心。</p>
 <hr />
-<p><strong>致谢</strong></p>
+<h2 id="_11">结论</h2>
+<p>上下文工程代表了我们如何用 LLM 构建的根本转变。随着模型变得更强大，挑战不仅仅是制作完美的提示——而是深思熟虑地策划哪些信息进入模型在每个步骤的有限注意力预算。无论你是为长期任务实施压缩、设计令牌高效的工具，还是让智能体即时探索其环境，指导原则保持一致：找到最少的高信号令牌集合，最大化期望结果的可能性。</p>
+<p>我们概述的技术将继续随模型改进而演变。我们已看到更智能的模型需要更少的说教工程，允许智能体以更多自主性运作。但即使能力扩展，将上下文视为宝贵、有限资源仍将保持中心地位以构建可靠、有效的智能体。</p>
+<p>立即开始在 Claude 开发者平台上进行上下文工程，并通过我们的记忆和上下文管理食谱访问有用的提示和最佳实践。</p>
+<hr />
+<h2 id="_12">致谢</h2>
 <p>由 Anthropic 应用 AI 团队编写：Prithvi Rajasekaran、Ethan Dixon、Carly Ryan 和 Jeremy Hadfield，得到团队成员 Rafi Ayub、Hannah Moran、Cal Rueb 和 Connor Jennings 的贡献。特别感谢 Molly Vorwerck、Stuart Ritchie 和 Maggie Vo 的支持。</p>
         </article>
 
@@ -955,29 +640,11 @@ Multi-Agent 方案:
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-30 11:07:54<br>
+                生成时间：2025-12-19 16:26:40<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
-
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -1028,5 +695,21 @@ Multi-Agent 方案:
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>

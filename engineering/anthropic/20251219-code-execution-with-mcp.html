@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Execution with MCP: Building More Efficient Agents - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
+        }
+
+        /* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Code Execution with MCP: Building More Efficient Agents</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Code Execution with MCP: Building More Efficient Agents</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/code-execution-with-mcp" target="_blank">https://www.anthropic.com/engineering/code-execution-with-mcp</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2025年11月4日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-12-19</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#model-context-protocol-mcp">Model Context Protocol (MCP) 简介</a></li>
+<li><a href="#token">问题：工具导致过度的 Token 消耗</a></li>
+  <li><a href="#1">1. 工具定义过载上下文窗口</a></li>
+  <li><a href="#2-token">2. 中间工具结果消耗额外 Token</a></li>
+<li><a href="#code-execution-with-mcp">解决方案：Code Execution with MCP 改进上下文效率</a></li>
+  <li><a href="#_2">实现方式：文件树结构</a></li>
+  <li><a href="#_3">工具文件示例</a></li>
+  <li><a href="#google-drive-salesforce">Google Drive 到 Salesforce 示例</a></li>
+<li><a href="#code-execution-with-mcp_1">Code Execution with MCP 的优势</a></li>
+  <li><a href="#1-progressive-disclosure">1. 渐进式披露 (Progressive Disclosure)</a></li>
+  <li><a href="#2">2. 上下文高效的工具结果</a></li>
+  <li><a href="#3">3. 更强大的上下文高效控制流</a></li>
+  <li><a href="#4">4. 隐私保护操作</a></li>
+  <li><a href="#5-skills">5. 状态持久化与技能 (Skills)</a></li>
+<li><a href="#_4">注意事项</a></li>
+<li><a href="#_5">总结</a></li>
+<li><a href="#_6">致谢</a></li>
+<li><a href="#_7">相关链接</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="code-execution-with-mcp-building-more-efficient-agents">Code Execution with MCP: Building More Efficient Agents</h1>
+<p><strong>发布日期</strong>: 2025 年 11 月 4 日</p>
+<h2 id="_1">概述</h2>
+<p>"直接工具调用会消耗上下文来处理每个定义和结果。代理通过编写代码调用工具时扩展性更好。"这篇文章探讨如何使用代码执行与 MCP 服务器更高效地交互。</p>
+<hr />
+<h2 id="model-context-protocol-mcp">Model Context Protocol (MCP) 简介</h2>
+<p>MCP 是一个开放标准，用于将 AI 代理连接到外部系统。自 2024 年 11 月推出以来，社区已构建数千个 MCP 服务器，SDKs 可用于所有主要编程语言。</p>
+<p><strong>现状</strong>: 开发者常规构建可访问数百或数千个工具的代理。然而，随着连接工具数量增加，加载所有工具定义和传递中间结果会降低代理效率并增加成本。</p>
+<hr />
+<h2 id="token">问题：工具导致过度的 Token 消耗</h2>
+<h3 id="1">1. 工具定义过载上下文窗口</h3>
+<p>MCP 客户端通常直接将所有工具定义加载到上下文中。示例：</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">gdrive</span>.<span class="nv">getDocument</span>
+<span class="w">     </span><span class="nv">Description</span>:<span class="w"> </span><span class="nv">Retrieves</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">document</span><span class="w"> </span><span class="nv">from</span><span class="w"> </span><span class="nv">Google</span><span class="w"> </span><span class="nv">Drive</span>
+<span class="w">     </span><span class="nv">Parameters</span>:
+<span class="w">                </span><span class="nv">documentId</span><span class="w"> </span><span class="ss">(</span><span class="nv">required</span>,<span class="w"> </span><span class="nv">string</span><span class="ss">)</span>:<span class="w"> </span><span class="nv">The</span><span class="w"> </span><span class="nv">ID</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">document</span><span class="w"> </span><span class="nv">to</span><span class="w"> </span><span class="nv">retrieve</span>
+<span class="w">                </span><span class="nv">fields</span><span class="w"> </span><span class="ss">(</span><span class="nv">optional</span>,<span class="w"> </span><span class="nv">string</span><span class="ss">)</span>:<span class="w"> </span><span class="nv">Specific</span><span class="w"> </span><span class="nv">fields</span><span class="w"> </span><span class="nv">to</span><span class="w"> </span><span class="k">return</span>
+<span class="w">     </span><span class="nv">Returns</span>:<span class="w"> </span><span class="nv">Document</span><span class="w"> </span><span class="nv">object</span><span class="w"> </span><span class="nv">with</span><span class="w"> </span><span class="nv">title</span>,<span class="w"> </span><span class="nv">body</span><span class="w"> </span><span class="nv">content</span>,<span class="w"> </span><span class="nv">metadata</span>,<span class="w"> </span><span class="nv">permissions</span>,<span class="w"> </span><span class="nv">etc</span>.
+</code></pre></div> <div class="codehilite"><pre><span></span><code>salesforce.updateRecord
+    Description: Updates a record in Salesforce
+    Parameters:
+               objectType (required, string): Type of Salesforce object (Lead, Contact, Account, etc.)
+               recordId (required, string): The ID of the record to update
+               data (required, object): Fields to update with their new values
+     Returns: Updated record object with confirmation
+</code></pre></div> <p><strong>影响</strong>: 在连接数千个工具的情况下，需要处理数十万个 token 才能读取请求。</p>
+<h3 id="2-token">2. 中间工具结果消耗额外 Token</h3>
+<p><strong>场景</strong>: "从 Google Drive 下载会议记录并将其附加到 Salesforce 线索"</p>
+<pre class="ascii-art">
+
+TOOL CALL: gdrive.getDocument(documentId: "abc123")
+        → returns "Discussed Q4 goals...\n[full transcript text]"
+           (loaded into model context)
+
+TOOL CALL: salesforce.updateRecord(
+            objectType: "SalesMeeting",
+            recordId: "00Q5f000001abcXYZ",
+            data: { "Notes": "Discussed Q4 goals...\n[full transcript text written out]" }
+        )
+        (model needs to write entire transcript into context again)
+
+</pre> <p><strong>问题</strong>: 每个中间结果必须通过模型。对于 2 小时的销售会议，可能需要额外处理 50,000 个 token。大型文档可能超过上下文窗口限制。</p>
+<p><strong>图像</strong>:
+<img alt="MCP 客户端工作流程" src="images/9ecf165020005c09a22a9472cee6309555485619-1920x1080.png" /></p>
+<p><em>说明: MCP 客户端将工具定义加载到模型的上下文窗口中，并协调一个消息循环，其中每个工具调用和结果在操作之间通过模型传递。</em></p>
+<hr />
+<h2 id="code-execution-with-mcp">解决方案：Code Execution with MCP 改进上下文效率</h2>
+<p>将 MCP 服务器呈现为代码 APIs 而非直接工具调用。代理可编写代码与 MCP 服务器交互，仅加载所需工具并在执行环境中处理数据。</p>
+<h3 id="_2">实现方式：文件树结构</h3>
+<pre class="ascii-art">
+
+servers
+├── google-drive
+│   ├── getDocument.ts
+│   ├── ... (other tools)
+│   └── index.ts
+├── salesforce
+│   ├── updateRecord.ts
+│   ├── ... (other tools)
+│   └── index.ts
+└── ... (other servers)
+
+</pre> <h3 id="_3">工具文件示例</h3>
+<div class="codehilite"><pre><span></span><code>// ./servers/google-drive/getDocument.ts
+import { callMCPTool } from &quot;../../../client.js&quot;;
+
+interface GetDocumentInput {
+  documentId: string;
+}
+
+interface GetDocumentResponse {
+  content: string;
+}
+
+/* Read a document from Google Drive */
+export async function getDocument(input: GetDocumentInput): Promise&lt;GetDocumentResponse&gt; {
+  return callMCPTool&lt;GetDocumentResponse&gt;(&#39;google_drive__get_document&#39;, input);
+}
+</code></pre></div> <h3 id="google-drive-salesforce">Google Drive 到 Salesforce 示例</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Read transcript from Google Docs and add to Salesforce prospect</span>
+<span class="k">import</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">gdrive</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./servers/google-drive&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">salesforce</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./servers/salesforce&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">transcript</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">await</span><span class="w"> </span><span class="nx">gdrive</span><span class="p">.</span><span class="nx">getDocument</span><span class="p">({</span><span class="w"> </span><span class="nx">documentId</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;abc123&#39;</span><span class="w"> </span><span class="p">})).</span><span class="nx">content</span><span class="p">;</span>
+<span class="k">await</span><span class="w"> </span><span class="nx">salesforce</span><span class="p">.</span><span class="nx">updateRecord</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">objectType</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;SalesMeeting&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">recordId</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;00Q5f000001abcXYZ&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Notes</span><span class="o">:</span><span class="w"> </span><span class="kt">transcript</span><span class="w"> </span><span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div> <p><strong>效果</strong>: Token 使用从 150,000 减少到 2,000——<strong>节省 98.7 %</strong> 的时间和成本。</p>
+<hr />
+<h2 id="code-execution-with-mcp_1">Code Execution with MCP 的优势</h2>
+<h3 id="1-progressive-disclosure">1. 渐进式披露 (Progressive Disclosure)</h3>
+<p>模型擅长导航文件系统。将工具呈现为文件系统上的代码，允许模型按需读取工具定义。</p>
+<p><strong>可选方式</strong>: 添加 <code>search_tools</code> 工具以查找相关定义。例如搜索"salesforce"并仅加载当前任务所需的工具。包含 detail level 参数允许代理选择所需的详细程度（仅名称、名称和描述或完整定义及 schemas）。</p>
+<h3 id="2">2. 上下文高效的工具结果</h3>
+<p>在大型数据集上工作时，代理可在代码中过滤和转换结果，然后再返回。</p>
+<p><strong>10,000 行电子表格示例</strong>:</p>
+<pre class="ascii-art">
+// Without code execution - all rows flow through context
+TOOL CALL: gdrive.getSheet(sheetId: 'abc123')
+        → returns 10,000 rows in context to filter manually
+
+// With code execution - filter in the execution environment
+const allRows = await gdrive.getSheet({ sheetId: 'abc123' });
+const pendingOrders = allRows.filter(row =>
+  row["Status"] === 'pending'
+);
+console.log(`Found ${pendingOrders.length} pending orders`);
+console.log(pendingOrders.slice(0, 5)); // Only log first 5 for review
+
+</pre> <p>代理仅看到 5 行而非 10,000 行。相同模式适用于聚合、跨多数据源的连接或提取特定字段。</p>
+<h3 id="3">3. 更强大的上下文高效控制流</h3>
+<p>循环、条件和错误处理可使用熟悉的代码模式而非链式工具调用。</p>
+<p><strong>Slack 部署通知示例</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">let</span><span class="w"> </span><span class="nx">found</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">found</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">messages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">slack</span><span class="p">.</span><span class="nx">getChannelHistory</span><span class="p">({</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;C123456&#39;</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="nx">found</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">messages</span><span class="p">.</span><span class="nx">some</span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">text</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="s1">&#39;deployment complete&#39;</span><span class="p">));</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">found</span><span class="p">)</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Promise</span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setTimeout</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="mf">5000</span><span class="p">));</span>
+<span class="p">}</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Deployment notification received&#39;</span><span class="p">);</span>
+</code></pre></div> <p>此方法比在代理循环中交替调用 MCP 工具和睡眠命令更高效，同时改善"首字节时间"延迟。</p>
+<h3 id="4">4. 隐私保护操作</h3>
+<p>使用 code execution with MCP 时，中间结果默认保留在执行环境中。代理仅看到显式日志或返回的内容。</p>
+<p><strong>敏感数据示例 - 自动 Tokenize PII</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">sheet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">gdrive</span><span class="p">.</span><span class="nx">getSheet</span><span class="p">({</span><span class="w"> </span><span class="nx">sheetId</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;abc123&#39;</span><span class="w"> </span><span class="p">});</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">sheet</span><span class="p">.</span><span class="nx">rows</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">salesforce</span><span class="p">.</span><span class="nx">updateRecord</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">objectType</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Lead&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">recordId</span><span class="o">:</span><span class="w"> </span><span class="kt">row.salesforceId</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">Email</span><span class="o">:</span><span class="w"> </span><span class="kt">row.email</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">Phone</span><span class="o">:</span><span class="w"> </span><span class="kt">row.phone</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">Name</span><span class="o">:</span><span class="w"> </span><span class="kt">row.name</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">}</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Updated </span><span class="si">${</span><span class="nx">sheet</span><span class="p">.</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb"> leads`</span><span class="p">);</span>
+</code></pre></div> <p>MCP 客户端截获数据并在到达模型前 tokenize PII：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// What the agent would see, if it logged the sheet.rows:</span>
+<span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">salesforceId</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;00Q...&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;[EMAIL_1]&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">phone</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;[PHONE_1]&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;[NAME_1]&#39;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">salesforceId</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;00Q...&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;[EMAIL_2]&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">phone</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;[PHONE_2]&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;[NAME_2]&#39;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">...</span>
+<span class="p">]</span>
+</code></pre></div> <p>真实邮箱、电话和名称从 Google Sheets 流向 Salesforce，但不经过模型。</p>
+<h3 id="5-skills">5. 状态持久化与技能 (Skills)</h3>
+<p>具有文件系统访问权的 code execution 允许代理跨操作维护状态。</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">leads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">salesforce</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;SELECT Id, Email FROM Lead LIMIT 1000&#39;</span>
+<span class="p">});</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">csvData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">leads</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nx">l</span><span class="p">.</span><span class="nx">Id</span><span class="si">}</span><span class="sb">,</span><span class="si">${</span><span class="nx">l</span><span class="p">.</span><span class="nx">Email</span><span class="si">}</span><span class="sb">`</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;\n&#39;</span><span class="p">);</span>
+<span class="k">await</span><span class="w"> </span><span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span><span class="p">(</span><span class="s1">&#39;./workspace/leads.csv&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">csvData</span><span class="p">);</span>
+
+<span class="c1">// Later execution picks up where it left off</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">saved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">(</span><span class="s1">&#39;./workspace/leads.csv&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;utf-8&#39;</span><span class="p">);</span>
+</code></pre></div> <p>代理可将代码保存为可重用函数：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// In ./skills/save-sheet-as-csv.ts</span>
+<span class="k">import</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">gdrive</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./servers/google-drive&#39;</span><span class="p">;</span>
+<span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">saveSheetAsCsv</span><span class="p">(</span><span class="nx">sheetId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">gdrive</span><span class="p">.</span><span class="nx">getSheet</span><span class="p">({</span><span class="w"> </span><span class="nx">sheetId</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">csv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)).</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;\n&#39;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span><span class="p">(</span><span class="sb">`./workspace/sheet-</span><span class="si">${</span><span class="nx">sheetId</span><span class="si">}</span><span class="sb">.csv`</span><span class="p">,</span><span class="w"> </span><span class="nx">csv</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="sb">`./workspace/sheet-</span><span class="si">${</span><span class="nx">sheetId</span><span class="si">}</span><span class="sb">.csv`</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Later, in any agent execution:</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">saveSheetAsCsv</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./skills/save-sheet-as-csv&#39;</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">csvPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">saveSheetAsCsv</span><span class="p">(</span><span class="s1">&#39;abc123&#39;</span><span class="p">);</span>
+</code></pre></div> <p>将 SKILL.md 文件添加到这些已保存函数中创建结构化技能。随时间推移，这允许代理构建高级功能工具箱。</p>
+<hr />
+<h2 id="_4">注意事项</h2>
+<p>Code execution 引入自身复杂性。运行代理生成的代码需要具有适当 sandboxing、资源限制和监控的安全执行环境。这些基础设施需求增加了运营开销和安全考虑，而直接工具调用可避免这些。Code execution 的优势——降低 token 成本、更低延迟、改进工具组合——应与实现成本相权衡。</p>
+<hr />
+<h2 id="_5">总结</h2>
+<p>MCP 为代理连接到许多工具和系统提供基础协议。然而，一旦连接太多服务器，工具定义和结果可能消耗过多 token，降低代理效率。</p>
+<p>虽然这些问题看似新颖——上下文管理、工具组合、状态持久化——但在软件工程中有已知解决方案。Code execution 将这些既定模式应用于代理，使其能使用熟悉的编程构造更高效地与 MCP 服务器交互。</p>
+<hr />
+<h2 id="_6">致谢</h2>
+<p>本文由 Adam Jones 和 Conor Kelly 撰写。感谢 Jeremy Fox、Jerome Swannack、Stuart Ritchie、Molly Vorwerck、Matt Samuels 和 Maggie Vo 对草稿的反馈。</p>
+<hr />
+<h2 id="_7">相关链接</h2>
+<ul>
+<li><a href="https://modelcontextprotocol.io/">Model Context Protocol</a></li>
+<li><a href="https://github.com/modelcontextprotocol/servers">MCP Servers (GitHub)</a></li>
+<li><a href="https://modelcontextprotocol.io/docs/sdk">MCP SDKs</a></li>
+<li><a href="https://blog.cloudflare.com/code-mode/">Cloudflare Code Mode 研究</a></li>
+<li><a href="https://www.anthropic.com/engineering/claude-code-sandboxing">Claude Code Sandboxing</a></li>
+<li><a href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview">Skills 文档</a></li>
+<li><a href="https://modelcontextprotocol.io/community/communication">MCP 社区</a></li>
+</ul>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-12-19 16:06:04<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
+</body>
+</html>

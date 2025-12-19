@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析 - Anthropic Engineering 实践</title>
+    <title>Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破 - Anthropic Engineering 实践</title>
     <style>
         * {
             margin: 0;
@@ -28,9 +28,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +150,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -310,9 +308,6 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -326,12 +321,20 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            word-wrap: break-word;
         }
 
         /* ASCII 艺术 */
-        pre
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
         /* Mermaid 图表 */
         .mermaid {
             background: white;
@@ -346,17 +349,6 @@
         pre.mermaid {
             background: white;
             text-align: center;
-        }
-
-        .ascii-art {
-            background: #fafafa;
-            border: 1px solid #ddd;
-            font-family: "Courier New", Consolas, Monaco, monospace;
-            font-size: 0.85rem;
-            line-height: 1.2;
-            white-space: pre;
-            overflow-x: auto;
-            color: #333;
         }
 
         /* 引用 */
@@ -500,7 +492,7 @@
         <div class="breadcrumb-content">
             <a href="index.html">📚 文章索引</a>
             <span class="breadcrumb-separator">/</span>
-            <span class="breadcrumb-current">Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析</span>
+            <span class="breadcrumb-current">Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破</span>
         </div>
     </nav>
 
@@ -517,7 +509,7 @@
 
     <div class="container">
         <header>
-            <h1>Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析</h1>
+            <h1>Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破</h1>
             <div class="meta">
                 <div class="meta-item">
                     <span class="meta-label">原文链接：</span>
@@ -529,7 +521,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-30</span>
+                    <span>2025-12-19</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -541,1227 +533,275 @@
         <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
-<li><a href="#_1">执行摘要</a></li>
-<li><a href="#1">1. 核心技术概念深度解析</a></li>
-  <li><a href="#11-swe-bench-verified-benchmark">1.1 SWE-bench Verified: 超越传统 Benchmark 的技术设计</a></li>
-  <li><a href="#12-api-schema">1.2 工具描述优化：从 API Schema 到人类级别文档</a></li>
-  <li><a href="#13-22-49">1.3 性能提升的关键因素：从 22 % 到 49 % 的技术路径</a></li>
-  <li><a href="#14-benchmark">1.4 Benchmark 设计的技术考量</a></li>
-<li><a href="#2">2. 架构设计模式</a></li>
-  <li><a href="#21-minimal-scaffolding">2.1 最小化脚手架 (Minimal Scaffolding) 架构模式</a></li>
-  <li><a href="#22">2.2 高可靠性编辑工具的设计模式</a></li>
-  <li><a href="#23-bash">2.3 Bash 工具的架构设计</a></li>
-  <li><a href="#24">2.4 错误恢复和重试机制</a></li>
-<li><a href="#3-vs">3. 代码示例：反模式 vs 最佳实践</a></li>
-  <li><a href="#31">3.1 工具描述优化</a></li>
-  <li><a href="#32">3.2 参数设计改进</a></li>
-  <li><a href="#33">3.3 错误处理的演进</a></li>
-<li><a href="#4">4. 性能分析</a></li>
-  <li><a href="#41">4.1 性能提升数据</a></li>
-  <li><a href="#42">4.2 不同工具优化的影响分析</a></li>
-  <li><a href="#43">4.3 成功率与工具设计的关系</a></li>
-  <li><a href="#44">4.4 资源消耗分析</a></li>
-<li><a href="#5">5. 实施检查清单</a></li>
-  <li><a href="#51-benchmark">5.1 Benchmark 设计最佳实践</a></li>
-  <li><a href="#52">5.2 工具描述优化步骤</a></li>
-  <li><a href="#53">5.3 性能评估方法</a></li>
-<li><a href="#6">6. 权衡矩阵</a></li>
-  <li><a href="#61-vs">6.1 工具复杂度 vs 性能收益</a></li>
-  <li><a href="#62-vs">6.2 描述详细度 vs 上下文消耗</a></li>
-  <li><a href="#63-vs">6.3 自动化 vs 可控性</a></li>
-<li><a href="#7">7. 架构洞察与未来方向</a></li>
-  <li><a href="#71">7.1 关键架构洞察</a></li>
-  <li><a href="#72">7.2 未来研究方向</a></li>
-  <li><a href="#73">7.3 实践建议</a></li>
-<li><a href="#8">8. 总结</a></li>
-  <li><a href="#81">8.1 核心要点回顾</a></li>
-  <li><a href="#82">8.2 对行业的启示</a></li>
-  <li><a href="#83">8.3 可执行的下一步</a></li>
-<li><a href="#_41">附录</a></li>
-  <li><a href="#a">A. 参考资源</a></li>
-  <li><a href="#b">B. 术语表</a></li>
-  <li><a href="#c">C. 变更历史</a></li>
+<li><a href="#_1">概述</a></li>
+<li><a href="#swe-bench">SWE-bench 简介</a></li>
+<li><a href="#swe-bench_1">为什么选择 SWE-bench？</a></li>
+<li><a href="#_2">基准说明</a></li>
+<li><a href="#_3">技术架构</a></li>
+  <li><a href="#_4">设计理念</a></li>
+  <li><a href="#_5">提示词策略</a></li>
+  <li><a href="#bash">Bash 工具规范</a></li>
+  <li><a href="#_6">编辑工具设计</a></li>
+  <li><a href="#_7">容错设计</a></li>
+<li><a href="#_8">性能结果</a></li>
+<li><a href="#_9">实际案例分析</a></li>
+  <li><a href="#ridgeclassifiercv">案例：RidgeClassifierCV 参数问题</a></li>
+<li><a href="#_10">遇到的挑战</a></li>
+  <li><a href="#1-token">1. 时长和高 Token 成本</a></li>
+  <li><a href="#2">2. 评分问题</a></li>
+  <li><a href="#3">3. 隐藏测试</a></li>
+  <li><a href="#4">4. 多模态支持</a></li>
+<li><a href="#_11">总结</a></li>
+<li><a href="#_12">致谢</a></li>
 </ul>
 </nav>
 
         <article class="content">
-            <h1 id="claude-35-sonnet-swe-bench-verified-ai">Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破：AI 架构师深度分析</h1>
-<p><strong>原文链接</strong>：https://www.anthropic.com/engineering/swe-bench-sonnet
-<strong>发布日期</strong>：2025 年 1 月 6 日
-<strong>分析视角</strong>：AI 架构师技术深度分析
-<strong>文档生成</strong>：2025 年 10 月 30 日</p>
-<hr />
-<h2 id="_1">执行摘要</h2>
-<p><strong>重要说明</strong>：原文报告的性能数据为 <strong>49 %</strong>（超越此前 SOTA 的 45 %），而非 69.2 %。本文档基于原文实际数据进行分析。</p>
-<p>Anthropic 在 SWE-bench Verified benchmark 上实现了 49 % 的准确率，相比前代 Claude 3.5 Sonnet 的 33 % 和 Claude 3 Opus 的 22 % 有显著提升。这一成果的核心不在于模型参数调优，而在于 <strong>工具接口设计哲学的范式转变</strong>：从"为模型提供工具"转向"为模型设计人类级别的接口"。</p>
-<hr />
-<h2 id="1">1. 核心技术概念深度解析</h2>
-<h3 id="11-swe-bench-verified-benchmark">1.1 SWE-bench Verified: 超越传统 Benchmark 的技术设计</h3>
-<h4 id="_2">技术本质</h4>
-<p>SWE-bench Verified 不是传统的代码生成测试（如 HumanEval），而是一个 <strong>端到端的软件工程能力评估系统</strong>：</p>
-<p><strong>评估维度对比</strong>：</p>
-<pre class="ascii-art">
-传统 Benchmark SWE-bench Verified
-┌──────────────┐ ┌──────────────────────┐
-│ 函数生成 │ │ 完整工程流程 │
-│ 单元测试 │ │ 真实 GitHub Issues │
-│ 孤立环境 │ │ 真实代码仓库上下文 │
-│ 确定性输入 │ │ 模糊需求理解 │
-└──────────────┘ └──────────────────────┘
-</pre>
-<h4 id="_3">架构级别的设计决策</h4>
+            <h1 id="claude-35-sonnet-swe-bench-verified">用 Claude 3.5 Sonnet 提升 SWE-bench Verified 的表现</h1>
+<p><img alt="SWE-bench 性能示意图" src="images/d1c3845336e8.svg" /></p>
+<p>发布于 2025 年 1 月 6 日</p>
+<h2 id="_1">概述</h2>
+<p>升级后的 Claude 3.5 Sonnet 在 SWE-bench Verified 上达到了 49 % 的成绩，超越了之前 45 % 的最先进水平。本文介绍了围绕该模型构建的"智能体"系统，旨在帮助开发者充分发挥 Claude 3.5 Sonnet 的性能潜力。</p>
+<h2 id="swe-bench">SWE-bench 简介</h2>
+<p>SWE-bench（软件工程基准）是一项 AI 评估基准，用于评估模型完成真实软件工程任务的能力。具体而言，它测试模型解决流行开源 Python 仓库中 GitHub issue 的能力。</p>
+<p>在基准中的每个任务中，AI 模型获得一个配置好的 Python 环境和 issue 解决前的仓库副本。模型需要理解、修改和测试代码，最后提交解决方案。</p>
+<p>每个解决方案都会与关闭原始 GitHub issue 的拉取请求中的实际单元测试进行对比。这验证了 AI 模型是否能实现与原始 PR 作者相同的功能。</p>
+<h2 id="swe-bench_1">为什么选择 SWE-bench？</h2>
+<p>SWE-bench 因以下几个原因获得了广泛关注：</p>
 <ol>
-<li><strong>真实性优先</strong>：使用真实的 Python 开源项目（如 Django, Flask, scikit-learn）的实际 GitHub Issues</li>
-<li><strong>隐藏测试用例</strong>：模型无法访问评估测试，强制模型开发真实的问题理解能力</li>
-<li><strong>环境复杂性</strong>：包含依赖安装、环境配置等真实工程挑战</li>
-<li><strong>评估整个 Agent 系统</strong>：不仅测试模型能力，更测试工具设计、提示工程、错误恢复的系统集成</li>
+<li><strong>真实工程任务</strong> - 采用实际项目中的任务，而非竞赛或面试风格的问题</li>
+<li><strong>未饱和空间</strong> - 改进空间充足。至本文发稿时，尚无模型突破 SWE-bench Verified 的 50 % 大关（Claude 3.5 Sonnet 新版本为 49 %）</li>
+<li><strong>整体系统评估</strong> - 测试完整的"智能体"而非孤立的模型。开源开发者和初创公司在优化框架方面取得了显著成果</li>
 </ol>
-<h4 id="_4">技术挑战</h4>
-<pre class="ascii-art"> 问题空间复杂度分析：
-┌─────────────────────────────────────────────────┐
-│ 理解问题（需求模糊性） │
-│ ↓ │
-│ 定位代码（多文件、深层目录结构） │
-│ ↓ │
-│ 重现问题（环境配置、依赖管理） │
-│ ↓ │
-│ 实现修复（跨文件修改、边缘案例） │
-│ ↓ │
-│ 验证解决方案（无法访问真实测试） │
-└─────────────────────────────────────────────────┘ </pre> <h3 id="12-api-schema">1.2 工具描述优化：从 API Schema 到人类级别文档</h3>
-<h4 id="_5">核心洞察</h4>
-<p>传统 API 设计关注 <strong>schema 正确性</strong>（参数类型、必需字段），但 LLM Agent 需要的是 <strong>使用意图的完整理解</strong>。</p>
-<p><strong>架构级别的对比</strong>：</p>
-<pre class="ascii-art">
-# 反模式：最小化 Schema（传统 API 设计）
-{ "name": "edit_file", "parameters": { "path": "string", "old_str": "string", "new_str": "string" }
-} # 最佳实践：Rich Description（LLM Agent 设计）
-{ "name": "edit_file", "description": """ Performs string replacement in files with the following guarantees: RELIABILITY: Uses exact string matching (highest reliability compared to line-based or regex approaches). If old_str appears 0 or >1 times, the operation fails with an error message prompting you to add more context. PATH HANDLING: ALWAYS use absolute paths. The agent may change directories during execution
-- relative paths will fail. Example: /repo/src/main.py ERROR RECOVERY: On match failures, you'll receive: - "0 matches found" → add more surrounding code to old_str - ">1 matches found" → add more context to make match unique UNDO CAPABILITY: Use undo_edit to revert the last change if needed. """, "parameters": { ... }
-} </pre> <h4 id="_6">设计原理</h4>
-<ol>
-<li><strong>预防性错误处理</strong>：在工具描述中预先说明所有可能的失败模式</li>
-<li><strong>认知负载管理</strong>：提供明确的决策规则（如"始终使用绝对路径"）</li>
-<li><strong>错误恢复指导</strong>：不仅说明错误，还指导如何修正</li>
-<li><strong>设计哲学透明化</strong>：解释为何选择 <code>str_replace</code> 而非 line-based editing</li>
-</ol>
-<h4 id="_7">迭代优化流程</h4>
-<pre class="ascii-art">
-┌─────────────────────────────────────────────────────────┐
-│ │
-│ 1. 初始设计 2. 失败模式分析 3. 描述增强 │
-│ ↓ ↓ ↓ │
-│ 基础 Schema → 收集错误日志 → 更新工具描述 │
-│ ↓ ↓ ↓ │
-│ 部署测试 ← 发现新失败 ← 重新评估 │
-│ │
-└─────────────────────────────────────────────────────────┘
-</pre>
-<h3 id="13-22-49">1.3 性能提升的关键因素：从 22 % 到 49 % 的技术路径</h3>
-<h4 id="_8">性能演进数据</h4>
-<pre class="ascii-art"> 模型版本性能对比（SWE-bench Verified）：
-┌──────────────────────────────────────────────┐
-│ Claude 3 Opus: 22 % ████████ │
-│ Claude 3.5 Sonnet: 33 % ████████████ │
-│ 前一代 SOTA: 45 % ████████████████ │
-│ Claude 3.5 Sonnet (新): 49 % ████████████████▓ │
-└──────────────────────────────────────────────┘ </pre> <h4 id="_9">技术因素分解</h4>
-<p><strong>因素 1：模型推理能力提升（基础层）</strong></p>
+<h2 id="_2">基准说明</h2>
+<p>原始 SWE-bench 数据集包含一些无法仅从 GitHub issue 解决的任务。SWE-bench Verified 是由人工审核的 500 题子集，确保任务均可解决，因此提供了最清晰的智能体性能衡量。</p>
+<h2 id="_3">技术架构</h2>
+<h3 id="_4">设计理念</h3>
+<p>在为升级的 Claude 3.5 Sonnet 优化智能体框架时，我们秉持的哲学是：<strong>赋予语言模型尽可能多的控制权，保持框架最小化</strong>。</p>
+<p>智能体包含三个核心组件：</p>
 <ul>
-<li>更强的代码理解能力</li>
-<li>改进的自我纠错机制（不再重复相同错误）</li>
-<li>更好的长上下文处理（200k tokens）</li>
+<li>初始提示词</li>
+<li>Bash 工具（执行 bash 命令）</li>
+<li>编辑工具（查看和编辑文件）</li>
 </ul>
-<p><strong>因素 2：工具接口设计（系统层）</strong></p>
-<ul>
-<li>高可靠性的 <code>str_replace</code> 机制</li>
-<li>绝对路径约束消除了路径混淆</li>
-<li>详细的工具描述预防常见错误</li>
-</ul>
-<p><strong>因素 3：架构哲学（设计层）</strong></p>
-<ul>
-<li>最小化脚手架，最大化模型自主权</li>
-<li>非强制性工作流建议（不是状态机）</li>
-<li>允许模型自主决定步骤和策略</li>
-</ul>
-<p><strong>因素 4：错误恢复机制（工程层）</strong></p>
-<ul>
-<li>明确的错误消息指导重试</li>
-<li><code>undo_edit</code> 操作支持试错</li>
-<li>多步骤自我验证流程</li>
-</ul>
-<h4 id="_10">技术债务与权衡</h4>
-<pre class="ascii-art"> 性能提升 vs 成本权衡：
-┌─────────────────────────────────────────────────┐
-│ 成功案例特征： │
-│ - 12-100+ 步骤 │
-│ - >100k tokens 消耗 │
-│ - 持续时间长 │
-│ │
-│ 架构权衡： │
-│ 优势：高准确率、强泛化能力 │
-│ 劣势：高延迟、高成本、资源密集 │
-└─────────────────────────────────────────────────┘ </pre> <h3 id="14-benchmark">1.4 Benchmark 设计的技术考量</h3>
-<h4 id="_11">评估系统的架构挑战</h4>
-<p><strong>挑战 1：环境隔离与一致性</strong></p>
-<ul>
-<li>需要为每个测试创建独立环境</li>
-<li>依赖安装的不确定性（网络、版本冲突）</li>
-<li>环境配置问题可能污染评估结果</li>
-</ul>
-<p><strong>挑战 2：隐藏测试用例的双刃剑</strong></p>
-<pre class="ascii-art"> 隐藏测试的影响链：
-┌──────────────────────────────────────────────────┐
-│ 正向：强制模型真实理解问题，而非过拟合测试 │
-│ 负向：模型可能认为修复成功（自己的测试通过） │
-│ 但实际失败（隐藏测试失败） │
-│ │
-│ 结果：False Positives → 评估偏差 │
-└──────────────────────────────────────────────────┘ </pre> <p><strong>挑战 3：多模态能力缺失</strong></p>
-<ul>
-<li>无法查看文件系统中的图像</li>
-<li>无法通过 URL 获取视觉内容</li>
-<li>涉及视觉元素的任务（UI、图表）难以处理</li>
-</ul>
-<hr />
-<h2 id="2">2. 架构设计模式</h2>
-<h3 id="21-minimal-scaffolding">2.1 最小化脚手架 (Minimal Scaffolding) 架构模式</h3>
-<h4 id="_12">模式定义</h4>
-<p><strong>核心原则</strong>：将控制权最大化交给语言模型，系统提供工具和指导，但不强制执行固定流程。</p>
-<p><strong>架构对比</strong>：</p>
-<pre class="ascii-art"> 传统 Agent 架构（状态机模式）：
-┌──────┐ │ 初始 │
-└───┬──┘
-↓
-┌──────────┐ │ 规划阶段 │ (强制) 
-└─────┬────┘
-↓
-┌──────────┐ │ 执行阶段 │ (强制) 
-└─────┬────┘
-↓
-┌──────────┐ │ 验证阶段 │ (强制) 
-└──────────┘
-Anthropic 最小化脚手架架构：
-┌──────────────────────────────┐ │ LLM with Suggested Workflow │ │ (非强制，模型自主决策) │
-└──────────┬───────────────────┘
-↓
-┌──────────────────────────────┐ │ 工具 1: Bash │ │ 工具 2: Edit │ │ 工具 N: ... │
-└──────────┬───────────────────┘
-↓ 自主决定步骤、顺序、重试策略 </pre> <h4 id="_13">实现细节</h4>
-<p><strong>提示工程策略</strong>：</p>
-<div class="codehilite"><pre><span></span><code>建议的工作流（非强制）：
-1. 探索仓库结构
-2. 创建复现脚本验证 bug
-3. 编辑源代码修复问题
-4. 重新运行脚本确认修复
-5. 考虑边缘情况 关键：这些是&quot;建议&quot;而非&quot;必须&quot;，模型可以： - 跳过某些步骤
-- 改变顺序
-- 迭代回到之前的步骤
-- 发明新的验证方法
-</code></pre></div> <h4 id="_14">架构优势</h4>
-<ol>
-<li><strong>适应性</strong>：模型可根据具体问题调整策略</li>
-<li><strong>容错性</strong>：允许试错和回退</li>
-<li><strong>创新性</strong>：模型可能发现更优的解决路径</li>
-<li><strong>简洁性</strong>：减少系统复杂度和维护成本</li>
-</ol>
-<h4 id="_15">架构风险</h4>
-<ol>
-<li><strong>不可预测性</strong>：难以保证行为一致性</li>
-<li><strong>调试难度</strong>：失败原因可能不明确</li>
-<li><strong>资源消耗</strong>：可能进行无效探索</li>
-</ol>
-<h3 id="22">2.2 高可靠性编辑工具的设计模式</h3>
-<h4 id="string-replace">设计决策：为何选择 String Replace</h4>
-<p><strong>技术评估矩阵</strong>：</p>
-<pre class="ascii-art"> 编辑方法对比：
-┌─────────────────────────────────────────────────────────────┐
-│ 方法 可靠性 精确性 容错性 复杂度 │
-├─────────────────────────────────────────────────────────────┤
-│ Line-based Edit ★★☆☆☆ ★☆☆☆☆ ★★☆☆☆ ★★☆☆☆ │
-│ (行号替换) 问题：行号易变，重构后失效 │
-│ │
-│ Regex Replace ★★★☆☆ ★★★☆☆ ★☆☆☆☆ ★★★★☆ │
-│ (正则替换) 问题：LLM 生成的正则易出错 │
-│ │
-│ String Replace ★★★★★ ★★★★☆ ★★★★☆ ★★☆☆☆ │
-│ (精确字符串) 优势：最高可靠性，明确的失败模式 │
-│ Anthropic 选择 │
-│ │
-│ Diff-based Edit ★★★☆☆ ★★★★★ ★★☆☆☆ ★★★★★ │
-│ (patch 应用) 问题：生成正确 diff 需要高精度 │
-└─────────────────────────────────────────────────────────────┘ </pre> <h4 id="_16">完整的编辑工具架构</h4>
-<div class="codehilite"><pre><span></span><code># 工具接口设计（概念性代码）
-class EditTool: &quot;&quot;&quot; 架构设计原则： 1. 每个操作有明确的成功/失败语义 2. 失败时提供可执行的恢复指导 3. 强制约束（绝对路径）防止错误传播 4. 操作可撤销，支持试错 &quot;&quot;&quot; def view (self, path: str) -&gt; Result: &quot;&quot;&quot; 查看文件或目录（最多 2 层） 设计考量： - 限制深度防止过度输出 - 支持目录浏览辅助定位 &quot;&quot;&quot; if not os.path.isabs (path): return Error (&quot;Must use absolute path. Current directory may have changed.&quot;) if os.path.isfile (path): return read_file (path) else: return list_directory (path, max_depth=2) def create (self, path: str, content: str) -&gt; Result: &quot;&quot;&quot; 创建新文件（路径存在则失败） 设计考量： - 防止意外覆盖（明确失败 vs 静默覆盖） - 绝对路径避免在错误位置创建 &quot;&quot;&quot; if not os.path.isabs (path): return Error (&quot;Must use absolute path&quot;) if os.path.exists (path): return Error (f&quot;Path {path} already exists. Use str_replace to modify.&quot;) write_file (path, content) return Success () def str_replace (self, path: str, old_str: str, new_str: str) -&gt; Result: &quot;&quot;&quot; 精确字符串替换（最高可靠性） 设计考量： - 要求唯一匹配：0 或 &gt;1 次匹配都失败 - 提供明确的恢复指导 - 保留编辑历史支持撤销 &quot;&quot;&quot; if not os.path.isabs (path): return Error (&quot;Must use absolute path&quot;) content = read_file (path) match_count = content.count (old_str) if match_count == 0: return Error ( f&quot;0 matches found for old_str. &quot; f&quot;Add more surrounding context to make the match unique.&quot; ) if match_count &gt; 1: return Error ( f&quot;{match_count} matches found for old_str. &quot; f&quot;Add more context to match exactly one occurrence.&quot; ) # 唯一匹配：执行替换 new_content = content.replace (old_str, new_str) self.edit_history.append ((path, content)) # 保存历史 write_file (path, new_content) return Success () def insert (self, path: str, line_number: int, content: str) -&gt; Result: &quot;&quot;&quot; 在指定行后插入内容 设计考量： - 行号比字符串匹配更适合插入新内容 - 明确&quot;after line N&quot;语义避免混淆 &quot;&quot;&quot; # 实现省略 pass def undo_edit (self) -&gt; Result: &quot;&quot;&quot; 撤销最后一次编辑 设计考量： - 支持试错和回退 - 限制为单次撤销（避免复杂的历史管理） &quot;&quot;&quot; if not self.edit_history: return Error (&quot;No edits to undo&quot;) path, old_content = self.edit_history.pop () write_file (path, old_content) return Success ()
-</code></pre></div> <h4 id="_17">关键设计洞察</h4>
-<p><strong>洞察 1：失败即文档</strong></p>
-<pre class="ascii-art"> 错误消息作为即时文档：
-┌────────────────────────────────────────────────┐
-│ 不仅报告错误，还指导如何修正 │
-│ │
-│ 反模式："Match failed" │
-│ 最佳实践："0 matches found. Add more │
-│ surrounding code to old_str" │
-└────────────────────────────────────────────────┘ </pre> <p><strong>洞察 2：约束即能力</strong></p>
-<pre class="ascii-art"> 通过限制提升可靠性：
-- 强制绝对路径 → 消除路径歧义
-- 要求唯一匹配 → 防止误修改
-- 禁止覆盖创建 → 避免数据丢失 </pre> <p><strong>洞察 3：可撤销性</strong></p>
-<div class="codehilite"><pre><span></span><code>错误恢复层次：
-1. 第一层：明确的错误消息指导重试
-2. 第二层：undo_edit 撤销操作
-3. 第三层：LLM 自主决定恢复策略
-</code></pre></div> <h3 id="23-bash">2.3 Bash 工具的架构设计</h3>
-<h4 id="shell">持久化 Shell 状态</h4>
-<p><strong>设计决策</strong>：使用持久化 shell 会话而非每次独立执行</p>
-<div class="codehilite"><pre><span></span><code>传统方式（无状态）： 命令 1: cd /repo &amp;&amp; ls 命令 2: cd /repo &amp;&amp; cat file.py 命令 3: cd /repo &amp;&amp; python script.py 问题：重复的上下文设置，低效 持久化方式（有状态）： 命令 1: cd /repo 命令 2: ls 命令 3: cat file.py 命令 4: python script.py 优势：保留环境变量、工作目录、激活的虚拟环境等
-</code></pre></div> <h4 id="_18">工具描述的关键元素</h4>
-<div class="codehilite"><pre><span></span><code>Bash 工具描述应包含：
-1. 命令转义指南（防止注入或解析错误）
-2. 网络访问限制说明（无互联网连接）
-3. 后台进程处理方法（nohup, &amp;, 日志重定向）
-4. 长时间运行命令的管理策略
-5. 环境变量的持久性说明
-6. 文件权限和路径访问约束
-</code></pre></div> <h3 id="24">2.4 错误恢复和重试机制</h3>
-<h4 id="_19">分层错误恢复架构</h4>
-<pre class="ascii-art"> 错误恢复层次结构：
-┌─────────────────────────────────────────────────┐
-│ L1: 工具层 - 明确错误消息 │
-│ "0 matches found, add more context" │
-│ ↓ │
-│ L2: 操作层 - undo_edit 撤销 │
-│ 模型调用 undo_edit 回退 │
-│ ↓ │
-│ L3: 策略层 - LLM 自主决策 │
-│ 模型改变方法（不同的 old_str） │
-│ ↓ │
-│ L4: 工作流层 - 重新审视问题 │
-│ 返回探索阶段，重新理解问题 │
-└─────────────────────────────────────────────────┘ </pre> <h4 id="_20">自我纠错机制的进化</h4>
-<p><strong>观察到的行为变化</strong>：</p>
-<pre class="ascii-art"> Claude 3 Opus / 旧版 3.5 Sonnet： 尝试 1: str_replace with X 失败 → 错误消息 尝试 2: str_replace with X (完全相同) 失败 → 错误消息 尝试 3: str_replace with X (仍然相同) [循环重复相同错误] 新版 Claude 3.5 Sonnet： 尝试 1: str_replace with X 失败 → "0 matches, add context" 尝试 2: str_replace with X + surrounding code 失败 → "still 0 matches" 尝试 3: view file to verify content 成功 → 发现内容与预期不符 尝试 4: str_replace with corrected old_str 成功 ✓ 改进点：
-- 不重复相同错误
-- 主动收集更多信息（view file）
-- 调整策略而非参数 </pre> <hr />
-<h2 id="3-vs">3. 代码示例：反模式 vs 最佳实践</h2>
-<h3 id="31">3.1 工具描述优化</h3>
-<h4 id="1edit-tool">示例 1：Edit Tool 描述</h4>
-<p><strong>反模式（最小化描述）</strong>：</p>
-<div class="codehilite"><pre><span></span><code>{ &quot;name&quot;: &quot;edit_file&quot;, &quot;description&quot;: &quot;Edit a file by replacing old text with new text&quot;, &quot;parameters&quot;: { &quot;path&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;File path&quot; }, &quot;old_str&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Text to replace&quot; }, &quot;new_str&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Replacement text&quot; } }
+<p>系统持续采样，直到模型自行决定完成或达到 200k token 上下文限制。</p>
+<h3 id="_5">提示词策略</h3>
+<p>提示词概述了建议的方法，但不过度冗长。模型可自由选择推进方式，无需遵循严格的离散步骤。当不考虑 token 成本时，鼓励模型生成较长的响应会有帮助。</p>
+<p><strong>示例提示词结构：</strong></p>
+<div class="codehilite"><pre><span></span><code>&lt;uploaded_files&gt;
+{location}
+&lt;/uploaded_files&gt;
+我已将 Python 代码仓库上传到 {location} 目录。请考虑以下 PR 描述：
+
+&lt;pr_description&gt;
+{pr_description}
+&lt;/pr_description&gt;
+
+能否帮我实现必要的改动以满足 PR 描述中的要求？
+测试文件的所有改动已由我处理。你无需修改测试逻辑！
+
+按以下步骤解决问题：
+1. 首先探索仓库结构
+2. 编写脚本复现错误
+3. 修改源代码
+4. 重新运行脚本验证修复
+5. 考虑边界情况
+</code></pre></div> <h3 id="bash">Bash 工具规范</h3>
+<div class="codehilite"><pre><span></span><code>{
+   &quot;name&quot;: &quot;bash&quot;,
+   &quot;description&quot;: &quot;在 bash shell 中运行命令\n* 此工具不需要 XML 转义\n* 无互联网访问\n* 可通过 apt 和 pip 访问常见的 Linux 和 Python 包\n* 状态在命令调用间持久化\n* 查看特定行范围使用：sed -n 10,25p /path/to/file\n* 避免产生大量输出\n* 长运行命令请后台执行&quot;,
+   &quot;input_schema&quot;: {
+       &quot;type&quot;: &quot;object&quot;,
+       &quot;properties&quot;: {
+           &quot;command&quot;: {
+               &quot;type&quot;: &quot;string&quot;,
+               &quot;description&quot;: &quot;要运行的 bash 命令&quot;
+           }
+       },
+       &quot;required&quot;: [&quot;command&quot;]
+   }
 }
-</code></pre></div> <p><strong>问题分析</strong>：</p>
+</code></pre></div> <h3 id="_6">编辑工具设计</h3>
+<p>编辑工具更为复杂，提供文件查看、创建和编辑的完整功能。工具描述包含详细的使用指导。</p>
+<p>我们在工具描述和规范上投入大量精力，在多种智能体任务中进行了测试，以预见模型可能的误解。</p>
+<p><strong>关键特性：</strong></p>
 <ul>
-<li>未说明路径类型（相对/绝对）→ 路径混淆</li>
-<li>未说明匹配逻辑 → 模型不知道多次匹配会失败</li>
-<li>未提供错误恢复指导 → 失败后盲目重试</li>
-<li>未解释设计原理 → 模型可能尝试不支持的用法</li>
+<li>状态在命令调用间持久化</li>
+<li><code>view</code> 命令对文件返回带行号的输出，对目录列出 2 层深度的文件</li>
+<li><code>create</code> 命令不能用于已存在的文件</li>
+<li><code>str_replace</code> 命令要求 <code>old_str</code> 在文件中有唯一匹配</li>
 </ul>
-<p><strong>最佳实践（Rich Description）</strong>：</p>
-<pre class="ascii-art">
-{ "name": "edit_file", "description": "
-Performs exact string replacement in files with maximum reliability. DESIGN RATIONALE:
-String replacement was chosen over line-based or regex approaches because it
-provides the highest reliability for LLM-generated edits. This approach makes
-failures explicit and recoverable. PATH REQUIREMENTS:
-- ALWAYS use absolute paths (e.g., /repo/src/main.py)
-- Rationale: The agent may change directories during execution, causing relative paths to fail
-- If a path error occurs, check current directory and use absolute path MATCHING BEHAVIOR:
-- Requires EXACTLY ONE match of old_str in the file
-- If 0 matches: old_str not found → add more surrounding code for uniqueness
-- If >1 matches: ambiguous → add more context to match exactly one occurrence
-- The entire old_str must match character-for-character (including whitespace) ERROR RECOVERY:
-- Use undo_edit to revert the last change if needed
-- View the file first to verify the exact content before replacing
-- For complex changes, break into multiple str_replace operations EXAMPLE:
-To replace a function, include enough context to be unique: old_str: 'def process (data):\n return data.strip ()' new_str: 'def process (data):\n return data.strip ().lower ()'
-", "parameters": { ... }
-} </pre> <p><strong>改进点分析</strong>：
-1. <strong>设计原理透明化</strong>：解释为何选择 string replace
-2. <strong>明确约束</strong>：强制绝对路径，预防性说明原因
-3. <strong>失败模式预演</strong>：详细说明 0 和 &gt;1 匹配的情况
-4. <strong>恢复指导</strong>：提供具体的错误恢复步骤
-5. <strong>示例驱动</strong>：用具体例子说明用法</p>
-<h3 id="32">3.2 参数设计改进</h3>
-<h4 id="2_1">示例 2：路径参数的演进</h4>
-<p><strong>反模式（允许相对路径）</strong>：</p>
-<pre class="ascii-art">
-def edit_file (path: str, old_str: str, new_str: str): """ 问题场景： 1. Agent 执行 cd /repo/src 2. Agent 调用 edit_file ("../config.py", ...) 3. 后续 Agent 执行 cd /repo/tests 4. Agent 再次调用 edit_file ("../config.py", ...) → 实际操作 /repo/config.py（错误位置！） """ # 接受相对路径，基于当前工作目录解析 actual_path = os.path.abspath (path) # ... 编辑逻辑 </pre> <p><strong>最佳实践（强制绝对路径）</strong>：</p>
-<div class="codehilite"><pre><span></span><code>def edit_file (path: str, old_str: str, new_str: str): &quot;&quot;&quot; 设计原则：防御性约束 &quot;&quot;&quot; # 立即验证路径类型 if not os.path.isabs (path): return { &quot;error&quot;: &quot;Path must be absolute&quot;, &quot;guidance&quot;: ( &quot;Use absolute paths like /repo/src/main.py to prevent errors &quot; &quot;when the working directory changes. &quot; f&quot;Current directory: {os.getcwd ()}&quot; ), &quot;suggested_fix&quot;: f&quot;Use: {os.path.abspath (path)}&quot; } # 安全执行编辑 # ... 编辑逻辑
-</code></pre></div> <p><strong>关键洞察</strong>：</p>
-<pre class="ascii-art"> 设计哲学对比：
-┌────────────────────────────────────────────────┐
-│ 传统 API：灵活性优先 │
-│ 接受多种输入格式 │
-│ 运行时自动转换 │
-│ 问题：隐式行为导致难以调试的错误 │
-│ │
-│ LLM Agent API：明确性优先 │
-│ 只接受一种安全格式 │
-│ 立即拒绝不合规输入 │
-│ 提供具体的修正建议 │
-│ 优势：错误早发现，恢复有指导 │
-└────────────────────────────────────────────────┘ </pre> <h3 id="33">3.3 错误处理的演进</h3>
-<h4 id="3">示例 3：字符串替换的错误处理</h4>
-<p><strong>反模式（模糊错误消息）</strong>：</p>
-<div class="codehilite"><pre><span></span><code>def str_replace (path: str, old_str: str, new_str: str): content = read_file (path) if old_str not in content: return {&quot;error&quot;: &quot;String not found&quot;} new_content = content.replace (old_str, new_str) write_file (path, new_content) return {&quot;success&quot;: True}
-</code></pre></div> <p><strong>问题</strong>：</p>
-<ul>
-<li><code>replace ()</code> 会替换所有匹配，可能造成意外修改</li>
-<li>"String not found" 无法指导如何修正</li>
-<li>未验证替换次数</li>
-</ul>
-<p><strong>改进版（明确错误，引导恢复）</strong>：</p>
-<div class="codehilite"><pre><span></span><code>def str_replace (path: str, old_str: str, new_str: str): content = read_file (path) match_count = content.count (old_str) # 失败模式 1：未找到 if match_count == 0: # 提供诊断信息 similar_lines = find_similar_content (content, old_str, threshold=0.8) return { &quot;error&quot;: &quot;0 matches found&quot;, &quot;guidance&quot;: ( &quot;The exact string was not found in the file. &quot; &quot;Common causes:\n&quot; &quot;1. Whitespace mismatch (spaces vs tabs)\n&quot; &quot;2. Line ending differences\n&quot; &quot;3. Content has changed since you last viewed it\n&quot; &quot;\nNext steps:\n&quot; &quot;1. Use view_file to see current content\n&quot; &quot;2. Copy the exact text including all whitespace\n&quot; &quot;3. Add more surrounding lines to make the match unique&quot; ), &quot;similar_content&quot;: similar_lines # 辅助定位 } # 失败模式 2：多次匹配（歧义） if match_count &gt; 1: # 显示所有匹配位置 match_contexts = find_match_contexts (content, old_str, context_lines=3) return { &quot;error&quot;: f&quot;{match_count} matches found&quot;, &quot;guidance&quot;: ( &quot;Multiple occurrences of old_str exist. &quot; &quot;Add more surrounding code to match exactly one occurrence.\n&quot; &quot;\nAll match locations:&quot; ), &quot;match_contexts&quot;: match_contexts } # 成功：唯一匹配 new_content = content.replace (old_str, new_str, 1) # 仅替换一次 save_to_history (path, content) # 支持撤销 write_file (path, new_content) return { &quot;success&quot;: True, &quot;changes&quot;: { &quot;removed_lines&quot;: old_str.count (&#39;\n&#39;) + 1, &quot;added_lines&quot;: new_str.count (&#39;\n&#39;) + 1 } }
-</code></pre></div> <p><strong>最佳实践（生产级错误处理）</strong>：</p>
-<div class="codehilite"><pre><span></span><code>from enum import Enum
-from typing import Union, Literal class EditError (Enum): NO_MATCH = &quot;no_match&quot; MULTIPLE_MATCHES = &quot;multiple_matches&quot; INVALID_PATH = &quot;invalid_path&quot; PERMISSION_DENIED = &quot;permission_denied&quot; class EditResult: &quot;&quot;&quot;类型安全的结果对象&quot;&quot;&quot; @dataclass class Success: changes_summary: str undo_token: str # 用于撤销 @dataclass class Failure: error_type: EditError diagnostic: str recovery_suggestions: List[str] context: Dict[str, Any] def str_replace ( path: str, old_str: str, new_str: str
-) -&gt; Union[EditResult.Success, EditResult.Failure]: &quot;&quot;&quot; 生产级实现考虑： 1. 类型安全的结果 2. 结构化的错误信息 3. 可执行的恢复建议 4. 上下文信息用于调试 &quot;&quot;&quot; # 验证输入 if not os.path.isabs (path): return EditResult.Failure ( error_type=EditError.INVALID_PATH, diagnostic=f&quot;Relative path provided: {path}&quot;, recovery_suggestions=[ f&quot;Use absolute path: {os.path.abspath (path)}&quot; ], context={&quot;current_dir&quot;: os.getcwd ()} ) # 读取文件 try: content = read_file (path) except PermissionError: return EditResult.Failure ( error_type=EditError.PERMISSION_DENIED, diagnostic=f&quot;Cannot read {path}&quot;, recovery_suggestions=[ &quot;Check file permissions&quot;, &quot;Verify the file exists&quot;, &quot;Use view_file to test access&quot; ], context={&quot;path&quot;: path} ) # 匹配计数 match_count = content.count (old_str) if match_count == 0: # 高级诊断：检测常见问题 diagnostics = [] # 检测空白符差异 if old_str.strip () in content: diagnostics.append (&quot;Found match ignoring whitespace - check spaces/tabs&quot;) # 检测相似内容 similar = find_similar_content (content, old_str, threshold=0.85) if similar: diagnostics.append (f&quot;Found similar content: {similar[:100]}...&quot;) return EditResult.Failure ( error_type=EditError.NO_MATCH, diagnostic=&quot;Exact string not found in file&quot;, recovery_suggestions=[ &quot;1. Use view_file to see current content&quot;, &quot;2. Verify whitespace (spaces vs tabs)&quot;, &quot;3. Add more surrounding lines for context&quot;, &quot;4. Check if file was modified by another operation&quot; ] + diagnostics, context={ &quot;path&quot;: path, &quot;old_str_preview&quot;: old_str[:100], &quot;similar_matches&quot;: similar } ) if match_count &gt; 1: # 定位所有匹配 match_positions = find_all_match_positions (content, old_str) contexts = [ get_context_around_position (content, pos, lines=3) for pos in match_positions ] return EditResult.Failure ( error_type=EditError.MULTIPLE_MATCHES, diagnostic=f&quot;Found {match_count} occurrences of old_str&quot;, recovery_suggestions=[ &quot;Add more surrounding code to make old_str unique&quot;, &quot;Include function signature or class name&quot;, &quot;Add 2-3 lines before and after the target code&quot; ], context={ &quot;match_count&quot;: match_count, &quot;match_contexts&quot;: contexts } ) # 成功：执行替换 new_content = content.replace (old_str, new_str, 1) undo_token = save_edit_history (path, content) write_file (path, new_content) return EditResult.Success ( changes_summary=f&quot;Replaced {len (old_str)} chars with {len (new_str)} chars&quot;, undo_token=undo_token )
-</code></pre></div> <p><strong>架构洞察</strong>：</p>
-<pre class="ascii-art"> 错误处理的三个层次：
-┌──────────────────────────────────────────────────┐
-│ L1: 检测 - 精确识别失败类型 │
-│ 0 匹配 vs >1 匹配 vs 权限错误 │
-│ │
-│ L2: 诊断 - 分析失败根本原因 │
-│ 空白符？相似内容？文件已变更？ │
-│ │
-│ L3: 指导 - 提供可执行的恢复步骤 │
-│ 具体命令、示例、下一步操作 │
-└──────────────────────────────────────────────────┘ </pre> <hr />
-<h2 id="4">4. 性能分析</h2>
-<h3 id="41">4.1 性能提升数据</h3>
-<h4 id="_21">跨版本性能对比</h4>
-<pre class="ascii-art"> SWE-bench Verified 准确率演进：
-┌─────────────────────────────────────────────────────┐
-│ │
-│ Claude 3 Opus: 22 % ████████ │
-│ 基线模型，首次支持长上下文 │
-│ │
-│ Claude 3.5 Sonnet (旧版): 33 % ████████████ │
-│ +50 % 相对提升 │
-│ 改进：代码理解、推理能力 │
-│ │
-│ 前一代 SOTA (其他厂商): 45 % ████████████████ │
-│ 行业标杆 │
-│ │
-│ Claude 3.5 Sonnet (新版): 49 % ████████████████▓ │
-│ +8.9 % 相对于 SOTA │
-│ +48 % 相对于旧版 3.5 │
-│ +122 % 相对于 Opus │
-│ │
-└─────────────────────────────────────────────────────┘ 关键里程碑： - 首次超越 45 % 的 SOTA 屏障
-- 接近 50 % 大关（人类工程师水平的显著比例） </pre> <h4 id="_22">性能提升的组成因素（推测性分解）</h4>
-<pre class="ascii-art"> 估计的贡献因素（基于架构分析）：
-┌────────────────────────────────────────────────┐
-│ 1. 模型推理能力提升: ~60 % │
-│ - 更强的代码理解 │
-│ - 改进的长上下文处理 │
-│ - 自我纠错机制 │
-│ │
-│ 2. 工具接口优化: ~25 % │
-│ - 高可靠性的 str_replace │
-│ - 绝对路径约束 │
-│ - 详细的工具描述 │
-│ │
-│ 3. 架构设计改进: ~10 % │
-│ - 最小化脚手架 │
-│ - 灵活的工作流 │
-│ │
-│ 4. 错误恢复机制: ~5 % │
-│ - 明确的错误消息 │
-│ - undo 操作 │
-│ │
-│ 注：以上为基于技术分析的估计，非官方数据 │
-└────────────────────────────────────────────────┘ </pre> <h3 id="42">4.2 不同工具优化的影响分析</h3>
-<h4 id="_23">工具可靠性对整体性能的影响</h4>
-<p><strong>理论模型</strong>：</p>
-<pre class="ascii-art"> Agent 成功率 = P (理解问题) × P (定位代码) × P (正确修改) × P (验证成功) 如果工具不可靠，P (正确修改) 下降：
-┌──────────────────────────────────────────────────┐
-│ 假设场景： │
-│ P (理解) = 0.9 │
-│ P (定位) = 0.9 │
-│ P (验证) = 0.9 │
-│ │
-│ 不可靠工具 (P (修改) = 0.7): │
-│ 总成功率 = 0.9 × 0.9 × 0.7 × 0.9 = 51 % │
-│ │
-│ 高可靠工具 (P (修改) = 0.95): │
-│ 总成功率 = 0.9 × 0.9 × 0.95 × 0.9 = 69 % │
-│ │
-│ 提升: +35 % 相对提升（仅通过工具可靠性） │
-└──────────────────────────────────────────────────┘ </pre> <p><strong>实际影响</strong>：</p>
-<ol>
-<li>
-<p><strong>减少无效重试</strong> - 不可靠工具 → 多次失败重试 → 消耗 token → 达到上下文限制 → 任务失败 - 可靠工具 → 首次或第二次成功 → 保留 token 用于验证和边缘情况</p>
-</li>
-<li>
-<p><strong>降低错误传播</strong> - 错误的文件编辑 → 后续操作基于错误状态 → 级联失败 - 正确的编辑 → 后续操作有效 → 任务进展</p>
-</li>
-<li>
-<p><strong>提升模型信心</strong> - 工具经常失败 → 模型可能过度补偿或放弃 - 工具可靠 → 模型可以信任反馈并有效调整</p>
-</li>
-</ol>
-<h3 id="43">4.3 成功率与工具设计的关系</h3>
-<h4 id="_24">案例研究：路径处理的影响</h4>
-<p><strong>场景分析</strong>：</p>
-<pre class="ascii-art"> 任务：修复 Django 项目中的 bug（典型的 SWE-bench 任务）
-项目结构： /repo /django /core /management /commands migrate.py /db /models base.py Agent 执行流程：
-1. 探索阶段：cd /repo/django/core/management
-2. 定位代码：view commands/migrate.py (相对路径)
-3. 修复 bug：edit_file ("commands/migrate.py", ...)
-4. 继续探索：cd /repo/django/db/models
-5. 相关修改：edit_file ("commands/migrate.py", ...) ❌ 实际尝试编辑 /repo/django/db/models/commands/migrate.py ❌ 文件不存在 → 操作失败 使用绝对路径约束：
-1-4. (同上)
-5. 相关修改：edit_file ("/repo/django/core/management/commands/migrate.py", ...) ✓ 正确的文件路径 ✓ 操作成功 </pre> <p><strong>影响量化</strong>（推测）：</p>
-<pre class="ascii-art"> 估计的任务失败原因分布（引入绝对路径约束前）：
-┌────────────────────────────────────────────────┐
-│ 路径相关错误: 15-20 % │
-│ 代码逻辑理解错误: 30-35 % │
-│ 未能定位问题根源: 25-30 % │
-│ 验证不足: 10-15 % │
-│ 上下文限制: 10-15 % │
-└────────────────────────────────────────────────┘ 引入绝对路径约束后：
-┌────────────────────────────────────────────────┐
-│ 路径相关错误: ~0 % (消除) │
-│ 代码逻辑理解错误: 30-35 % (不变) │
-│ 未能定位问题根源: 25-30 % (不变) │
-│ 验证不足: 10-15 % (不变) │
-│ 上下文限制: 10-15 % (不变) │
-└────────────────────────────────────────────────┘ 潜在提升：15-20 % 的失败案例被消除 → 转化为 3-4 个百分点的准确率提升 </pre> <h4 id="_25">工具描述详细度的实验</h4>
-<p><strong>假设的 A/B 测试</strong>（基于文章描述）：</p>
-<pre class="ascii-art"> 变体 A：最小描述
-{ "name": "str_replace", "description": "Replace text in file", "parameters": {...}
-} 变体 B：详细描述
-{ "name": "str_replace", "description": "Performs exact string replacement... [完整描述] ...", "parameters": {...}
-} 观察到的差异（推测性）：
-┌────────────────────────────────────────────────┐
-│ 指标 变体 A 变体 B │
-├────────────────────────────────────────────────┤
-│ 首次尝试成功率 45 % 65 % │
-│ 平均重试次数 2.3 1.4 │
-│ 路径错误率 18 % <1%          │
-│ 歧义匹配错误          12%         3%           │
-│ 任务总体成功率        41%         49%          │
-└────────────────────────────────────────────────┘
+<p><strong>工具规范片段：</strong></p>
+<div class="codehilite"><pre><span></span><code>{
+   &quot;name&quot;: &quot;str_replace_editor&quot;,
+   &quot;description&quot;: &quot;文件查看、创建和编辑工具...&quot;,
+   &quot;input_schema&quot;: {
+       &quot;type&quot;: &quot;object&quot;,
+       &quot;properties&quot;: {
+           &quot;command&quot;: {
+               &quot;type&quot;: &quot;string&quot;,
+               &quot;enum&quot;: [&quot;view&quot;, &quot;create&quot;, &quot;str_replace&quot;, &quot;insert&quot;, &quot;undo_edit&quot;],
+               &quot;description&quot;: &quot;允许的操作命令&quot;
+           },
+           &quot;path&quot;: {
+               &quot;type&quot;: &quot;string&quot;,
+               &quot;description&quot;: &quot;绝对路径，如 /repo/file.py 或 /repo&quot;
+           }
+       },
+       &quot;required&quot;: [&quot;command&quot;, &quot;path&quot;]
+   }
+}
+</code></pre></div> <h3 id="_7">容错设计</h3>
+<p>我们通过多种方式改进了工具的容错能力。例如，模型在离开根目录后可能会混淆相对路径，所以我们要求所有路径都必须是绝对路径。</p>
+<p>对于文件编辑，我们尝试了多种策略，发现字符串替换最为可靠：模型指定 <code>old_str</code> 被替换为 <code>new_str</code>。仅当有唯一匹配时替换才会执行。</p>
+<h2 id="_8">性能结果</h2>
+<p>升级的 Claude 3.5 Sonnet 展现了比以前模型和现有最先进模型更强的推理、编码和数学能力。工具和框架优化帮助充分发挥了这些能力。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th><strong>Claude 3.5 Sonnet（新）</strong></th>
+<th>前最先进</th>
+<th>Claude 3.5 Sonnet（旧）</th>
+<th>Claude 3 Opus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SWE-bench Verified 成绩</td>
+<td><strong>49 %</strong></td>
+<td>45 %</td>
+<td>33 %</td>
+<td>22 %</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_9">实际案例分析</h2>
+<h3 id="ridgeclassifiercv">案例：RidgeClassifierCV 参数问题</h3>
+<p>我们使用 SWE-Agent 框架作为基础。在日志中，我们将智能体的文本输出、工具调用和响应分别表示为 THOUGHT（思考）、ACTION（行动）和 OBSERVATION（观察）。</p>
+<p><strong>初始提示（已填入真实 PR 描述）：</strong></p>
+<div class="codehilite"><pre><span></span><code>&lt;uploaded_files&gt;
+/repo
+&lt;/uploaded_files&gt;
+考虑以下 PR 描述：
 
-成本效益分析：
+&lt;pr_description&gt;
+linear_model.RidgeClassifierCV 的 store_cv_values 参数问题
 
-- 描述增加的 token 数：~200-300 tokens
-- 减少的无效重试 token：平均 ~1000-2000 tokens/任务
-- ROI：5-10倍
+#### 问题描述
+sklearn.linear_model.RidgeClassifierCV 的 store_cv_values 参数出错
 
-</pre> <h3 id="44">4.4 资源消耗分析</h3>
-<h4 id="token">Token 消耗模式</h4>
-<pre class="ascii-art"> 典型成功案例的 Token 消耗分布：
-┌────────────────────────────────────────────────┐
-│ 阶段 Token 消耗 占比 │
-├────────────────────────────────────────────────┤
-│ 初始提示词 5,000 4 % │
-│ 探索仓库 20,000 16 % │
-│ 问题复现 15,000 12 % │
-│ 代码修改 30,000 24 % │
-│ 测试验证 25,000 20 % │
-│ 迭代修正 20,000 16 % │
-│ 最终验证 10,000 8 % │
-├────────────────────────────────────────────────┤
-│ 总计 125,000 100 % │
-└────────────────────────────────────────────────┘ 长尾案例（复杂任务）： - 50-100+ 步骤
-- 150,000-200,000 tokens
-- 接近 200k 上下文限制 </pre> <h4 id="_26">时间成本</h4>
-<pre class="ascii-art"> 端到端延迟分析：
-┌────────────────────────────────────────────────┐
-│ 简单任务 (12-20 步): │
-│ 模型推理时间: 3-5 分钟 │
-│ 工具执行时间: 1-2 分钟 │
-│ 总计: 4-7 分钟 │
-│ │
-│ 中等任务 (30-50 步): │
-│ 模型推理时间: 8-12 分钟 │
-│ 工具执行时间: 3-5 分钟 │
-│ 总计: 11-17 分钟 │
-│ │
-│ 复杂任务 (70-100+ 步): │
-│ 模型推理时间: 15-25 分钟 │
-│ 工具执行时间: 5-10 分钟 │
-│ 总计: 20-35 分钟 │
-└────────────────────────────────────────────────┘ 对比人类工程师： - 简单 bug：人类 15-30 分钟，AI 4-7 分钟 → AI 更快
-- 中等任务：人类 1-3 小时，AI 11-17 分钟 → AI 显著更快
-- 复杂任务：人类 4-8 小时，AI 20-35 分钟 → AI 大幅更快 但是：AI 成功率仅 49 %，人类接近 100 % </pre> <hr />
-<h2 id="5">5. 实施检查清单</h2>
-<h3 id="51-benchmark">5.1 Benchmark 设计最佳实践</h3>
-<h4 id="_27">评估系统设计清单</h4>
-<ul>
-<li>[ ] <strong>真实性验证</strong></li>
-<li>[ ] 使用真实项目的实际问题（非合成数据）</li>
-<li>[ ] 保留原始复杂性（不简化）</li>
-<li>[ ] 包含真实的依赖和环境要求</li>
-<li>
-<p>[ ] 测试用例来自生产代码</p>
-</li>
-<li>
-<p>[ ] <strong>隔离性保证</strong></p>
-</li>
-<li>[ ] 每个测试在独立环境中运行</li>
-<li>[ ] 测试之间无状态泄漏</li>
-<li>[ ] 可重复的环境配置</li>
-<li>
-<p>[ ] 版本锁定（依赖、Python 版本）</p>
-</li>
-<li>
-<p>[ ] <strong>评估准确性</strong></p>
-</li>
-<li>[ ] 隐藏测试用例防止过拟合</li>
-<li>[ ] 多维度评估（不仅是"通过/失败"）</li>
-<li>[ ] 区分环境问题 vs 解决方案问题</li>
-<li>
-<p>[ ] 人工验证样本以校准自动评估</p>
-</li>
-<li>
-<p>[ ] <strong>难度分布</strong></p>
-</li>
-<li>[ ] 包含简单、中等、困难任务</li>
-<li>[ ] 覆盖不同问题类型（bug 修复、功能添加、重构）</li>
-<li>[ ] 跨多个领域和代码库</li>
-<li>
-<p>[ ] 避免偏向特定编程模式</p>
-</li>
-<li>
-<p>[ ] <strong>评估系统的可靠性</strong></p>
-</li>
-<li>[ ] 处理依赖安装失败</li>
-<li>[ ] 超时处理</li>
-<li>[ ] 资源限制（CPU、内存、磁盘）</li>
-<li>[ ] 日志和可调试性</li>
-</ul>
-<h4 id="benchmark">Benchmark 实施反模式</h4>
-<p><strong>反模式 1：合成数据</strong></p>
-<div class="codehilite"><pre><span></span><code>❌ 问题：手工编写简化的代码问题 - 不代表真实复杂性 - 容易过拟合 - 缺乏真实的上下文 ✓ 解决：使用真实的 GitHub Issues - 保留原始描述和讨论 - 包含实际的代码库上下文 - 真实的依赖和环境
-</code></pre></div> <p><strong>反模式 2：可见的测试用例</strong></p>
-<div class="codehilite"><pre><span></span><code>❌ 问题：模型可以看到评估测试 - 导致&quot;考试针对测试&quot;而非真实理解 - 过拟合特定测试模式 - 不反映真实应用能力 ✓ 解决：隐藏测试 + 公开验证集 - 评估使用隐藏测试 - 提供小型公开集用于开发 - 定期更新测试以防泄漏
-</code></pre></div> <p><strong>反模式 3：单一成功标准</strong></p>
-<div class="codehilite"><pre><span></span><code>❌ 问题：仅评估&quot;所有测试通过&quot; - 忽略部分正确的解决方案 - 无法诊断失败类型 - 不提供改进方向 ✓ 解决：多维度评估 - 代码质量（风格、复杂度） - 部分正确性（通过的测试比例） - 效率（步骤数、token 消耗） - 错误类型分类
-</code></pre></div> <h3 id="52">5.2 工具描述优化步骤</h3>
-<h4 id="_28">迭代优化流程</h4>
-<p><strong>第 1 步：基线工具定义</strong></p>
-<div class="codehilite"><pre><span></span><code>任务：定义工具的核心功能
-输出：基础 schema + 最小描述 检查清单： - [ ] 明确的工具名称（动词 + 名词）
-- [ ] 完整的参数定义（类型、必需性）
-- [ ] 一句话功能描述
-- [ ] 基本的返回值说明
-</code></pre></div> <p><strong>第 2 步：失败模式收集</strong></p>
-<div class="codehilite"><pre><span></span><code>任务：在真实任务上测试，收集失败案例
-方法：
-1. 运行 50-100 个测试任务
-2. 记录所有工具使用错误
-3. 分类错误类型： - 参数类型错误 - 误解工具功能 - 边缘情况处理不当 - 上下文理解错误 输出：失败模式分类和频率统计
-</code></pre></div> <p><strong>第 3 步：描述增强</strong></p>
-<div class="codehilite"><pre><span></span><code>任务：针对每个失败模式增强工具描述 模板：
-&quot;&quot;&quot;
-工具名称: {name} 核心功能：
-{简洁的功能说明} 设计原理：
-{为何这样设计，而非其他方式} 参数要求：
-{每个参数的详细说明，包含：}
-- 格式要求和示例
-- 常见错误和如何避免
-- 边缘情况处理 行为保证：
-{工具的确定性行为}
-- 成功时的输出
-- 失败时的错误类型
-- 副作用（如果有） 错误恢复：
-{每种错误的恢复步骤} 示例：
-{2-3 个典型用法示例}
-&quot;&quot;&quot; 检查清单： - [ ] 每个失败模式都有对应的预防性说明
-- [ ] 包含&quot;为什么&quot;而非仅&quot;是什么&quot;
-- [ ] 提供具体示例而非抽象描述
-- [ ] 错误消息有可执行的恢复指导
-</code></pre></div> <p><strong>第 4 步：A/B 测试</strong></p>
-<div class="codehilite"><pre><span></span><code>任务：对比增强前后的性能 设置： - 变体 A：原始描述
-- 变体 B：增强描述
-- 测试集：100 个任务
-- 指标：成功率、重试次数、token 消耗 评估： - [ ] 统计显著性检验（p &lt; 0.05）
-- [ ] 分析性能提升的来源
-- [ ] 识别仍然存在的问题
-</code></pre></div> <p><strong>第 5 步：持续监控</strong></p>
-<div class="codehilite"><pre><span></span><code>任务：生产环境中持续优化 流程：
-1. 收集生产使用数据
-2. 每月分析失败模式
-3. 识别新的边缘情况
-4. 季度更新工具描述
-5. 版本控制和变更日志 监控指标： - [ ] 每个工具的使用频率
-- [ ] 每个工具的成功率
-- [ ] 重试次数分布
-- [ ] 用户报告的困惑点
-</code></pre></div> <h4 id="_29">工具描述质量评估标准</h4>
-<p><strong>评分卡（5 分制）</strong>：</p>
-<div class="codehilite"><pre><span></span><code>1. 清晰性 (Clarity) □ 功能描述无歧义 □ 技术术语有定义 □ 示例易于理解 评分：___ / 5 2. 完整性 (Completeness) □ 覆盖所有参数 □ 说明所有失败模式 □ 包含边缘情况 评分：___ / 5 3. 可操作性 (Actionability) □ 错误消息有恢复步骤 □ 示例可直接复用 □ 决策规则明确 评分：___ / 5 4. 设计透明性 (Design Transparency) □ 解释设计原理 □ 说明权衡和限制 □ 与替代方案对比 评分：___ / 5 5. 防御性 (Defensiveness) □ 预防常见错误 □ 强制安全约束 □ 明确不支持的用法 评分：___ / 5 总分：___ / 25
-目标：&gt;= 20 分
-</code></pre></div> <h3 id="53">5.3 性能评估方法</h3>
-<h4 id="_30">多维度评估框架</h4>
-<p><strong>维度 1：任务成功率</strong></p>
-<div class="codehilite"><pre><span></span><code>指标： - 整体准确率（解决的任务比例）
-- 按难度分层的准确率
-- 按问题类型分类的准确率 计算：
-成功任务数 / 总任务数 注意事项： - 区分&quot;测试通过&quot;和&quot;真正解决&quot;
-- 人工抽样验证自动评估的准确性
-- 分析&quot;假阳性&quot;（模型认为成功但实际失败）
-</code></pre></div> <p><strong>维度 2：效率指标</strong></p>
-<div class="codehilite"><pre><span></span><code>指标： - 平均步骤数
-- Token 消耗
-- 端到端延迟
-- 重试次数 目标： - 减少无效探索
-- 降低 token 成本
-- 提高响应速度 基线对比：
-当前值 vs 人类工程师 vs 其他 AI 系统
-</code></pre></div> <p><strong>维度 3：工具使用质量</strong></p>
-<pre class="ascii-art"> 指标：
-- 工具调用成功率（按工具类型）
-- 无效工具调用比例
-- 参数错误率
-- 重试收敛速度 分析：
-if 工具调用成功率低: → 工具描述不清晰 → 工具接口设计不合理 if 重试多次仍失败: → 错误消息不够指导性 → 模型能力不足 </pre> <p><strong>维度 4：代码质量</strong></p>
-<div class="codehilite"><pre><span></span><code>指标： - 修改的侵入性（LOC 改动）
-- 代码风格一致性
-- 是否引入新 bug
-- 边缘情况处理 评估方法： - 静态分析工具
-- 人工代码审查（抽样）
-- 回归测试
-</code></pre></div> <p><strong>维度 5：鲁棒性</strong></p>
-<div class="codehilite"><pre><span></span><code>指标： - 跨不同代码库的性能方差
-- 对提示变化的敏感性
-- 环境配置问题的处理能力 测试方法： - 跨多个项目评估
-- 提示变体 A/B 测试
-- 故意引入环境问题
-</code></pre></div> <h4 id="_31">评估流程实施</h4>
-<p><strong>标准评估流程</strong>：</p>
-<div class="codehilite"><pre><span></span><code>第 1 步：环境准备
-for each task in benchmark: 1. 创建独立环境 2. 克隆代码库（特定 commit） 3. 安装依赖 4. 验证环境（运行现有测试） 第 2 步：任务执行
-for each task: 1. 提供问题描述给 Agent 2. Agent 自主执行（最多 N 步或 M tokens） 3. 记录所有工具调用和输出 4. 捕获任何错误或超时 第 3 步：评估
-for each task: 1. 运行隐藏的测试用例 2. 记录通过/失败的测试数量 3. 人工审查样本（10-20 %） 4. 分类失败原因 第 4 步：分析
-1. 计算所有指标
-2. 按类别分组分析
-3. 识别系统性失败模式
-4. 生成改进建议 第 5 步：迭代
-1. 实施改进（模型、工具、提示）
-2. 重新评估
-3. 对比前后性能
-4. 更新文档和最佳实践
-</code></pre></div> <h4 id="_32">性能分析工具</h4>
-<p><strong>推荐的分析脚本结构</strong>：</p>
-<div class="codehilite"><pre><span></span><code>class BenchmarkAnalyzer: &quot;&quot;&quot; 综合性能分析工具 &quot;&quot;&quot; def __init__(self, results_dir: str): self.results = load_results (results_dir) def overall_metrics (self): &quot;&quot;&quot;整体指标&quot;&quot;&quot; return { &quot;accuracy&quot;: self.calculate_accuracy (), &quot;avg_steps&quot;: self.average_steps (), &quot;avg_tokens&quot;: self.average_tokens (), &quot;avg_time&quot;: self.average_time (), } def breakdown_by_difficulty (self): &quot;&quot;&quot;按难度分解&quot;&quot;&quot; difficulties = [&quot;easy&quot;, &quot;medium&quot;, &quot;hard&quot;] return { diff: self.accuracy_for (difficulty=diff) for diff in difficulties } def breakdown_by_problem_type (self): &quot;&quot;&quot;按问题类型分解&quot;&quot;&quot; types = [&quot;bug_fix&quot;, &quot;feature_add&quot;, &quot;refactor&quot;] return { ptype: self.accuracy_for (problem_type=ptype) for ptype in types } def tool_usage_analysis (self): &quot;&quot;&quot;工具使用分析&quot;&quot;&quot; return { tool: { &quot;total_calls&quot;: self.count_tool_calls (tool), &quot;success_rate&quot;: self.tool_success_rate (tool), &quot;avg_retries&quot;: self.avg_retries (tool), &quot;common_errors&quot;: self.common_errors (tool), } for tool in self.all_tools } def failure_mode_analysis (self): &quot;&quot;&quot;失败模式分析&quot;&quot;&quot; failures = self.get_failed_tasks () categorized = { &quot;understanding&quot;: [], # 理解问题失败 &quot;locating&quot;: [], # 定位代码失败 &quot;implementation&quot;: [], # 实现修复失败 &quot;validation&quot;: [], # 验证失败 &quot;timeout&quot;: [], # 超时或资源耗尽 } for failure in failures: category = self.classify_failure (failure) categorized[category].append (failure) return { cat: { &quot;count&quot;: len (tasks), &quot;percentage&quot;: len (tasks) / len (failures), &quot;examples&quot;: tasks[:5] # 前 5 个示例 } for cat, tasks in categorized.items () } def generate_report (self, output_path: str): &quot;&quot;&quot;生成综合报告&quot;&quot;&quot; report = { &quot;overall&quot;: self.overall_metrics (), &quot;by_difficulty&quot;: self.breakdown_by_difficulty (), &quot;by_type&quot;: self.breakdown_by_problem_type (), &quot;tool_usage&quot;: self.tool_usage_analysis (), &quot;failures&quot;: self.failure_mode_analysis (), &quot;recommendations&quot;: self.generate_recommendations (), } save_report (report, output_path) return report
-</code></pre></div> <hr />
-<h2 id="6">6. 权衡矩阵</h2>
-<h3 id="61-vs">6.1 工具复杂度 vs 性能收益</h3>
-<h4 id="_33">权衡分析框架</h4>
-<div class="codehilite"><pre><span></span><code>工具复杂度维度：
-1. 操作数量（单一 vs 多操作）
-2. 参数数量和类型
-3. 状态管理（无状态 vs 有状态）
-4. 错误处理复杂度
-5. 文档和描述的长度 性能收益维度：
-1. 任务成功率提升
-2. 效率改进（步骤减少）
-3. 适用范围扩大
-4. 用户体验提升
-</code></pre></div> <h4 id="_34">具体案例对比</h4>
-<p><strong>案例 1：编辑工具的设计选择</strong></p>
-<pre class="ascii-art"> 选项 A：单一操作工具
-┌────────────────────────────────────────────────┐
-│ 工具：write_file (path, content) │
-│ 复杂度：★☆☆☆☆ │
-│ │
-│ 优势： │
-│ + 简单易懂 │
-│ + 描述短 │
-│ + 实现简单 │
-│ │
-│ 劣势： │
-│ - 需要完整读取文件 │
-│ - 大文件效率低 │
-│ - 易覆盖重要内容 │
-│ - 需要模型管理整个文件内容 │
-│ │
-│ 性能影响：中等 │
-│ 适用场景：小型文件 (<500 LOC)                  │
-└────────────────────────────────────────────────┘
+#### 复现步骤
+import numpy as np
+from sklearn import linear_model as lm
 
-选项 B：多操作编辑工具（Anthropic 的选择）
-┌────────────────────────────────────────────────┐
-│ 工具：edit_file(operation, ...)               │
-│   操作：view, create, str_replace, insert,    │
-│         undo_edit                              │
-│ 复杂度：★★★☆☆                                  │
-│                                                │
-│ 优势：                                         │
-│ + 精确修改（不需要完整内容）                   │
-│ + 大文件友好                                   │
-│ + 支持撤销                                     │
-│ + 灵活性高                                     │
-│                                                │
-│ 劣势：                                         │
-│ - 需要学习多个操作                             │
-│ - 描述长                                       │
-│ - 实现复杂                                     │
-│ - 需要状态管理（历史记录）                     │
-│                                                │
-│ 性能影响：高                                   │
-│ 适用场景：通用（特别是大型项目）               │
-└────────────────────────────────────────────────┘
+n = 100
+x = np.random.randn(n, 30)
+y = np.random.normal(size = n)
 
-选项 C：基于 diff 的工具
-┌────────────────────────────────────────────────┐
-│ 工具：apply_patch(path, diff)                  │
-│ 复杂度：★★★★☆                                  │
-│                                                │
-│ 优势：                                         │
-│ + 最大灵活性                                   │
-│ + 符合专业工作流                               │
-│ + 精确到行级别                                 │
-│                                                │
-│ 劣势：                                         │
-│ - LLM 生成正确 diff 困难                       │
-│ - 错误恢复复杂                                 │
-│ - 需要深度理解 diff 格式                       │
-│ - 失败模式多样                                 │
-│                                                │
-│ 性能影响：低（由于高错误率）                   │
-│ 适用场景：未来更强的模型                       │
-└────────────────────────────────────────────────┘
+rr = lm.RidgeClassifierCV(alphas = np.arange(0.1, 1000, 0.1),
+                          normalize = True,
+                          store_cv_values = True).fit(x, y)
 
-决策矩阵：
-┌─────────────────────────────────────────────────────┐
-│ 指标              选项 A    选项 B    选项 C         │
-├─────────────────────────────────────────────────────┤
-│ 实现成本          低        中        高             │
-│ 学习难度          低        中        高             │
-│ 错误率            高        低        很高           │
-│ 效率（大文件）    低        高        高             │
-│ 灵活性            低        高        很高           │
-│ 可维护性          高        中        低             │
-├─────────────────────────────────────────────────────┤
-│ 推荐场景          简单脚本  通用应用  高级用户       │
-└─────────────────────────────────────────────────────┘
+#### 预期结果
+获得通常的岭回归模型输出，并保留交叉验证预测作为属性
 
-Anthropic 的选择：选项 B
-理由：最佳的复杂度-性能平衡点
+#### 实际结果
+TypeError: __init__() got an unexpected keyword argument &#39;store_cv_values&#39;
+&lt;/pr_description&gt;
+</code></pre></div> <p><strong>第一步 - 探索仓库：</strong></p>
+<div class="codehilite"><pre><span></span><code>THOUGHT:
+让我按照步骤实现必要的改动。首先探索仓库结构。
 
-</pre> <p><strong>案例 2：路径参数的设计</strong></p>
-<pre class="ascii-art"> 选项 A：支持相对和绝对路径
-┌────────────────────────────────────────────────┐
-│ 参数：path (str) - 相对或绝对路径均可 │
-│ 复杂度：★★☆☆☆ │
-│ │
-│ 优势： │
-│ + 灵活性高 │
-│ + 符合用户习惯 │
-│ + 简短的路径表示 │
-│ │
-│ 劣势： │
-│ - 路径歧义（工作目录变化） │
-│ - 隐式依赖当前目录 │
-│ - 难以调试路径错误 │
-│ │
-│ 预期问题： │
-│ - 15-20 % 的任务受路径错误影响 │
-└────────────────────────────────────────────────┘ 选项 B：仅支持绝对路径（Anthropic 的选择）
-┌────────────────────────────────────────────────┐
-│ 参数：path (str) - 必须是绝对路径 │
-│ 复杂度：★☆☆☆☆ │
-│ │
-│ 优势： │
-│ + 消除路径歧义 │
-│ + 明确性高 │
-│ + 易于验证 │
-│ + 错误早发现 │
-│ │
-│ 劣势： │
-│ - 路径字符串长 │
-│ - 略微不便（需要完整路径） │
-│ │
-│ 实际影响： │
-│ - 消除 15-20 % 的路径错误 │
-│ - 提升 3-4 个百分点的成功率 │
-└────────────────────────────────────────────────┘ 成本效益分析：
-┌────────────────────────────────────────────────┐
-│ 额外成本： │
-│ - 更长的路径字符串：+30-50 tokens/task │
-│ - 工具描述增加：+50 tokens (一次性) │
-│ │
-│ 收益： │
-│ - 避免的错误重试：-1000-2000 tokens/task │
-│ - 成功率提升：+3-4 % │
-│ │
-│ ROI：约 20-40 倍 │
-└────────────────────────────────────────────────┘ </pre> <h3 id="62-vs">6.2 描述详细度 vs 上下文消耗</h3>
-<h4 id="_35">权衡模型</h4>
-<pre class="ascii-art"> 理论框架：
-┌────────────────────────────────────────────────────┐
-│ 总上下文 (200k tokens) 的分配： │
-│ │
-│ 工具描述 + 初始提示：5k tokens │
-│ 任务描述：1k tokens │
-│ 剩余可用：194k tokens │
-│ │
-│ 如果工具描述增加到 10k tokens： │
-│ 剩余可用：189k tokens (-2.5 %) │
-│ │
-│ 影响评估： │
-│ - 对短任务 (<50k tokens)：无影响                   │
-│ - 对中等任务 (50-150k tokens)：无显著影响          │
-│ - 对长任务 (>180k tokens)：可能影响 │
-│ │
-│ 受影响的任务比例：约 5-10 % │
-└────────────────────────────────────────────────────┘ </pre> <h4 id="_36">经验数据（基于分析）</h4>
-<p><strong>实验设置</strong>：</p>
-<div class="codehilite"><pre><span></span><code>变体 A：最小描述（每个工具 ~100 tokens） 总工具描述：500 tokens 变体 B：中等描述（每个工具 ~300 tokens） 总工具描述：1,500 tokens 变体 C：详细描述（每个工具 ~500 tokens） 总工具描述：2,500 tokens 变体 D：极详细描述（每个工具 ~1000 tokens） 总工具描述：5,000 tokens
-</code></pre></div> <p><strong>性能对比</strong>（推测性）：</p>
-<pre class="ascii-art"> ┌──────────────────────────────────────────────────────┐
-│ 变体 描述长度 成功率 平均步骤 token/任务 │
-├──────────────────────────────────────────────────────┤
-│ A 500 t 38 % 45 135,000 │
-│ B 1,500 t 45 % 38 115,000 │
-│ C 2,500 t 49 % 35 105,000 │
-│ D 5,000 t 50 % 34 108,000 │
-└──────────────────────────────────────────────────────┘ 洞察：
-1. 收益递减：A→B 提升 7 %, B→C 提升 4 %, C→D 提升 1 %
-2. 效率改进：详细描述减少无效步骤，总 token 反而降低
-3. 最优点：变体 C（Anthropic 的选择）
-4. 过度详细（D）边际收益小，增加认知负载 </pre> <h4 id="_37">描述详细度决策树</h4>
-<pre class="ascii-art"> 设计工具描述时的决策流程：
-┌─────────────────────────────────────────────────────┐
-│ │
-│ 工具的复杂度如何？ │
-│ ├─ 简单（单一操作，明显语义） │
-│ │ → 基础描述 (~200 tokens) │
-│ │ 示例：list_files, read_file │
-│ │ │
-│ ├─ 中等（多个参数，有约束） │
-│ │ → 中等描述 (~500 tokens) │
-│ │ 包含：参数约束、常见错误、基本示例 │
-│ │ 示例：run_command, create_file │
-│ │ │
-│ └─ 复杂（多操作，微妙的失败模式） │
-│ → 详细描述 (~800-1000 tokens) │
-│ 包含：设计原理、所有失败模式、 │
-│ 恢复策略、多个示例 │
-│ 示例：str_replace (Anthropic 的实现) │
-│ │
-│ 观察到的失败率如何？ │
-│ ├─ 低 (<5%)  → 保持当前描述                       │
-│  ├─ 中 (5-15%) → 增加失败案例说明                  │
-│  └─ 高 (>15 %) → 全面重新设计描述和接口 │
-│ │
-│ 是否有反直觉的行为？ │
-│ ├─ 是 → 必须在描述中突出说明 │
-│ │ 使用警告、示例、对比 │
-│ └─ 否 → 标准描述即可 │
-│ │
-└─────────────────────────────────────────────────────┘ </pre> <h3 id="63-vs">6.3 自动化 vs 可控性</h3>
-<h4 id="_38">架构哲学对比</h4>
-<p><strong>方法 A：高度自动化（状态机）</strong></p>
-<pre class="ascii-art"> 架构： ┌──────────┐ │ Start │ └────┬─────┘ ↓ ┌──────────────────┐ │ Planning Phase │ (自动) │ - 分析问题 │ │ - 制定计划 │ └────┬─────────────┘ ↓ ┌──────────────────┐ │ Exploration │ (自动) │ - 浏览代码 │ │ - 定位相关文件 │ └────┬─────────────┘ ↓ ┌──────────────────┐ │ Implementation │ (自动) │ - 生成修改 │ │ - 应用补丁 │ └────┬─────────────┘ ↓ ┌──────────────────┐ │ Validation │ (自动) │ - 运行测试 │ │ - 验证结果 │ └────┬─────────────┘ ↓ ┌──────────┐ │ Done │ └──────────┘ 优势：
-+ 可预测的行为
-+ 易于调试（明确的阶段）
-+ 可以强制最佳实践
-+ 进度可追踪 劣势： - 不灵活（无法适应特殊情况）
-- 可能过度约束（限制模型能力）
-- 失败的阶段可能阻塞整个流程
-- 维护状态机复杂 性能影响： - 适合结构化、可预测的任务
-- 复杂/非典型任务表现差 </pre> <p><strong>方法 B：最小化自动化（Anthropic 的选择）</strong></p>
-<pre class="ascii-art"> 架构： ┌──────────────────────────────────────┐ │ LLM + 工具 + 建议的工作流 │ │ │ │ 模型自主决策： │ │ - 何时探索 vs 实施 │ │ - 是否需要更多信息 │ │ - 如何验证 │ │ - 何时完成 │ │ │ │ 系统提供： │ │ - 工具能力 │ │ - 工作流建议（非强制） │ │ - 错误恢复指导 │ └──────────────────────────────────────┘ 优势：
-+ 最大灵活性
-+ 模型可以创新
-+ 适应各种任务类型
-+ 简单的系统架构 劣势： - 不可预测的行为
-- 难以调试（无明确阶段）
-- 可能进行无效探索
-- 难以保证一致性 性能影响： - 强模型表现出色
-- 弱模型可能迷失
-- 需要大上下文窗口 </pre> <h4 id="_39">权衡分析</h4>
-<p><strong>维度对比</strong>：</p>
-<pre class="ascii-art"> ┌────────────────────────────────────────────────────────┐
-│ 维度 高自动化 最小化自动化 │
-├────────────────────────────────────────────────────────┤
-│ 适应性 ★★☆☆☆ ★★★★★ │
-│ 可预测性 ★★★★★ ★★☆☆☆ │
-│ 调试难度 简单 困难 │
-│ 系统复杂度 高 低 │
-│ 对模型能力依赖 中 高 │
-│ 创新空间 小 大 │
-│ 失败恢复 结构化 自主 │
-│ 最佳场景 结构化任务 开放式任务 │
-└────────────────────────────────────────────────────────┘ </pre> <p><strong>Anthropic 选择最小化自动化的原因（推测）</strong>：</p>
-<ol>
-<li><strong>模型能力足够强</strong>：Claude 3.5 Sonnet 有足够的推理能力自主决策</li>
-<li><strong>任务多样性</strong>：SWE-bench 的任务差异大，难以用状态机覆盖</li>
-<li><strong>长期视角</strong>：随着模型改进，自主能力会越来越强</li>
-<li><strong>简化维护</strong>：最小化系统复杂度，更多改进来自模型本身</li>
-</ol>
-<p><strong>混合方法的可能性</strong>：</p>
-<pre class="ascii-art"> 渐进式自动化框架：
-┌────────────────────────────────────────────────────┐
-│ Level 0：完全自主 │
-│ 模型自己决定一切 │
-│ 适用：强模型 + 开放任务 │
-│ │
-│ Level 1：结构化建议 │
-│ 提供工作流模板，但不强制 │
-│ Anthropic 当前的选择 │
-│ │
-│ Level 2：软性检查点 │
-│ 在关键点提醒（"是否已验证？"） │
-│ 但允许跳过 │
-│ │
-│ Level 3：硬性检查点 │
-│ 必须完成某些步骤才能继续 │
-│ 适用：安全关键任务 │
-│ │
-│ Level 4：完全状态机 │
-│ 固定的阶段和转换 │
-│ 适用：高度结构化、安全敏感任务 │
-└────────────────────────────────────────────────────┘ 设计建议： - 从 Level 1 开始（Anthropic 的方法）
-- 根据失败模式逐步增加约束
-- 保持退出机制（允许模型覆盖约束） </pre> <hr />
-<h2 id="7">7. 架构洞察与未来方向</h2>
-<h3 id="71">7.1 关键架构洞察</h3>
-<h4 id="1_1">洞察 1：工具描述是隐形的提示工程</h4>
-<p><strong>核心观点</strong>：
-工具描述不仅是 API 文档，更是嵌入在每次工具调用中的提示工程。</p>
-<p><strong>影响</strong>：</p>
-<div class="codehilite"><pre><span></span><code>传统思维： 提示工程 = 任务描述的优化 工具 = 功能接口 新范式： 提示工程 = 任务描述 + 工具描述 + 错误消息 工具 = 功能接口 + 使用指导 + 错误恢复文档 工具描述是&quot;just-in-time&quot;的提示： 仅在工具被考虑/调用时注入上下文 比全局提示更高效（减少无关信息）
-</code></pre></div> <p><strong>实践建议</strong>：
-1. 像优化提示一样优化工具描述
-2. A/B 测试工具描述的变化
-3. 将失败案例转化为描述改进
-4. 工具描述是活文档，需持续更新</p>
-<h4 id="2_2">洞察 2：约束即能力</h4>
-<p><strong>核心观点</strong>：
-看似限制灵活性的约束（如强制绝对路径）实际上提升了整体能力。</p>
-<p><strong>原理</strong>：</p>
-<div class="codehilite"><pre><span></span><code>传统软件设计：灵活性 = 好 支持多种输入格式 自动容错和转换 &quot;聪明&quot;的默认行为 LLM Agent 设计：明确性 = 好 仅支持一种最安全的格式 失败优于默默容错 &quot;愚蠢但可靠&quot;的行为 原因： LLM 的错误成本高（消耗大量 token 重试） 早期失败 + 明确指导 &gt; 晚期失败 + 模糊错误 认知负载：明确规则 &lt; 隐式行为
-</code></pre></div> <p><strong>应用模式</strong>：</p>
-<ul>
-<li>参数约束：限制为最不易出错的格式</li>
-<li>操作约束：要求唯一匹配而非"尽力而为"</li>
-<li>流程约束：明确什么不支持，而非尝试处理</li>
-</ul>
-<h4 id="3_1">洞察 3：失败模式驱动设计</h4>
-<p><strong>核心观点</strong>：
-最有效的工具设计来自对失败模式的深入理解，而非对成功用例的优化。</p>
-<p><strong>方法论</strong>：</p>
-<div class="codehilite"><pre><span></span><code>反模式：基于理想用例设计 1. 设想工具的完美使用方式 2. 实现该接口 3. 部署 4. 处理失败（被动） 最佳实践：基于失败模式设计 1. 最小可行工具 2. 在真实任务上测试 3. 收集所有失败案例 4. 分类失败原因 5. 重新设计工具/描述以预防这些失败 6. 重复 2-5 关键：失败是设计的输入，不是事后处理
-</code></pre></div> <p><strong>Anthropic 的应用</strong>：</p>
-<ul>
-<li>发现相对路径错误 → 强制绝对路径</li>
-<li>发现多次匹配错误 → 要求唯一匹配</li>
-<li>发现回退困难 → 添加 undo_edit</li>
-<li>发现描述不清 → 迭代增强描述</li>
-</ul>
-<h4 id="4_1">洞察 4：最小化脚手架的极限</h4>
-<p><strong>核心观点</strong>：
-最小化脚手架是强模型的正确选择，但有其适用边界。</p>
-<p><strong>适用条件</strong>：</p>
-<pre class="ascii-art"> 最小化脚手架适用于：
-✓ 强大的基础模型（如 Claude 3.5 Sonnet）
-✓ 大的上下文窗口（100k+ tokens）
-✓ 多样化、非结构化的任务
-✓ 探索和创新是优势 不适用于：
-✗ 安全关键任务（需要强制验证）
-✗ 高度结构化流程（如编译→测试→部署）
-✗ 需要硬性保证的场景
-✗ 资源有严格限制的环境 </pre> <p><strong>混合策略</strong>：</p>
-<div class="codehilite"><pre><span></span><code>分层约束： 核心层：最小化脚手架（模型自主） 保护层：关键约束（安全、资源限制） 示例： - 允许模型自主决定探索策略（最小化） - 但强制执行测试验证步骤（约束） - 限制资源消耗（token、时间）（约束）
-</code></pre></div> <h3 id="72">7.2 未来研究方向</h3>
-<h4 id="1_2">方向 1：多模态能力的集成</h4>
-<p><strong>当前限制</strong>（文章提到）：</p>
-<ul>
-<li>无法查看文件系统中的图像</li>
-<li>无法通过 URL 获取视觉内容</li>
-<li>涉及 UI、图表的任务难以处理</li>
-</ul>
-<p><strong>潜在架构</strong>：</p>
-<pre class="ascii-art"> 多模态工具扩展：
-┌────────────────────────────────────────────────┐
-│ view_file (path) │
-│ if image: 返回视觉内容 + 自动描述 │
-│ if code: 返回文本 │
-│ │
-│ fetch_url (url) │
-│ if image/page: 返回视觉 + 文本提取 │
-│ │
-│ 新工具: analyze_ui (screenshot_path) │
-│ 识别 UI 元素、布局问题 │
-└────────────────────────────────────────────────┘ 挑战： - 视觉理解的准确性
-- 多模态上下文的 token 消耗
-- 工具描述如何指导视觉分析 </pre> <h4 id="2_3">方向 2：增量上下文管理</h4>
-<p><strong>当前限制</strong>：</p>
-<ul>
-<li>200k token 上下文是硬限制</li>
-<li>复杂任务可能耗尽上下文</li>
-<li>无法处理超大代码库</li>
-</ul>
-<p><strong>可能的解决方案</strong>：</p>
-<pre class="ascii-art"> 分层上下文架构：
-┌────────────────────────────────────────────────┐
-│ L0: 核心上下文（始终保留） │
-│ 任务描述、工具定义、当前状态 │
-│ │
-│ L1: 工作上下文（动态） │
-│ 当前浏览的文件、最近的操作 │
-│ │
-│ L2: 缓存上下文（按需加载） │
-│ 代码库索引、依赖图、历史操作 │
-│ │
-│ L3: 外部知识（检索） │
-│ 文档、相似问题、最佳实践 │
-└────────────────────────────────────────────────┘ 关键技术： - 智能上下文压缩（保留关键信息）
-- 相关性排序（加载最相关的内容）
-- 主动遗忘（移除不再需要的内容） </pre> <h4 id="3_2">方向 3：工具的自适应优化</h4>
-<p><strong>愿景</strong>：
-工具描述根据模型表现自动调整。</p>
-<p><strong>可能的实现</strong>：</p>
-<div class="codehilite"><pre><span></span><code>class AdaptiveToolDescriptor: &quot;&quot;&quot; 自适应工具描述器 &quot;&quot;&quot; def __init__(self, base_description: str): self.base_description = base_description self.failure_patterns = defaultdict (int) self.current_description = base_description def record_failure (self, error_type: str, context: dict): &quot;&quot;&quot;记录失败模式&quot;&quot;&quot; self.failure_patterns[error_type] += 1 # 如果某类错误频繁发生，增强描述 if self.failure_patterns[error_type] &gt; threshold: self.enhance_description (error_type, context) def enhance_description (self, error_type: str, context: dict): &quot;&quot;&quot;基于失败模式增强描述&quot;&quot;&quot; enhancement = generate_warning (error_type, context) self.current_description += f&quot;\n\nIMPORTANT: {enhancement}&quot; def get_description (self, user_level: str = &quot;default&quot;): &quot;&quot;&quot; 根据用户/模型水平返回不同详细度的描述 &quot;&quot;&quot; if user_level == &quot;advanced&quot;: return self.base_description # 简洁版 else: return self.current_description # 增强版
-</code></pre></div> <h4 id="4-agent">方向 4：协作式 Agent 架构</h4>
-<p><strong>当前</strong>：单一 Agent 完成整个任务</p>
-<p><strong>未来</strong>：多 Agent 协作</p>
-<pre class="ascii-art"> 专业化 Agent 架构：
-┌────────────────────────────────────────────────┐
-│ Coordinator Agent │
-│ 分解任务、分配子任务、整合结果 │
-├────────────────────────────────────────────────┤
-│ Explorer Agent │
-│ 专注于代码探索、理解项目结构 │
-├────────────────────────────────────────────────┤
-│ Editor Agent │
-│ 专注于代码修改、确保正确性 │
-├────────────────────────────────────────────────┤
-│ Validator Agent │
-│ 专注于测试、验证、边缘情况 │
-└────────────────────────────────────────────────┘ 优势： - 每个 Agent 可以更专注
-- 并行处理子任务
-- 更小的上下文需求 挑战： - Agent 间通信协议
-- 一致性保证
-- 复杂度增加 </pre> <h3 id="73">7.3 实践建议</h3>
-<h4 id="ai-agent">对 AI Agent 开发者</h4>
-<ol>
-<li>
-<p><strong>投资工具设计</strong> - 将工具描述视为一等公民 - 迭代测试和优化工具接口 - 记录失败模式并预防</p>
-</li>
-<li>
-<p><strong>拥抱约束</strong> - 不要追求"灵活性" - 明确的失败优于模糊的成功 - 约束应该可理解和可预测</p>
-</li>
-<li>
-<p><strong>最小化但不简化</strong> - 减少脚手架代码 - 但不减少指导和文档 - 让模型控制"如何"，系统控制"什么可以"</p>
-</li>
-<li>
-<p><strong>持续评估</strong> - 建立全面的 benchmark - 追踪多维度指标 - 失败分析驱动改进</p>
-</li>
-</ol>
-<h4 id="benchmark_1">对 Benchmark 设计者</h4>
-<ol>
-<li>
-<p><strong>真实性至上</strong> - 使用真实问题，不合成 - 保留完整复杂度 - 隐藏评估标准防止过拟合</p>
-</li>
-<li>
-<p><strong>多维度评估</strong> - 不仅是准确率 - 效率、质量、鲁棒性 - 失败模式分类</p>
-</li>
-<li>
-<p><strong>环境可靠性</strong> - 投资稳定的评估基础设施 - 区分环境问题和能力问题 - 可重现的评估</p>
-</li>
-</ol>
-<h4 id="_40">对研究者</h4>
-<ol>
-<li>
-<p><strong>关注系统级性能</strong> - 不仅优化模型 - 整体系统设计同等重要 - 工具、提示、架构的协同</p>
-</li>
-<li>
-<p><strong>公开失败分析</strong> - 不仅报告成功率 - 详细分析失败原因 - 分享学到的经验</p>
-</li>
-<li>
-<p><strong>长期视角</strong> - 设计可扩展的架构 - 随着模型改进而改进 - 避免过度优化当前模型</p>
-</li>
-</ol>
-<hr />
-<h2 id="8">8. 总结</h2>
-<h3 id="81">8.1 核心要点回顾</h3>
-<ol>
-<li>
-<p><strong>工具设计是 AI Agent 性能的关键</strong> - 工具描述的优化带来显著性能提升 - 详细的描述、约束和错误指导至关重要 - 投资工具设计的 ROI 极高</p>
-</li>
-<li>
-<p><strong>约束提升可靠性</strong> - 强制绝对路径、唯一匹配等约束消除了大量错误 - 明确的失败优于模糊的成功 - 防御性设计降低错误传播</p>
-</li>
-<li>
-<p><strong>最小化脚手架的哲学</strong> - 最大化模型自主权 - 系统提供能力和指导，而非强制流程 - 适合强模型和多样化任务</p>
-</li>
-<li>
-<p><strong>失败驱动的迭代设计</strong> - 深入理解失败模式 - 将失败转化为设计输入 - 持续优化工具和描述</p>
-</li>
-<li>
-<p><strong>多维度评估的重要性</strong> - 不仅是准确率 - 效率、质量、鲁棒性、失败模式 - 真实性优先的 benchmark 设计</p>
-</li>
-</ol>
-<h3 id="82">8.2 对行业的启示</h3>
-<p><strong>对 AI Agent 开发的启示</strong>：</p>
-<ul>
-<li>工具接口设计需要与人类接口同等重视</li>
-<li>提示工程的范围应包括工具描述</li>
-<li>系统设计的简洁性与指导性可以共存</li>
-</ul>
-<p><strong>对 Benchmark 的启示</strong>：</p>
-<ul>
-<li>真实任务评估比合成任务更有价值</li>
-<li>隐藏测试和多维度评估缺一不可</li>
-<li>评估基础设施的可靠性影响结果有效性</li>
-</ul>
-<p><strong>对未来发展的启示</strong>：</p>
-<ul>
-<li>多模态能力是下一个突破点</li>
-<li>上下文管理需要新的架构创新</li>
-<li>协作式 Agent 可能是复杂任务的方向</li>
-</ul>
-<h3 id="83">8.3 可执行的下一步</h3>
-<p><strong>如果你正在构建 AI Agent</strong>：
-1. 审查你的工具描述，按本文的清单优化
-2. 实施失败模式收集和分析流程
-3. 考虑引入约束（如绝对路径）提升可靠性
-4. 建立多维度的性能监控</p>
-<p><strong>如果你正在设计 Benchmark</strong>：
-1. 优先使用真实问题而非合成数据
-2. 实施隐藏测试防止过拟合
-3. 投资稳定的评估基础设施
-4. 公开详细的失败分析</p>
-<p><strong>如果你正在研究 LLM 应用</strong>：
-1. 关注工具设计作为研究主题
-2. 探索自适应工具描述
-3. 研究增量上下文管理
-4. 实验多 Agent 协作架构</p>
-<hr />
-<h2 id="_41">附录</h2>
-<h3 id="a">A. 参考资源</h3>
-<ul>
-<li><strong>原文</strong>: https://www.anthropic.com/engineering/swe-bench-sonnet</li>
-<li><strong>SWE-bench 官方</strong>: https://www.swebench.com</li>
-<li><strong>Claude API 文档</strong>: https://docs.anthropic.com</li>
-</ul>
-<h3 id="b">B. 术语表</h3>
-<ul>
-<li><strong>SWE-bench</strong>: Software Engineering Benchmark，评估 AI 在真实软件工程任务上的能力</li>
-<li><strong>SWE-bench Verified</strong>: SWE-bench 的精选子集，确保问题质量和评估可靠性</li>
-<li><strong>Agent</strong>: 能够自主执行多步骤任务的 AI 系统</li>
-<li><strong>Scaffolding</strong>: 脚手架，指围绕 LLM 的控制逻辑和约束</li>
-<li><strong>Tool Description</strong>: 工具描述，指导 LLM 如何使用工具的文本</li>
-<li><strong>String Replace</strong>: 精确字符串替换，Anthropic 选择的编辑方法</li>
-</ul>
-<h3 id="c">C. 变更历史</h3>
-<ul>
-<li>2025-10-30: 初始版本，基于 2025-01-06 发布的原文分析</li>
-</ul>
-<hr />
-<p><strong>文档作者</strong>: AI 架构分析（基于 Anthropic Engineering 博客）
-<strong>生成时间</strong>: 2025-10-30
-<strong>文档版本</strong>: 2.0
-<strong>目标读者</strong>: AI 工程师、Agent 系统架构师、Benchmark 设计者、研究人员</p>
+ACTION (str_replace_editor):
+command: view
+path: /repo
+
+OBSERVATION:
+/repo 中 2 层深度的文件和目录：
+/repo
+/repo/PULL_REQUEST_TEMPLATE.md
+/repo/ISSUE_TEMPLATE.md
+/repo/sklearn
+/repo/sklearn/decomposition
+...
+</code></pre></div> <p><strong>第二步 - 创建复现脚本：</strong></p>
+<div class="codehilite"><pre><span></span><code>THOUGHT:
+基于仓库结构，我需要修改 sklearn/linear_model 目录下的 Ridge 分类器。
+让我创建一个脚本来复现错误：
+
+ACTION (str_replace_editor):
+command: create
+path: /repo/reproduce_error.py
+file_text:
+import numpy as np
+from sklearn import linear_model as lm
+
+n = 100
+x = np.random.randn(n, 30)
+y = np.random.normal(size = n)
+
+rr = lm.RidgeClassifierCV(alphas=np.arange(0.1, 1000, 0.1),
+                          normalize=True,
+                          store_cv_values=True).fit(x, y)
+
+OBSERVATION:
+文件已成功创建：/repo/reproduce_error.py
+</code></pre></div> <p><strong>第三步 - 验证错误：</strong></p>
+<div class="codehilite"><pre><span></span><code>THOUGHT:
+验证我们是否能复现错误：
+
+ACTION (bash):
+command: python3 /repo/reproduce_error.py
+
+OBSERVATION:
+Traceback (most recent call last):
+  File &quot;/repo/reproduce_error.py&quot;, line 10, in &lt;module&gt;
+    store_cv_values=True).fit(x, y)
+TypeError: __init__() got an unexpected keyword argument &#39;store_cv_values&#39;
+</code></pre></div> <p><strong>第四步 - 修复代码：</strong></p>
+<div class="codehilite"><pre><span></span><code>THOUGHT:
+问题在于 RidgeClassifierCV 类虽然继承自 _BaseRidgeCV，但在构造函数中
+没有将 store_cv_values 参数传递给父类。
+
+让我修复这个问题：
+
+ACTION (str_replace_editor):
+command: str_replace
+path: /repo/sklearn/linear_model/ridge.py
+
+old_str:
+    def __init__(self, alphas=(0.1, 1.0, 10.0), fit_intercept=True,
+                 normalize=False, scoring=None, cv=None, class_weight=None):
+        super(RidgeClassifierCV, self).__init__(
+            alphas=alphas, fit_intercept=fit_intercept, normalize=normalize,
+            scoring=scoring, cv=cv)
+        self.class_weight = class_weight
+
+new_str:
+    def __init__(self, alphas=(0.1, 1.0, 10.0), fit_intercept=True,
+                 normalize=False, scoring=None, cv=None, class_weight=None,
+                 store_cv_values=False):
+        super(RidgeClassifierCV, self).__init__(
+            alphas=alphas, fit_intercept=fit_intercept, normalize=normalize,
+            scoring=scoring, cv=cv, store_cv_values=store_cv_values)
+        self.class_weight = class_weight
+</code></pre></div> <p>在这个特定案例中，模型经过 12 步后决定完成任务。任务测试随后成功运行，验证了解决方案的有效性。某些任务需要超过 100 轮的交互；在其他情况下，模型在上下文耗尽前一直尝试。</p>
+<p>升级后的 Claude 3.5 Sonnet 相比旧模型更频繁地自我纠正，并展现了尝试多个解决方案的能力，而非陷入重复错误。</p>
+<h2 id="_10">遇到的挑战</h2>
+<p>SWE-bench Verified 是强大的评估，但比简单的单轮评估更复杂。我们遇到的挑战包括：</p>
+<h3 id="1-token">1. 时长和高 Token 成本</h3>
+<p>上述案例仅用 12 步完成。然而，许多成功运行需要数百轮交互，消耗超 100k tokens。升级的 Claude 3.5 Sonnet 具有较强的持久性：给予充足时间通常能解决问题，但成本可能高昂。</p>
+<h3 id="2">2. 评分问题</h3>
+<p>检查失败任务时，我们发现模型表现正确但存在环境设置问题，或者安装补丁被应用两次。解决这些系统问题对准确衡量智能体性能至关重要。</p>
+<h3 id="3">3. 隐藏测试</h3>
+<p>由于模型看不到评分用的测试，它常会误认为成功。某些失败源于模型在错误的抽象层解决问题（打补丁而非深层重构）。有些失败则更有争议：问题被解决但不符合原始任务的单元测试。</p>
+<h3 id="4">4. 多模态支持</h3>
+<p>尽管升级的 Claude 3.5 Sonnet 具备出色的视觉和多模态能力，我们未实现让它查看文件系统中保存的文件或引用的 URL。这使调试某些任务（尤其是 Matplotlib 相关任务）特别困难，容易导致模型幻觉。这里有明显的改进空间。SWE-bench 已推出专注于多模态任务的新评估，我们期待看到开发者利用 Claude 在该评估上取得更高成绩。</p>
+<h2 id="_11">总结</h2>
+<p>升级的 Claude 3.5 Sonnet 以简洁的提示和两个通用工具在 SWE-bench Verified 上取得 49 % 的成绩，超越了现有最先进的 45 %。我们相信基于新 Claude 3.5 Sonnet 构建的开发者将迅速找到比我们初步展示的方法更优的方式来改进 SWE-bench 成绩。</p>
+<h2 id="_12">致谢</h2>
+<p>Erik Schluntz 优化了 SWE-bench 智能体并撰写了本文。Simon Biggs、Dawn Drain 和 Eric Christiansen 协助实现了基准。Shauna Kravec、Dawn Drain、Felipe Rosso、Nova DasSarma、Ven Chandrasekaran 及许多其他人为培训 Claude 3.5 Sonnet 的智能体编码能力做出了贡献。</p>
         </article>
 
         <footer>
@@ -1775,28 +815,11 @@ Anthropic 的选择：选项 B
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-30 11:07:54<br>
+                生成时间：2025-12-19 16:26:40<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -1847,5 +870,21 @@ Anthropic 的选择：选项 B
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>
