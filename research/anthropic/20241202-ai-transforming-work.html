@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 如何改变 Anthropic 的工作方式 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
+        }
+
+        /* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">AI 如何改变 Anthropic 的工作方式</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>AI 如何改变 Anthropic 的工作方式</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic" target="_blank">https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2024 年 12 月 2 日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2025-12-22</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_1">核心概述</a></li>
+<li><a href="#_2">关键发现</a></li>
+  <li><a href="#_3">生产力提升</a></li>
+  <li><a href="#_4">任务分布</a></li>
+  <li><a href="#_5">技术演进</a></li>
+<li><a href="#_6">员工体验</a></li>
+  <li><a href="#_7">积极成果</a></li>
+  <li><a href="#_8">担忧与焦虑</a></li>
+  <li><a href="#_11">职业演变</a></li>
+<li><a href="#_12">方法论注意事项</a></li>
+  <li><a href="#_13">研究限制</a></li>
+  <li><a href="#_14">数据背景</a></li>
+<li><a href="#_15">未来规划</a></li>
+  <li><a href="#_16">研究方向</a></li>
+<li><a href="#_17">意义与启示</a></li>
+  <li><a href="#_18">对组织的影响</a></li>
+  <li><a href="#_19">对个人的影响</a></li>
+<li><a href="#_20">数据可视化</a></li>
+  <li><a href="#_21">生产力演变</a></li>
+  <li><a href="#_22">技术能力提升</a></li>
+<li><a href="#_23">相关资源</a></li>
+<li><a href="#_24">学习要点</a></li>
+<li><a href="#_25">未来展望</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="ai-anthropic">AI 如何改变 Anthropic 的工作方式</h1>
+<h2 id="_1">核心概述</h2>
+<p><strong>发布时间</strong>：2024-12-02
+<strong>研究团队</strong>：Saffron Huang, Bryan Seethor, Esin Durmus, Kunal Handa, Miles McCain, Michael Stern, Deep Ganguli</p>
+<p>Anthropic 进行了一项全面研究，通过调查 132 名工程师和研究员、进行 53 次访谈，并分析 2025 年 8 月的内部 Claude Code 使用数据，考察 AI 对职场的影响。</p>
+<h2 id="_2">关键发现</h2>
+<h3 id="_3">生产力提升</h3>
+<p><strong>使用频率与效率</strong>：</p>
+<ul>
+<li>工程师在 <strong>60 %</strong> 的日常工作中使用 Claude</li>
+<li>实现 <strong>50 %</strong> 的生产力提升</li>
+<li>对比一年前：28 % 使用率和 20 % 提升</li>
+<li>显示 AI 工具的快速采用和效果增强</li>
+</ul>
+<p><strong>新任务创造</strong>：</p>
+<ul>
+<li><strong>27 %</strong> 的 Claude 辅助工作由全新任务组成</li>
+<li>这些任务"否则不会被完成"</li>
+<li>AI 不仅提升效率，还释放了新的可能性</li>
+</ul>
+<p><strong>委托限制</strong>：</p>
+<ul>
+<li>大多数员工只能完全委托 <strong>0-20 %</strong> 的工作</li>
+<li>需要主动监督和验证</li>
+<li>AI 是"助手"而非"替代品"</li>
+</ul>
+<h3 id="_4">任务分布</h3>
+<p>最常见的 Claude 应用包括：</p>
+<ol>
+<li><strong>调试（Debugging）</strong>：55 % 的日常用户</li>
+<li><strong>代码理解（Code Understanding）</strong>：42 % 的日常用户</li>
+<li><strong>实现功能（Implementing Features）</strong>：37 % 的日常用户</li>
+</ol>
+<p>这三个领域占据了 AI 辅助工作的主要份额。</p>
+<h3 id="_5">技术演进</h3>
+<p><strong>自主能力提升</strong>：</p>
+<ul>
+<li>
+<p>Claude Code 现在可以处理约 <strong>20 个连续动作</strong></p>
+</li>
+<li>
+<p>六个月前只能处理 10 个</p>
+</li>
+<li>人类干预减少 <strong>33 %</strong></li>
+</ul>
+<p>这种快速进步表明 AI 工具的能力正在指数级增长。</p>
+<h2 id="_6">员工体验</h2>
+<h3 id="_7">积极成果</h3>
+<p><strong>技能扩展</strong>：</p>
+<ul>
+<li>工程师变得"更全栈化"</li>
+<li>可以处理核心专长之外的任务</li>
+<li>降低了跨领域工作的门槛</li>
+</ul>
+<p><strong>激活能量降低</strong>：</p>
+<ul>
+<li>以前被优先级压制的工作现在可以完成</li>
+<li>减少了"启动困难"</li>
+<li>提升了工作满意度</li>
+</ul>
+<p><strong>学习与迭代加速</strong>：</p>
+<ul>
+<li>更快的学习周期</li>
+<li>更快的迭代周期</li>
+<li>促进实验和创新</li>
+</ul>
+<h3 id="_8">担忧与焦虑</h3>
+<h4 id="_9">技能退化</h4>
+<p>员工担心"技能萎缩"：</p>
+<blockquote>
+<p>"我更担心监督......而非独立完成任务的能力。"</p>
+</blockquote>
+<p>这揭示了<strong>监督悖论</strong>：</p>
+<ul>
+<li>有效使用 Claude 需要编码技能</li>
+<li>但减少的实际编码可能侵蚀这些技能</li>
+<li>形成潜在的负反馈循环</li>
+</ul>
+<h4 id="_10">协作减少</h4>
+<p><strong>问答资源转移</strong>：</p>
+<ul>
+<li>Claude 成为主要问答资源</li>
+<li>可能减少导师指导机会</li>
+<li>一些人报告"更少的协作"时刻</li>
+</ul>
+<p>这可能影响：</p>
+<ul>
+<li>团队凝聚力</li>
+<li>知识传承</li>
+<li>职业发展路径</li>
+</ul>
+<h3 id="_11">职业演变</h3>
+<p><strong>角色转变</strong>：</p>
+<ul>
+<li>工程师描述角色演变为"AI 智能体的管理者"</li>
+<li>而非直接代码编写者</li>
+<li>工作性质的根本改变</li>
+</ul>
+<p><strong>长期情绪</strong>：</p>
+<ul>
+<li>短期乐观但长期不确定</li>
+<li>代表性引用："我短期感到乐观，但长期认为 AI 会做所有事情"</li>
+<li>职业前景的存在性焦虑</li>
+</ul>
+<h2 id="_12">方法论注意事项</h2>
+<h3 id="_13">研究限制</h3>
+<p>研究团队承认以下偏差：</p>
+<ol>
+<li><strong>选择偏差</strong>：样本可能不代表整个行业</li>
+<li><strong>社会期望偏差</strong>：员工可能倾向于报告积极结果</li>
+<li><strong>客观测量困难</strong>：生产力难以精确量化</li>
+</ol>
+<h3 id="_14">数据背景</h3>
+<ul>
+<li>数据收集于 Claude Sonnet 4 和 Opus 4 为最先进模型时</li>
+<li>AI 能力已在快速演进</li>
+<li>当前结果可能已过时</li>
+</ul>
+<h2 id="_15">未来规划</h2>
+<h3 id="_16">研究方向</h3>
+<p>Anthropic 计划在 <strong>2026 年</strong>前考察：</p>
+<ol>
+<li><strong>专业发展</strong>：AI 时代的职业成长路径</li>
+<li><strong>团队协作模式</strong>：如何保持有效协作</li>
+<li><strong>最佳实践</strong>：AI 增强工作的指南</li>
+</ol>
+<p>这些研究将帮助塑造未来的工作方式。</p>
+<h2 id="_17">意义与启示</h2>
+<h3 id="_18">对组织的影响</h3>
+<p><strong>立即行动</strong>：</p>
+<ul>
+<li>培训员工有效监督 AI</li>
+<li>保持实际编码练习机会</li>
+<li>重新设计协作流程</li>
+</ul>
+<p><strong>长期战略</strong>：</p>
+<ul>
+<li>重新定义工程师角色</li>
+<li>开发新的职业发展路径</li>
+<li>平衡效率与技能保持</li>
+</ul>
+<h3 id="_19">对个人的影响</h3>
+<p><strong>技能投资</strong>：</p>
+<ul>
+<li>专注于 AI 难以复制的技能（创造力、判断力）</li>
+<li>保持技术基础扎实（避免技能退化）</li>
+<li>学会有效监督和协调 AI</li>
+</ul>
+<p><strong>心态调整</strong>：</p>
+<ul>
+<li>拥抱"AI 管理者"角色</li>
+<li>将 AI 视为放大器而非替代品</li>
+<li>主动适应快速变化的工作环境</li>
+</ul>
+<h2 id="_20">数据可视化</h2>
+<h3 id="_21">生产力演变</h3>
+<table>
+<thead>
+<tr>
+<th>时期</th>
+<th>使用率</th>
+<th>生产力提升</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一年前</td>
+<td>28 %</td>
+<td>20 %</td>
+</tr>
+<tr>
+<td>现在</td>
+<td>60 %</td>
+<td>50 %</td>
+</tr>
+<tr>
+<td>增长</td>
+<td>+114 %</td>
+<td>+150 %</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_22">技术能力提升</h3>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>六个月前</th>
+<th>现在</th>
+<th>改进</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>连续动作数</td>
+<td>10</td>
+<td>20</td>
+<td>+100 %</td>
+</tr>
+<tr>
+<td>人类干预</td>
+<td>基线</td>
+<td>-33 %</td>
+<td>显著减少</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_23">相关资源</h2>
+<ul>
+<li><a href="https://assets.anthropic.com/m/6cd21f7d4f82afcb/original/Claude-at-Work-Survey.pdf">调查问题 PDF</a></li>
+<li><a href="https://www.anthropic.com/research/economic-policy-responses">经济政策响应研究</a></li>
+<li><a href="https://www.anthropic.com/learn/claude-for-you">AI 流畅度框架</a></li>
+</ul>
+<h2 id="_24">学习要点</h2>
+<ol>
+<li><strong>快速采用</strong>：一年内使用率从 28 % 增至 60 %</li>
+<li><strong>显著提升</strong>：50 % 生产力提升但仍需大量监督</li>
+<li><strong>新任务释放</strong>：27 % 的工作是之前不会完成的任务</li>
+<li><strong>监督悖论</strong>：需要技能来监督 AI 但使用减少可能侵蚀技能</li>
+<li><strong>协作变化</strong>：AI 成为主要问答资源可能减少人际互动</li>
+<li><strong>角色演变</strong>：从代码编写者到"AI 智能体管理者"</li>
+<li><strong>存在性焦虑</strong>：短期乐观但长期对职业前景不确定</li>
+</ol>
+<h2 id="_25">未来展望</h2>
+<p>这项研究提供了 AI 改变知识工作的第一手证据。关键挑战在于：</p>
+<ul>
+<li>如何保持技能同时享受 AI 效率？</li>
+<li>如何重新设计协作以适应 AI 工具？</li>
+<li>如何定义未来的工程师角色？</li>
+</ul>
+<p>Anthropic 的内部经验为整个行业提供了宝贵的参考，但最终答案仍在探索中。</p>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2025-12-22 15:01:01<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
+</body>
+</html>
