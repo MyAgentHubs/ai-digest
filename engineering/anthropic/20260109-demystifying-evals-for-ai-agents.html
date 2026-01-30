@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>揭秘 AI Agent 评估 - Anthropic Engineering 实践</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
+        }
+
+        /* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">揭秘 AI Agent 评估</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>揭秘 AI Agent 评估</h1>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="meta-label">原文链接：</span>
+                    <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank">https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</a>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">发布日期：</span>
+                    <span>2026 年 1 月 9 日</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理日期：</span>
+                    <span>2026-01-30</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">整理者：</span>
+                    <span class="author">Panda</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_1">摘要</a></li>
+<li><a href="#_2">核心概念</a></li>
+<li><a href="#_3">核心术语</a></li>
+<li><a href="#_4">三种评分器类型</a></li>
+  <li><a href="#1">1. 基于代码的评分器</a></li>
+  <li><a href="#2">2. 基于模型的评分器</a></li>
+  <li><a href="#3">3. 人工评分器</a></li>
+<li><a href="#_5">实用实施路线图</a></li>
+<li><a href="#agent">专门的 Agent 评估策略</a></li>
+  <li><a href="#agentcoding-agents">编码 Agent（Coding Agents）</a></li>
+  <li><a href="#agentconversational-agents">对话 Agent（Conversational Agents）</a></li>
+  <li><a href="#agentresearch-agents">研究 Agent（Research Agents）</a></li>
+  <li><a href="#agentcomputer-use-agents">计算机使用 Agent（Computer Use Agents）</a></li>
+<li><a href="#_6">非确定性指标</a></li>
+<li><a href="#_7">集成策略</a></li>
+<li><a href="#_8">关键洞察</a></li>
+<li><a href="#_9">元数据</a></li>
+</ul>
+</nav>
+
+        <article class="content">
+            <h1 id="ai-agent">揭秘 AI Agent 评估</h1>
+<h2 id="_1">摘要</h2>
+<p>本文是 Anthropic 工程团队关于 AI Agent 评估的系统性指南，提供了在生产部署前进行系统化测试的完整方法论。文章涵盖了评估的核心概念、术语定义、评分器类型、实施路线图，以及针对不同类型 Agent 的专门评估策略。</p>
+<h2 id="_2">核心概念</h2>
+<p><strong>评估（Evaluation）的定义</strong>："对 AI 系统的测试：给 AI 一个输入，然后对其输出应用评分逻辑来衡量成功。"</p>
+<p><strong>评估类型</strong>：</p>
+<ul>
+<li><strong>Single-turn</strong>：简单的提示-响应评分</li>
+<li><strong>Multi-turn</strong>：跨越多个交互回合的复杂对话</li>
+<li><strong>Agent evaluations</strong>：跨多个回合使用工具并修改状态的评估</li>
+</ul>
+<p><img alt="Single-turn vs Multi-turn 评估" src="images/87079bda12d5.png" /></p>
+<p><em>图：简单评估中，Agent 处理提示并由评分器检查输出。在更复杂的多回合评估中，编码 Agent 接收工具、任务和环境，执行"Agent 循环"（工具调用和推理），并用实现更新环境。</em></p>
+<h2 id="_3">核心术语</h2>
+<p>文章定义了关键组件：</p>
+<ul>
+<li><strong>Task（任务）</strong>：具有明确输入和成功标准的单个测试</li>
+<li><strong>Trial（试验）</strong>：对任务的一次尝试；多次运行以确保一致性</li>
+<li><strong>Grader（评分器）</strong>：为 Agent 性能评分的逻辑；任务可能使用多个评分器</li>
+<li><strong>Transcript（记录）</strong>：完整的交互记录，包括输出、工具调用和推理过程</li>
+<li><strong>Outcome（结果）</strong>：任务完成后的最终环境状态</li>
+<li><strong>Evaluation harness（评估框架）</strong>：运行端到端评估的基础设施</li>
+</ul>
+<p><img alt="Agent 评估的组件" src="images/7998ec8e4e3c.png" /></p>
+<p><em>图：Agent 评估系统的组件，包括任务、评分器、记录和结果。</em></p>
+<h2 id="_4">三种评分器类型</h2>
+<h3 id="1">1. 基于代码的评分器</h3>
+<ul>
+<li>快速、便宜、客观</li>
+<li>适用于：字符串匹配、二进制测试、静态分析</li>
+</ul>
+<h3 id="2">2. 基于模型的评分器</h3>
+<ul>
+<li>灵活、细致、可扩展</li>
+<li>需要校准以确保准确性</li>
+</ul>
+<h3 id="3">3. 人工评分器</h3>
+<ul>
+<li>黄金标准质量</li>
+<li>成本高、速度慢</li>
+</ul>
+<h2 id="_5">实用实施路线图</h2>
+<p>文章推荐八个实施步骤：</p>
+<ol>
+<li><strong>从真实失败开始</strong>：收集 20-50 个来自实际使用的失败案例作为任务</li>
+<li><strong>转换手动测试</strong>：将手动测试程序转换为测试用例</li>
+<li><strong>创建明确任务</strong>：使用参考解决方案创建无歧义的任务</li>
+<li><strong>平衡测试用例</strong>：平衡正面和负面测试用例</li>
+<li><strong>构建隔离环境</strong>：建立健壮、隔离的测试环境</li>
+<li><strong>设计评分器</strong>：避免过度刚性的深思熟虑的评分器</li>
+<li><strong>定期审查记录</strong>：定期审查评估记录</li>
+<li><strong>监控饱和度</strong>：监控评估饱和度（eval saturation）</li>
+</ol>
+<p><img alt="评估创建流程" src="images/6e01814f2096.png" /></p>
+<p><em>图：创建有效评估的过程，从初始概念到实施和改进。</em></p>
+<h2 id="agent">专门的 Agent 评估策略</h2>
+<h3 id="agentcoding-agents">编码 Agent（Coding Agents）</h3>
+<ul>
+<li>使用确定性测试（代码是否通过？）</li>
+<li>补充质量评估的评分标准（rubrics）</li>
+</ul>
+<h3 id="agentconversational-agents">对话 Agent（Conversational Agents）</h3>
+<ul>
+<li>需要多维成功标准：</li>
+<li>任务完成度</li>
+<li>回合数限制</li>
+<li>交互质量</li>
+</ul>
+<h3 id="agentresearch-agents">研究 Agent（Research Agents）</h3>
+<ul>
+<li>结合以下检查：</li>
+<li>真实性检查（groundedness）</li>
+<li>覆盖范围验证</li>
+<li>来源质量评估</li>
+</ul>
+<h3 id="agentcomputer-use-agents">计算机使用 Agent（Computer Use Agents）</h3>
+<ul>
+<li>通过 UI/后端状态检查验证结果</li>
+<li>在沙箱环境中运行</li>
+</ul>
+<h2 id="_6">非确定性指标</h2>
+<p>为了应对 Agent 的非确定性行为，文章引入两个关键指标：</p>
+<ul>
+<li><strong>pass@k</strong>：在 k 次尝试中至少成功一次的概率</li>
+<li><strong>pass^k</strong>：所有 k 次试验都成功的概率</li>
+</ul>
+<p><img alt="pass@k vs pass^k" src="https://www-cdn.anthropic.com/images/4zrzovbb/website/3ddac5be07a0773922ec9df06afec55222f8194a-4584x2580.png" /></p>
+<p><em>图：随着试验次数增加，pass@k 和 pass^k 出现分歧。在 k=1 时它们相同，但到 k=10 时，pass@k 接近 100% 而 pass^k 降至 0%。</em></p>
+<h2 id="_7">集成策略</h2>
+<p>评估是多层质量保证体系的一部分，类似于"瑞士奶酪模型"的安全工程方法：</p>
+<p><img alt="瑞士奶酪模型" src="images/679646469bec.png" /></p>
+<p><em>图：像安全工程中的瑞士奶酪模型一样，没有单一的评估层能捕获所有问题。通过组合多种方法，一个层遗漏的失败会被另一个层捕获。</em></p>
+<p>评估与以下方法相互补充：</p>
+<ul>
+<li><strong>生产监控</strong>：实时监控生产环境</li>
+<li><strong>A/B 测试</strong>：对比不同版本的性能</li>
+<li><strong>用户反馈</strong>：收集真实用户的反馈</li>
+<li><strong>记录审查</strong>：定期审查交互记录</li>
+<li><strong>系统化人工研究</strong>：深入的人工评估研究</li>
+</ul>
+<h2 id="_8">关键洞察</h2>
+<ol>
+<li><strong>从小规模开始</strong>：20-50 个任务就足以开始，不要等待完美</li>
+<li><strong>真实失败优先</strong>：从真实用户遇到的问题中提取测试用例</li>
+<li><strong>避免过度优化</strong>：不要让评估变得过于刚性，要保持灵活性</li>
+<li><strong>分层防护</strong>：评估只是质量保证的一层，需要与其他方法结合</li>
+</ol>
+<h2 id="_9">元数据</h2>
+<ul>
+<li><strong>原文链接</strong>：https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</li>
+<li><strong>发布日期</strong>：2026 年 1 月 9 日</li>
+</ul>
+        </article>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 Anthropic 官方工程博客整理。</p>
+            <div class="footer-links">
+                <a href="https://www.anthropic.com/engineering" target="_blank">Anthropic Engineering Blog</a>
+                <a href="https://docs.anthropic.com" target="_blank">Claude 官方文档</a>
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
+            </div>
+            <p style="margin-top: 16px; font-size: 0.85rem;">
+                生成时间：2026-01-30 11:14:07<br>
+                由 <strong>Claude Code Agent Skill</strong> 自动生成
+            </p>
+        </footer>
+    </div>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
+</body>
+</html>
