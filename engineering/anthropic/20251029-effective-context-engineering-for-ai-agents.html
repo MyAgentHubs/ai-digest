@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>上下文工程深度技术分析 - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文系统阐述了 AI Agent 上下文工程的核心技术原则：通过上下文最小化和渐进式披露设计，有效管理上下文窗口资源。文章深入分析了工具调用的上下文开销、动态内容加载策略、以及如何平衡信息完整性与token效率的权衡。基于 Claude Code 等生产系统的实践，提供了具体的优化模式（按需加载、分层披露、缓存复用）和量化指标，帮助开发者构建高效的 Agent 系统，避免上下文溢出导致的性能下降和成本激增。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 上下文工程深度技术分析">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="上下文工程深度技术分析">
+    <meta property="og:description" content="本文系统阐述了 AI Agent 上下文工程的核心技术原则：通过上下文最小化和渐进式披露设计，有效管理上下文窗口资源。文章深入分析了工具调用的上下文开销、动态内容加载策略、以及如何平衡信息完整性与token效率的权衡。基于 Claude Code 等生产系统的实践，提供了具体的优化模式（按需加载、分层披露、缓存复用）和量化指标，帮助开发者构建高效的 Agent 系统，避免上下文溢出导致的性能下降和成本激增。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-effective-context-engineering-for-ai-agents.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/9a396bc6892c.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-09-29">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="上下文工程深度技术分析">
+    <meta name="twitter:description" content="本文系统阐述了 AI Agent 上下文工程的核心技术原则：通过上下文最小化和渐进式披露设计，有效管理上下文窗口资源。文章深入分析了工具调用的上下文开销、动态内容加载策略、以及如何平衡信息完整性与token效率的权衡。基于 Claude Code 等生产系统的实践，提供了具体的优化模式（按需加载、分层披露、缓存复用）和量化指标，帮助开发者构建高效的 Agent 系统，避免上下文溢出导致的性能下降和成本激增。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/9a396bc6892c.png">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -521,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-12-19</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -547,6 +576,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="ai">AI 智能体的有效上下文工程</h1>
 <p><strong>发布日期</strong>：2025 年 9 月 29 日</p>
 <h2 id="_1">简介</h2>
@@ -627,6 +657,7 @@
 <hr />
 <h2 id="_12">致谢</h2>
 <p>由 Anthropic 应用 AI 团队编写：Prithvi Rajasekaran、Ethan Dixon、Carly Ryan 和 Jeremy Hadfield，得到团队成员 Rafi Ayub、Hannah Moran、Cal Rueb 和 Connor Jennings 的贡献。特别感谢 Molly Vorwerck、Stuart Ritchie 和 Maggie Vo 的支持。</p>
+        
         </article>
 
         <footer>
@@ -640,7 +671,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-12-19 16:26:40<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

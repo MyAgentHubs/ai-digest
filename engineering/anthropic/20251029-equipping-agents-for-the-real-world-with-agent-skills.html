@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Skills - 为真实世界的 Agent 提供技能 - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文系统阐述了 Agent Skills 的创新架构：通过 SKILL.md 文件组织的模块化能力系统，实现了 Agent 知识的高效管理和动态加载。核心设计原则是渐进式内容披露：Skills 通过元数据（名称、触发器）快速匹配需求，按需加载详细指令和可执行代码，避免上下文窗口浪费。文章详细展示了 Skill 的解剖结构（元数据、文档、脚本）、触发机制、以及与代码执行的集成模式。基于 Claude Code 的实践，验证了该架构在支持 100+ Skills 同时保持高性能的可行性。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, Agent Skills - 为真实世界的 Agent 提供技能">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Agent Skills - 为真实世界的 Agent 提供技能">
+    <meta property="og:description" content="本文系统阐述了 Agent Skills 的创新架构：通过 SKILL.md 文件组织的模块化能力系统，实现了 Agent 知识的高效管理和动态加载。核心设计原则是渐进式内容披露：Skills 通过元数据（名称、触发器）快速匹配需求，按需加载详细指令和可执行代码，避免上下文窗口浪费。文章详细展示了 Skill 的解剖结构（元数据、文档、脚本）、触发机制、以及与代码执行的集成模式。基于 Claude Code 的实践，验证了该架构在支持 100+ Skills 同时保持高性能的可行性。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-equipping-agents-for-the-real-world-with-agent-skills.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/2ed547f3a887.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-10-16">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Agent Skills - 为真实世界的 Agent 提供技能">
+    <meta name="twitter:description" content="本文系统阐述了 Agent Skills 的创新架构：通过 SKILL.md 文件组织的模块化能力系统，实现了 Agent 知识的高效管理和动态加载。核心设计原则是渐进式内容披露：Skills 通过元数据（名称、触发器）快速匹配需求，按需加载详细指令和可执行代码，避免上下文窗口浪费。文章详细展示了 Skill 的解剖结构（元数据、文档、脚本）、触发机制、以及与代码执行的集成模式。基于 Claude Code 的实践，验证了该架构在支持 100+ Skills 同时保持高性能的可行性。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/2ed547f3a887.jpg">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -28,9 +57,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +179,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -310,9 +337,6 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -326,8 +350,34 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
         }
 
         /* 引用 */
@@ -460,23 +510,6 @@
                 page-break-inside: avoid;
             }
         }
-    
-        /* Mermaid 图表 */
-        .mermaid {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            margin: 32px 0;
-            text-align: center;
-            overflow-x: auto;
-        }
-
-        pre.mermaid {
-            background: white;
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
@@ -517,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-29</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -545,6 +578,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="agentagent-skills">为现实世界打造智能 Agent：Agent Skills</h1>
 <p>随着模型能力的提升，我们现在可以构建通用型 Agent，让它们与完整的计算环境进行交互。例如，Claude Code 可以使用读写文件、执行 bash 命令和搜索代码库等工具来完成跨领域的复杂任务。</p>
 <p>这促使我们创建了 <strong>Agent Skills</strong>：一种由指令、脚本和资源组成的有组织的文件夹结构，Agent 可以访问这些内容来完成特定任务。</p>
@@ -669,6 +703,7 @@
 <li>🔧 <strong>代码执行</strong>：结合 LLM 推理与传统代码的可靠性</li>
 <li>📈 <strong>可扩展性</strong>：从简单的单文件 Skill 到包含多个模块的复杂系统</li>
 </ul>
+        
         </article>
 
         <footer>
@@ -682,28 +717,11 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-29 09:41:45<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -754,5 +772,21 @@
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>

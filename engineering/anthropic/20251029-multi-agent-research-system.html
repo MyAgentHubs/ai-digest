@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我们如何构建多 Agent 研究系统 - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文系统介绍了 Anthropic 多 Agent 研究系统的架构设计与工程实践。核心创新在于分层协作模式：通过编排器（Orchestrator）分解复杂研究任务，专门化 Agent 并行执行子任务（文献检索、数据分析、假设验证），最终通过结果聚合与一致性检查生成高质量输出。文章深入分析了任务分解策略、Agent 间通信协议、并发控制机制、以及质量保证流程。基于真实研究场景的评估数据，展示了多 Agent 系统在准确性和效率上的显著提升。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 我们如何构建多 Agent 研究系统">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="我们如何构建多 Agent 研究系统">
+    <meta property="og:description" content="本文系统介绍了 Anthropic 多 Agent 研究系统的架构设计与工程实践。核心创新在于分层协作模式：通过编排器（Orchestrator）分解复杂研究任务，专门化 Agent 并行执行子任务（文献检索、数据分析、假设验证），最终通过结果聚合与一致性检查生成高质量输出。文章深入分析了任务分解策略、Agent 间通信协议、并发控制机制、以及质量保证流程。基于真实研究场景的评估数据，展示了多 Agent 系统在准确性和效率上的显著提升。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-multi-agent-research-system.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/images/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-06-13">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="我们如何构建多 Agent 研究系统">
+    <meta name="twitter:description" content="本文系统介绍了 Anthropic 多 Agent 研究系统的架构设计与工程实践。核心创新在于分层协作模式：通过编排器（Orchestrator）分解复杂研究任务，专门化 Agent 并行执行子任务（文献检索、数据分析、假设验证），最终通过结果聚合与一致性检查生成高质量输出。文章深入分析了任务分解策略、Agent 间通信协议、并发控制机制、以及质量保证流程。基于真实研究场景的评估数据，展示了多 Agent 系统在准确性和效率上的显著提升。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/images/default-og.png">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -28,9 +57,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +179,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -310,9 +337,6 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -326,8 +350,34 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
         }
 
         /* 引用 */
@@ -460,23 +510,6 @@
                 page-break-inside: avoid;
             }
         }
-    
-        /* Mermaid 图表 */
-        .mermaid {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            margin: 32px 0;
-            text-align: center;
-            overflow-x: auto;
-        }
-
-        pre.mermaid {
-            background: white;
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
@@ -517,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-29</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -575,6 +608,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="agent">我们如何构建多 Agent 研究系统</h1>
 <p><strong>原文链接</strong>: https://www.anthropic.com/engineering/multi-agent-research-system
 <strong>发布日期</strong>: 2025 年 6 月 13 日</p>
@@ -894,6 +928,7 @@
 <hr />
 <p><strong>整理者</strong>: Panda
 <strong>整理日期</strong>: 2025 年 10 月 29 日</p>
+        
         </article>
 
         <footer>
@@ -907,28 +942,11 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-29 15:14:27<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -979,5 +997,21 @@
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>

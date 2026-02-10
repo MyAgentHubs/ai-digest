@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>使用 Claude Agent SDK 构建 Agent - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文全面介绍了 Claude Agent SDK 的架构设计与开发实践，提供了构建生产级 Agent 的完整工具链。核心是三阶段反馈循环：收集上下文（文件系统访问、语义搜索、子 Agent 委派）、采取行动（Bash 执行、代码生成）、验证工作（规则检查、视觉反馈、LLM 评判）。文章深入分析了每个阶段的工具选择、最佳实践（渐进式信息披露、明确工具边界、迭代验证）、以及错误处理策略。通过代码审查 Agent 等真实案例，展示了 SDK 在简化复杂任务开发的有效性。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 使用 Claude Agent SDK 构建 Agent">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="使用 Claude Agent SDK 构建 Agent">
+    <meta property="og:description" content="本文全面介绍了 Claude Agent SDK 的架构设计与开发实践，提供了构建生产级 Agent 的完整工具链。核心是三阶段反馈循环：收集上下文（文件系统访问、语义搜索、子 Agent 委派）、采取行动（Bash 执行、代码生成）、验证工作（规则检查、视觉反馈、LLM 评判）。文章深入分析了每个阶段的工具选择、最佳实践（渐进式信息披露、明确工具边界、迭代验证）、以及错误处理策略。通过代码审查 Agent 等真实案例，展示了 SDK 在简化复杂任务开发的有效性。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-building-agents-with-the-claude-agent-sdk.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/973938b77fd2.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-10-16">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="使用 Claude Agent SDK 构建 Agent">
+    <meta name="twitter:description" content="本文全面介绍了 Claude Agent SDK 的架构设计与开发实践，提供了构建生产级 Agent 的完整工具链。核心是三阶段反馈循环：收集上下文（文件系统访问、语义搜索、子 Agent 委派）、采取行动（Bash 执行、代码生成）、验证工作（规则检查、视觉反馈、LLM 评判）。文章深入分析了每个阶段的工具选择、最佳实践（渐进式信息披露、明确工具边界、迭代验证）、以及错误处理策略。通过代码审查 Agent 等真实案例，展示了 SDK 在简化复杂任务开发的有效性。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/973938b77fd2.png">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -28,9 +57,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +179,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -310,9 +337,6 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -326,8 +350,34 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
         }
 
         /* 引用 */
@@ -460,23 +510,6 @@
                 page-break-inside: avoid;
             }
         }
-    
-        /* Mermaid 图表 */
-        .mermaid {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            margin: 32px 0;
-            text-align: center;
-            overflow-x: auto;
-        }
-
-        pre.mermaid {
-            background: white;
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
@@ -517,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-29</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -551,6 +584,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="claude-agent-sdk-agent">使用 Claude Agent SDK 构建智能 Agent</h1>
 <p>在 Anthropic，我们一直致力于开发技术，让 Claude 能够更自然地融入用户的工作流程。为此，我们推出了 <strong>Claude Agent SDK</strong>——一个用于构建生产级 Agent 的工具包，它将 Claude 的推理能力与实际的计算环境相结合。</p>
 <h2 id="claude">为 Claude 提供计算环境</h2>
@@ -692,6 +726,7 @@ git<span class="w"> </span>status
 <li>✅ <strong>易用</strong> - 清晰的 API 和文档</li>
 </ul>
 <p>开始构建您的 Agent，让 AI 成为您团队中真正有用的成员。</p>
+        
         </article>
 
         <footer>
@@ -705,28 +740,11 @@ git<span class="w"> </span>status
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-29 09:41:45<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -777,5 +795,21 @@ git<span class="w"> </span>status
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>

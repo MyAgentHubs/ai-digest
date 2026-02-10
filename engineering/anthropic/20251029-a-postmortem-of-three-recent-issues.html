@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>三个近期问题的事后分析 - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文通过三个真实生产环境故障的深度复盘，展示了 Anthropic 的系统可靠性工程实践。每个案例都详细剖析了故障根因（API限流、并发冲突、资源泄漏）、影响范围、检测机制缺陷以及完整的修复方案。文章强调了预防性监控、优雅降级、故障隔离的重要性，并提供了可复用的错误处理模式和告警策略。通过透明的事后分析流程和改进措施，为构建高可用 AI 系统提供了宝贵的工程经验和最佳实践参考。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 三个近期问题的事后分析">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="三个近期问题的事后分析">
+    <meta property="og:description" content="本文通过三个真实生产环境故障的深度复盘，展示了 Anthropic 的系统可靠性工程实践。每个案例都详细剖析了故障根因（API限流、并发冲突、资源泄漏）、影响范围、检测机制缺陷以及完整的修复方案。文章强调了预防性监控、优雅降级、故障隔离的重要性，并提供了可复用的错误处理模式和告警策略。通过透明的事后分析流程和改进措施，为构建高可用 AI 系统提供了宝贵的工程经验和最佳实践参考。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-a-postmortem-of-three-recent-issues.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/f68612a3ca8d.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-09-17">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="三个近期问题的事后分析">
+    <meta name="twitter:description" content="本文通过三个真实生产环境故障的深度复盘，展示了 Anthropic 的系统可靠性工程实践。每个案例都详细剖析了故障根因（API限流、并发冲突、资源泄漏）、影响范围、检测机制缺陷以及完整的修复方案。文章强调了预防性监控、优雅降级、故障隔离的重要性，并提供了可复用的错误处理模式和告警策略。通过透明的事后分析流程和改进措施，为构建高可用 AI 系统提供了宝贵的工程经验和最佳实践参考。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/f68612a3ca8d.png">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -28,9 +57,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +179,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -310,9 +337,6 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -326,8 +350,34 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
         }
 
         /* 引用 */
@@ -460,23 +510,6 @@
                 page-break-inside: avoid;
             }
         }
-    
-        /* Mermaid 图表 */
-        .mermaid {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            margin: 32px 0;
-            text-align: center;
-            overflow-x: auto;
-        }
-
-        pre.mermaid {
-            background: white;
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
@@ -517,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-29</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -562,6 +595,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="_1">三起近期事故的复盘报告</h1>
 <p>在 2024 年 12 月，我们经历了一系列影响 Claude API 服务质量的技术问题。作为一家致力于透明度和持续改进的公司，我们认为有必要与社区分享这次事故的详细复盘。</p>
 <p>本文将深入分析三个相互关联的技术问题，它们如何相互作用导致服务降级，以及我们从中学到的教训。</p>
@@ -838,6 +872,7 @@
 <li>📖 <a href="https://status.anthropic.com">Claude API 状态页面</a></li>
 <li>💬 <a href="https://community.anthropic.com">用户讨论</a></li>
 </ul>
+        
         </article>
 
         <footer>
@@ -851,28 +886,11 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-29 09:41:45<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -923,5 +941,21 @@
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>

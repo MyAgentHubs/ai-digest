@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破 - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文深度剖析了 Claude 3.5 Sonnet 在 SWE-bench Verified 上达成 49% 准确率的技术突破（相比前代 33%）。核心洞察是工具设计哲学的范式转变：从最小化 API Schema 转向人类级别的接口文档，包含使用意图、错误预防和恢复指导。文章系统阐述了最小化脚手架架构模式、高可靠性编辑工具设计（精确字符串匹配、绝对路径、幂等性）、以及错误处理机制。通过对比反模式与最佳实践，提供了可复用的工具设计检查清单和性能优化策略。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破">
+    <meta property="og:description" content="本文深度剖析了 Claude 3.5 Sonnet 在 SWE-bench Verified 上达成 49% 准确率的技术突破（相比前代 33%）。核心洞察是工具设计哲学的范式转变：从最小化 API Schema 转向人类级别的接口文档，包含使用意图、错误预防和恢复指导。文章系统阐述了最小化脚手架架构模式、高可靠性编辑工具设计（精确字符串匹配、绝对路径、幂等性）、以及错误处理机制。通过对比反模式与最佳实践，提供了可复用的工具设计检查清单和性能优化策略。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-swe-bench-sonnet.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/d1c3845336e8.svg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-01-06">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Claude 3.5 Sonnet 在 SWE-bench Verified 上的性能突破">
+    <meta name="twitter:description" content="本文深度剖析了 Claude 3.5 Sonnet 在 SWE-bench Verified 上达成 49% 准确率的技术突破（相比前代 33%）。核心洞察是工具设计哲学的范式转变：从最小化 API Schema 转向人类级别的接口文档，包含使用意图、错误预防和恢复指导。文章系统阐述了最小化脚手架架构模式、高可靠性编辑工具设计（精确字符串匹配、绝对路径、幂等性）、以及错误处理机制。通过对比反模式与最佳实践，提供了可复用的工具设计检查清单和性能优化策略。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/images/d1c3845336e8.svg">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -521,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-12-19</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -557,6 +586,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="claude-35-sonnet-swe-bench-verified">用 Claude 3.5 Sonnet 提升 SWE-bench Verified 的表现</h1>
 <p><img alt="SWE-bench 性能示意图" src="images/d1c3845336e8.svg" /></p>
 <p>发布于 2025 年 1 月 6 日</p>
@@ -802,6 +832,7 @@ new_str:
 <p>升级的 Claude 3.5 Sonnet 以简洁的提示和两个通用工具在 SWE-bench Verified 上取得 49 % 的成绩，超越了现有最先进的 45 %。我们相信基于新 Claude 3.5 Sonnet 构建的开发者将迅速找到比我们初步展示的方法更优的方式来改进 SWE-bench 成绩。</p>
 <h2 id="_12">致谢</h2>
 <p>Erik Schluntz 优化了 SWE-bench 智能体并撰写了本文。Simon Biggs、Dawn Drain 和 Eric Christiansen 协助实现了基准。Shauna Kravec、Dawn Drain、Felipe Rosso、Nova DasSarma、Ven Chandrasekaran 及许多其他人为培训 Claude 3.5 Sonnet 的智能体编码能力做出了贡献。</p>
+        
         </article>
 
         <footer>
@@ -815,7 +846,7 @@ new_str:
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-12-19 16:26:40<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

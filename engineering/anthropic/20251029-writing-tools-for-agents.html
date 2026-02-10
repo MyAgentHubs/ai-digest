@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Agent 工具设计架构深度分析 - Anthropic Engineering 实践</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本文揭示了 LLM Agent 工具设计的范式转变：从传统的 API Schema 转向人类级别的接口文档。核心洞察是工具描述需要包含使用意图、错误预防指导和恢复策略，而非仅提供参数定义。文章系统分析了高可靠性工具的设计模式（精确字符串匹配、绝对路径、幂等性保证）、参数验证策略、以及错误处理机制。通过对比反模式与最佳实践，提供了可操作的设计检查清单，帮助开发者构建 Agent 能够正确理解和有效使用的工具接口。">
+    <meta name="author" content="Anthropic Engineering Team">
+    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, AI Agent 工具设计架构深度分析">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="AI Agent 工具设计架构深度分析">
+    <meta property="og:description" content="本文揭示了 LLM Agent 工具设计的范式转变：从传统的 API Schema 转向人类级别的接口文档。核心洞察是工具描述需要包含使用意图、错误预防指导和恢复策略，而非仅提供参数定义。文章系统分析了高可靠性工具的设计模式（精确字符串匹配、绝对路径、幂等性保证）、参数验证策略、以及错误处理机制。通过对比反模式与最佳实践，提供了可操作的设计检查清单，帮助开发者构建 Agent 能够正确理解和有效使用的工具接口。">
+    <meta property="og:url" content="https://myaiswithpanda.github.io/ai-digest/engineering/anthropic/20251029-writing-tools-for-agents.html">
+    <meta property="og:site_name" content="Anthropic Engineering 中文实践">
+    <meta property="og:image" content="https://myaiswithpanda.github.io/ai-digest/images/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2025-09-11">
+    <meta property="article:author" content="Anthropic">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AI Agent 工具设计架构深度分析">
+    <meta name="twitter:description" content="本文揭示了 LLM Agent 工具设计的范式转变：从传统的 API Schema 转向人类级别的接口文档。核心洞察是工具描述需要包含使用意图、错误预防指导和恢复策略，而非仅提供参数定义。文章系统分析了高可靠性工具的设计模式（精确字符串匹配、绝对路径、幂等性保证）、参数验证策略、以及错误处理机制。通过对比反模式与最佳实践，提供了可操作的设计检查清单，帮助开发者构建 Agent 能够正确理解和有效使用的工具接口。">
+    <meta name="twitter:image" content="https://myaiswithpanda.github.io/ai-digest/images/default-og.png">
+    <meta name="twitter:site" content="@AnthropicAI">
+
     <style>
         * {
             margin: 0;
@@ -28,9 +57,10 @@
             color: var(--text-color);
             background: var(--bg-color);
             font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
         }
 
-/* 阅读进度条 */
+        /* 阅读进度条 */
         #reading-progress {
             position: fixed;
             top: 0;
@@ -149,9 +179,6 @@
             stroke-dashoffset: 164;
             transition: stroke-dashoffset 0.1s ease;
         }
-
-        
-
 
         .container {
             max-width: 920px;
@@ -310,9 +337,6 @@
             padding: 20px;
             margin: 24px 0;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -326,12 +350,20 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            word-wrap: break-word;
         }
 
         /* ASCII 艺术 */
-        pre
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
         /* Mermaid 图表 */
         .mermaid {
             background: white;
@@ -346,17 +378,6 @@
         pre.mermaid {
             background: white;
             text-align: center;
-        }
-
-        .ascii-art {
-            background: #fafafa;
-            border: 1px solid #ddd;
-            font-family: "Courier New", Consolas, Monaco, monospace;
-            font-size: 0.85rem;
-            line-height: 1.2;
-            white-space: pre;
-            overflow-x: auto;
-            color: #333;
         }
 
         /* 引用 */
@@ -529,7 +550,7 @@
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理日期：</span>
-                    <span>2025-10-30</span>
+                    <span>2026-02-10</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">整理者：</span>
@@ -568,6 +589,7 @@
 </nav>
 
         <article class="content">
+            
             <h1 id="ai-agent">AI Agent 工具设计架构深度分析</h1>
 <p><strong>原文链接</strong>：https://www.anthropic.com/engineering/writing-tools-for-agents
 <strong>发布日期</strong>：2025 年 9 月 11 日</p>
@@ -944,6 +966,7 @@ graph TB
 <hr />
 <p><strong>致谢</strong></p>
 <p>由 Ken Aizawa 撰写，获得来自研究（Barry Zhang、Zachary Witten、Daniel Jiang、Sami Al-Sheikh、Matt Bell、Maggie Vo）、MCP（Theodora Chu、John Welsh、David Soria Parra、Adam Jones）、产品工程（Santiago Seira）、市场营销（Molly Vorwerck）、设计（Drew Roper）和应用 AI（Christian Ryan、Alexander Bricken）同事的宝贵贡献。</p>
+        
         </article>
 
         <footer>
@@ -957,28 +980,11 @@ graph TB
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2025-10-30 11:07:54<br>
+                生成时间：2026-02-10 09:11:17<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
     </div>
-
-    <!-- Mermaid.js for flowcharts and diagrams -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#CC785C',
-                primaryTextColor: '#2D2D2D',
-                primaryBorderColor: '#E5E5E5',
-                lineColor: '#666',
-                secondaryColor: '#F5F2ED',
-                tertiaryColor: '#FAFAF8'
-            }
-        });
-    </script>
 
     <!-- 导航和进度条交互 -->
     <script>
@@ -1029,5 +1035,21 @@ graph TB
         updateBackToTopButton();
     </script>
 
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+    </script>
 </body>
 </html>
