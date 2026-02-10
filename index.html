@@ -1,49 +1,148 @@
-<\!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="0; url=https://myagenthubs.github.io/ai-digest/">
-    <link rel="canonical" href="https://myagenthubs.github.io/ai-digest/">
-    <title>AI Digest - 重定向中...</title>
+    <title>AI Digest - AI 工程博客中文摘要整理</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+            min-height: 100vh;
+            padding: 60px 24px;
         }
-        .container { text-align: center; color: white; max-width: 600px; }
-        h1 { font-size: 3rem; margin-bottom: 16px; font-weight: 700; }
-        p { font-size: 1.25rem; opacity: 0.9; margin-bottom: 32px; }
-        .redirect-link {
-            display: inline-block; padding: 16px 32px; background: white; color: #667eea;
-            text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1.1rem;
-            transition: transform 0.2s ease;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        .redirect-link:hover { transform: translateY(-2px); }
-        .spinner {
-            margin: 32px auto 0; width: 40px; height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.3); border-top-color: white;
-            border-radius: 50%; animation: spin 1s linear infinite;
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        .source-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .source-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .source-card h2 {
+            font-size: 1.75rem;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+        .source-card .description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .source-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .coming-soon:hover {
+            transform: none;
+        }
+        .coming-soon .badge {
+            background: #ccc;
+        }
+        footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 AI Digest</h1>
-        <p>Anthropic 博客中文摘要</p>
-        <p>正在重定向到主页...</p>
-        <a href="https://myagenthubs.github.io/ai-digest/" class="redirect-link">
-            如果没有自动跳转，请点击这里
-        </a>
-        <div class="spinner"></div>
+        <header>
+            <h1>🤖 AI Digest</h1>
+            <p class="subtitle">精选 AI 公司工程博客的中文整理与摘要</p>
+        </header>
+
+        <div class="sources-grid">
+            <a href="engineering/anthropic/" class="source-card">
+                <h2>Anthropic Engineering</h2>
+                <p class="description">Anthropic 工程博客的中文学习笔记</p>
+                <div class="meta">
+                    <span class="badge">ENGINEERING</span>
+                    <span>查看文章 →</span>
+                </div>
+            </a>
+            <a href="research/anthropic/" class="source-card">
+                <h2>Anthropic Research</h2>
+                <p class="description">Anthropic 研究博客的中文学习笔记</p>
+                <div class="meta">
+                    <span class="badge">RESEARCH</span>
+                    <span>查看文章 →</span>
+                </div>
+            </a>
+            <a href="#" class="source-card coming-soon" onclick="return false;">
+                <h2>OpenAI Research</h2>
+                <p class="description">OpenAI 研究博客的中文学习笔记</p>
+                <div class="meta">
+                    <span class="badge">RESEARCH</span>
+                    <span>即将推出...</span>
+                </div>
+            </a>
+            <a href="#" class="source-card coming-soon" onclick="return false;">
+                <h2>DeepSeek Research</h2>
+                <p class="description">DeepSeek 研究博客的中文学习笔记</p>
+                <div class="meta">
+                    <span class="badge">RESEARCH</span>
+                    <span>即将推出...</span>
+                </div>
+            </a>
+        </div>
+
+        <footer>
+            <p>整理者：Panda | <a href="https://github.com/MyAIsWithPanda" target="_blank">GitHub</a></p>
+        </footer>
     </div>
-    <script>
-        setTimeout(function() {
-            if (\!document.hidden) { window.location.href = 'https://myagenthubs.github.io/ai-digest/'; }
-        }, 100);
-    </script>
 </body>
 </html>
