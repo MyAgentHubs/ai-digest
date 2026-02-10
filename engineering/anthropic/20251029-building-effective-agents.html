@@ -35,6 +35,17 @@
 
     <!-- Google Analytics 4 -->
     
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H0DPXJDBJB"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-H0DPXJDBJB', {
+            'anonymize_ip': true,
+            'cookie_flags': 'SameSite=None;Secure'
+        });
+    </script>
+    
 
     <style>
         * {
@@ -604,6 +615,7 @@
 </nav>
 
         <article class="content">
+            
             
             
             <h1 id="ai-agent">AI Agent 架构设计权威指南：从工作流到自主系统</h1>
@@ -1776,6 +1788,7 @@ if needs_deep_analysis(router_result): result = llm.call(task, model=&quot;sonne
 <p>本文由 Erik Schluntz 和 Barry Zhang 撰写，是 Anthropic 团队基于数千个生产 Agent 系统的实践总结。</p>
         
         
+        
         </article>
 
         <footer>
@@ -1789,7 +1802,7 @@ if needs_deep_analysis(router_result): result = llm.call(task, model=&quot;sonne
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:04:25<br>
+                生成时间：2026-02-10 10:12:14<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
