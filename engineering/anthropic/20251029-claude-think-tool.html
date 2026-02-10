@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="本文深度剖析了 Claude 的 Think Tool 设计，这是一个将 AI 推理过程可视化的创新机制。核心价值在于提升决策透明度：Agent 通过显式的思维链展示问题分析、方案评估、以及决策依据，使开发者能够理解、调试和优化 Agent 行为。文章详细阐述了 Think Tool 的技术实现（结构化输出、上下文管理）、使用模式（复杂推理、多步骤规划）、以及性能影响评估。通过对比有无 Think Tool 的任务完成质量，验证了显式推理对提升 Agent 可靠性和可解释性的显著作用。">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, The "Think" Tool: 让 Claude 在复杂工具使用中停下来思考">
+    <meta name="keywords" content="Claude, Anthropic, 缓存, 模型">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -16,7 +20,7 @@
     <meta property="og:description" content="本文深度剖析了 Claude 的 Think Tool 设计，这是一个将 AI 推理过程可视化的创新机制。核心价值在于提升决策透明度：Agent 通过显式的思维链展示问题分析、方案评估、以及决策依据，使开发者能够理解、调试和优化 Agent 行为。文章详细阐述了 Think Tool 的技术实现（结构化输出、上下文管理）、使用模式（复杂推理、多步骤规划）、以及性能影响评估。通过对比有无 Think Tool 的任务完成质量，验证了显式推理对提升 Agent 可靠性和可解释性的显著作用。">
     <meta property="og:url" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html">
     <meta property="og:site_name" content="Anthropic Engineering 中文实践">
-    <meta property="og:image" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/3fa633f6a9fb.jpg">
+    <meta property="og:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="zh_CN">
@@ -30,7 +34,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="The "Think" Tool: 让 Claude 在复杂工具使用中停下来思考">
     <meta name="twitter:description" content="本文深度剖析了 Claude 的 Think Tool 设计，这是一个将 AI 推理过程可视化的创新机制。核心价值在于提升决策透明度：Agent 通过显式的思维链展示问题分析、方案评估、以及决策依据，使开发者能够理解、调试和优化 Agent 行为。文章详细阐述了 Think Tool 的技术实现（结构化输出、上下文管理）、使用模式（复杂推理、多步骤规划）、以及性能影响评估。通过对比有无 Think Tool 的任务完成质量，验证了显式推理对提升 Agent 可靠性和可解释性的显著作用。">
-    <meta name="twitter:image" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/3fa633f6a9fb.jpg">
+    <meta name="twitter:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png">
     <meta name="twitter:site" content="@AnthropicAI">
 
     <!-- Google Analytics 4 -->
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -541,7 +598,7 @@
       "datePublished": "2025-03-20",
       "dateModified": "2026-02-10",
       "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html",
-      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/3fa633f6a9fb.jpg",
+      "image": "https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png",
       "publisher": {
         "@type": "Organization",
         "name": "AI Digest",
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Claude, Anthropic, 代理, 缓存, 模型, 评估, 实践, 优化",
+      "keywords": "Claude, Anthropic, 缓存, 模型",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -620,23 +677,11 @@
 <li><a href="#_1">概述</a></li>
 <li><a href="#think">什么是"think"工具？</a></li>
 <li><a href="#_2">实现示例</a></li>
-<li><a href="#-bench">τ-Bench 性能评估</a></li>
-  <li><a href="#_3">航空领域</a></li>
-  <li><a href="#_4">零售领域</a></li>
-<li><a href="#_5">优化提示示例</a></li>
-<li><a href="#_6">关键见解</a></li>
-<li><a href="#swe-bench">SWE-Bench 性能</a></li>
-<li><a href="#think_1">何时使用"think"工具</a></li>
-<li><a href="#_7">最佳实践</a></li>
-  <li><a href="#1">1. 带域名特定示例的战略提示</a></li>
-  <li><a href="#2">2. 在系统提示中放置复杂指导</a></li>
-<li><a href="#think_2">何时避免使用"think"工具</a></li>
-<li><a href="#_8">快速开始</a></li>
-<li><a href="#_9">结论</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -668,89 +713,37 @@
     &quot;required&quot;: [&quot;thought&quot;]
   }
 }
-</code></pre></div> <h2 id="-bench">τ-Bench 性能评估</h2>
-<p>在航空和零售客服场景的τ-Bench 基准测试中，"think"工具表现卓越：</p>
-<h3 id="_3">航空领域</h3>
-<ul>
-<li><strong>优化提示+think 工具</strong>：pass^1 为 0.570（相比基础方案 0.370 提升 54 %）</li>
-<li><strong>think 工具单独使用</strong>：pass^1 为 0.404</li>
-<li><strong>扩展思维</strong>：pass^1 为 0.412</li>
-<li><strong>基础方案</strong>：pass^1 为 0.332</li>
-</ul>
-<h3 id="_4">零售领域</h3>
-<ul>
-<li><strong>think 工具</strong>（无额外提示）：pass^1 为 0.812</li>
-<li><strong>扩展思维</strong>：pass^1 为 0.770</li>
-<li><strong>基础方案</strong>：pass^1 为 0.783</li>
-</ul>
-<p><img alt="航空领域性能对比" src="images/3fa633f6a9fb.jpg" /></p>
-<h2 id="_5">优化提示示例</h2>
-<p>对复杂域名（如航空服务），配合以下指导最有效：</p>
-<div class="codehilite"><pre><span></span><code>## 使用think工具
-
-在接收工具结果后采取任何行动或响应用户前，将think工具作为草稿板使用：
-
-- 列出适用于当前请求的具体规则
-- 检查是否已收集所有必需信息
-- 验证计划操作符合所有政策
-- 迭代检查工具结果的正确性
-
-具体包括检查取消规则是否在预订24小时内、会员等级相关收费、支付方式组合验证等。
-</code></pre></div> <h2 id="_6">关键见解</h2>
-<ol>
-<li><strong>复杂域名需要提示指导</strong>：域名越复杂，配合优化提示效果越明显</li>
-<li><strong>试验中保持一致性</strong>：改进在 pass^k 到 k=5 时保持，表明工具有助于处理边界情况</li>
-</ol>
-<h2 id="swe-bench">SWE-Bench 性能</h2>
-<p>在代码编辑基准测试中，"think"工具改进了 1.6 %的性能（统计显著：p &lt; .001）。</p>
-<div class="codehilite"><pre><span></span><code>{
-  &quot;name&quot;: &quot;think&quot;,
-  &quot;description&quot;: &quot;使用此工具进行思考。不会获取新信息或改变代码库，只记录思想。当需要复杂推理或头脑风暴时使用。例如，若发现bug来源，可用此工具头脑风暴多种修复方法并评估最简最有效的改动。&quot;,
-  &quot;input_schema&quot;: {
-    &quot;type&quot;: &quot;object&quot;,
-    &quot;properties&quot;: {
-      &quot;thought&quot;: {
-        &quot;type&quot;: &quot;string&quot;,
-        &quot;description&quot;: &quot;您的思想。&quot;
-      }
-    },
-    &quot;required&quot;: [&quot;thought&quot;]
-  }
-}
-</code></pre></div> <h2 id="think_1">何时使用"think"工具</h2>
-<p>最有效的应用场景：</p>
-<ol>
-<li><strong>工具输出分析</strong>：Claude 需仔细处理先前工具调用的输出</li>
-<li><strong>政策重型环境</strong>：需遵循详细指导方针并验证合规性</li>
-<li><strong>顺序决策制定</strong>：每个行动基于前一个，错误成本高</li>
-</ol>
-<h2 id="_7">最佳实践</h2>
-<h3 id="1">1. 带域名特定示例的战略提示</h3>
-<p>提供明确指导说明何时及如何使用工具，包含针对您特定用例的示例。</p>
-<h3 id="2">2. 在系统提示中放置复杂指导</h3>
-<p>对于长或复杂的指导，在系统提示中包含比在工具描述中更有效。</p>
-<h2 id="think_2">何时避免使用"think"工具</h2>
-<p>不适用场景：</p>
-<ol>
-<li><strong>非顺序工具调用</strong>：单个或平行工具调用完成任务</li>
-<li><strong>简单指令遵循</strong>：约束少，默认行为已充分</li>
-</ol>
-<h2 id="_8">快速开始</h2>
-<ol>
-<li><strong>使用代理工具场景测试</strong>：从 Claude 目前在政策合规或长工具链中苦恼的具有挑战性的用例开始</li>
-<li><strong>添加工具定义</strong>：实现针对您域名定制的"think"工具</li>
-<li><strong>监控并优化</strong>：观察实践使用并调整提示以鼓励更有效的思考模式</li>
-</ol>
-<h2 id="_9">结论</h2>
-<p>"think"工具已证明能显著增强 Claude 3.7 Sonnet 在需要政策遵守和长工具调用链推理的复杂任务中的表现。虽非一刀切解决方案，但在正确用例中以最少实现复杂度提供实质性收益。</p>
-<hr />
-<p><em>注：τ-Bench 结果聚焦于 Claude 3.7 Sonnet，但实验显示 Claude 3.5 Sonnet（New）也可在相同配置下获得性能提升。</em></p>
-        
-        
-        
-        
+</code></pre>
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>The "Think" Tool: 让 Claude 在复杂工具使用中停下来思考<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/claude-think-tool">https://www.anthropic.com/engineering/claude-think-tool</a><br>
+                <strong>发布日期：</strong>2025年3月20日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -763,7 +756,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

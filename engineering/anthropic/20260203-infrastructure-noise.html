@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="量化 Agent 编码评估中的基础设施噪声 发布日期: 2026 年 2 月 3 日 作者: Gian Segato（贡献者：Nicholas Carlini, Jeremy Hadfield, Mike Merrill, Alex Shaw） 原文链接: https://www.anthropic.com/engineering/infrastructure-noise 核心发现 Anthrop...">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 量化 Agent 编码评估中的基础设施噪声">
+    <meta name="keywords" content="Anthropic, Agent, 模型, 评估, 性能, 测试">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260203-infrastructure-noise.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Anthropic, AI, Agent, API, 模型, 评估, 工程, 实践",
+      "keywords": "Anthropic, Agent, 模型, 评估, 性能, 测试",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -624,32 +681,11 @@
   <li><a href="#_4">资源配置的影响范围</a></li>
 <li><a href="#kubernetes">技术根因：Kubernetes 资源管理的陷阱</a></li>
   <li><a href="#_5">我们是如何陷入困境的</a></li>
-<li><a href="#_6">基础设施影响的两个阶段</a></li>
-  <li><a href="#11x-3x">阶段 1：修复可靠性问题（1x → 3x）</a></li>
-  <li><a href="#23x">阶段 2：解锁新的问题解决方法（3x+）</a></li>
-  <li><a href="#bayesian-network-fitting">真实案例：Bayesian Network Fitting</a></li>
-<li><a href="#swe-bench">SWE-bench 交叉验证</a></li>
-<li><a href="#_7">其他变异来源：时间相关效应</a></li>
-<li><a href="#_8">实践建议</a></li>
-  <li><a href="#_9">对评估开发者</a></li>
-  <li><a href="#_10">对基准维护者</a></li>
-  <li><a href="#_11">对结果使用者</a></li>
-<li><a href="#_12">深层启示</a></li>
-  <li><a href="#_13">基础设施即实验变量</a></li>
-  <li><a href="#_14">排行榜的不确定性</a></li>
-  <li><a href="#_15">对评估科学的影响</a></li>
-<li><a href="#_16">未来研究方向</a></li>
-  <li><a href="#_17">标准化工作</a></li>
-  <li><a href="#_18">开放问题</a></li>
-<li><a href="#_19">技术要点总结</a></li>
-<li><a href="#ai">对 AI 工程实践的启示</a></li>
-  <li><a href="#1">1. 评估设计的严谨性要求</a></li>
-  <li><a href="#2">2. 生产部署的资源规划</a></li>
-  <li><a href="#3">3. 开源评估的可重现性危机</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -724,240 +760,37 @@ resources:
     memory: &quot;1Gi&quot;
   limits:
     memory: &quot;3Gi&quot;  # 提供 3x 余量
-</code></pre></div>
-
-<h2 id="_6">基础设施影响的两个阶段</h2>
-<h3 id="11x-3x">阶段 1：修复可靠性问题（1x → 3x）</h3>
-<p>在约 3x 资源规格之前，性能提升主要来自<strong>修复基础设施的可靠性问题</strong>：</p>
-<ul>
-<li>消除 OOM-kill 导致的任务失败</li>
-<li>避免资源争用引发的超时</li>
-<li>稳定容器运行时环境</li>
-</ul>
-<h3 id="23x">阶段 2：解锁新的问题解决方法（3x+）</h3>
-<p>超过 3x 后，额外资源使 Agent 能够采用<strong>新的问题解决策略</strong>：</p>
-<ul>
-<li>拉取大型依赖包</li>
-<li>启动资源密集型子进程</li>
-<li>运行内存占用高的测试套件</li>
-</ul>
-<h3 id="bayesian-network-fitting">真实案例：Bayesian Network Fitting</h3>
-<p><strong>任务 <code>bn-fit-modify</code></strong>（贝叶斯网络拟合）：</p>
-<p><strong>资源充足的方案：</strong></p>
-<div class="codehilite"><pre><span></span><code># 直接安装成熟库（内存需求高）
-import pandas as pd
-import networkx as nx
-from sklearn.preprocessing import LabelEncoder
-
-# 快速完成任务，但安装时内存峰值 &gt; 1Gi
-</code></pre></div>
-
-<p><strong>资源受限的方案：</strong></p>
-<div class="codehilite"><pre><span></span><code># 仅使用标准库（内存友好）
-import json
-from collections import defaultdict
-
-# 手动实现算法，内存占用低但代码量大
-</code></pre></div>
-
-<p>某些模型会默认选择第一种方案。在紧约束下，Pod 内存会在依赖安装时耗尽。虽然存在更精简的方法（仅使用标准库），但并非所有模型的默认策略。</p>
-<h2 id="swe-bench">SWE-bench 交叉验证</h2>
-<p>为验证发现的普适性，团队在 SWE-bench 上进行了测试：</p>
-<ul>
-<li><strong>测试规模</strong>: 227 个问题，每个 10 次采样</li>
-<li><strong>资源变化</strong>: RAM 从 1x 到 5x</li>
-<li><strong>结果</strong>: 显示相同的单调递增模式，但差距较小（1.54 百分点）</li>
-</ul>
-<p><strong>启示</strong>: 基础设施噪声在不同基准测试中表现一致，但影响程度取决于任务特性。</p>
-<h2 id="_7">其他变异来源：时间相关效应</h2>
-<p>除了资源配置，研究还发现<strong>时间因素</strong>的影响：</p>
-<blockquote>
-<p>"通过率随时间波动，可能因为 API 延迟随流量模式和事故而变化。"</p>
-</blockquote>
-<p><img alt="时间波动示意图" src="images/492ce5b057a2.svg" />
-<em>图：基础设施与评估指标的复杂关系</em></p>
-<p><strong>模型能力与基础设施行为之间的界限</strong>，比单一基准分数所暗示的"更加模糊"。</p>
-<h2 id="_8">实践建议</h2>
-<h3 id="_9">对评估开发者</h3>
-<p><strong>关键原则：分离保证分配和硬杀阈值</strong></p>
-<div class="codehilite"><pre><span></span><code># 推荐配置模式
-resources:
-  requests:
-    memory: &quot;{{task_memory_baseline}}&quot;
-  limits:
-    memory: &quot;{{task_memory_baseline * 3}}&quot;  # 3x 余量带
-</code></pre></div>
-
-<p><strong>校准策略：</strong></p>
-<ul>
-<li>
-<p>确保在下限和上限配置下的分数差异保持在<strong>统计噪声范围内</strong></p>
-</li>
-<li>
-<p>避免单一固定值（pinned value）的陷阱</p>
-</li>
-</ul>
-<h3 id="_10">对基准维护者</h3>
-<p><strong>必须公开的信息：</strong>
-1. ✅ 推荐的资源规格（如 Terminal-Bench 2.0 所做）
-2. ✅ 明确的执行方法论
-3. ✅ 沙箱提供商的详细信息（容器运行时、内核版本、cgroup 版本）</p>
-<p><strong>示例文档：</strong></p>
-<div class="codehilite"><pre><span></span><code>## 基础设施规格
-
-- **内存下限**: 2Gi（保证）
-- **内存上限**: 6Gi（硬杀）
-- **CPU 下限**: 1 核心
-- **CPU 上限**: 4 核心
-- **容器运行时**: containerd 1.7.x
-- **Kubernetes 版本**: 1.28+
-</code></pre></div>
-
-<h3 id="_11">对结果使用者</h3>
-<p><strong>批判性思维检查清单：</strong></p>
-<ul>
-<li>❌ 对排行榜上 <strong>小于 3 个百分点</strong> 的差异保持怀疑，除非配置完全匹配</li>
-<li>✅ 要求发布者提供完整的基础设施配置文档</li>
-<li>✅ 考虑统计置信区间（朴素二项式置信区间已占 1-2 个百分点）</li>
-<li>✅ 基础设施混淆因素会在这些界限之上<strong>叠加</strong></li>
-</ul>
-<p><strong>解读示例：</strong></p>
-<div class="codehilite"><pre><span></span><code>排行榜显示：
-
-- 模型 A: 67.3%
-- 模型 B: 70.1%
-
-差距：2.8 百分点
-
-问题：
-1. 配置是否完全一致？
-2. 统计显著性如何？（需要多次运行）
-3. 是否有时间相关效应？
-
-结论：需要更多证据才能确认真实能力差异
-</code></pre></div>
-
-<h2 id="_12">深层启示</h2>
-<h3 id="_13">基础设施即实验变量</h3>
-<p>本研究证明，基础设施配置<strong>不是可忽略的技术细节</strong>，而是需要严格文档化的<strong>合法实验变量</strong>。</p>
-<h3 id="_14">排行榜的不确定性</h3>
-<p>几个百分点的排行榜差距可能反映：</p>
-<ul>
-<li>✅ 真正的模型能力差距</li>
-<li>⚠️ 更好的硬件分配策略</li>
-<li>⚠️ 时间相关的运气因素</li>
-</ul>
-<h3 id="_15">对评估科学的影响</h3>
-<p><strong>传统静态基准</strong>：</p>
-<ul>
-<li>固定输入 → 确定性输出</li>
-<li>资源影响可忽略</li>
-</ul>
-<p><strong>Agent 动态评估</strong>：</p>
-<ul>
-<li>环境交互 → 资源敏感</li>
-<li>基础设施成为核心变量</li>
-</ul>
-<p><strong>范式转变：</strong> 从"测试答案正确性"转向"测试在约束环境中的问题解决能力"。</p>
-<h2 id="_16">未来研究方向</h2>
-<h3 id="_17">标准化工作</h3>
-<ul>
-<li><strong>基准配置规范</strong>：建立行业级资源配置标准</li>
-<li><strong>可重现性协议</strong>：确保跨实验室的结果一致性</li>
-<li><strong>沙箱隔离级别</strong>：明确不同隔离强度对结果的影响</li>
-</ul>
-<h3 id="_18">开放问题</h3>
-<ol>
-<li><strong>最优余量带宽度是多少？</strong> 3x 是经验值，是否存在理论最优解？</li>
-<li><strong>如何量化时间相关噪声？</strong> 建立模型预测不同时段的性能波动</li>
-<li><strong>多模态任务的资源需求？</strong> 图像、视频处理任务的配置策略</li>
-</ol>
-<h2 id="_19">技术要点总结</h2>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>发现</th>
-<th>实践建议</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>资源余量</strong></td>
-<td>1x → 3x 显著影响可靠性</td>
-<td>使用 3x 余量作为起点</td>
-</tr>
-<tr>
-<td><strong>影响程度</strong></td>
-<td>最高 6 百分点差异</td>
-<td>怀疑小于 3 个百分点的差距</td>
-</tr>
-<tr>
-<td><strong>Kubernetes 配置</strong></td>
-<td>requests ≠ limits 至关重要</td>
-<td>分离保证分配和硬杀阈值</td>
-</tr>
-<tr>
-<td><strong>任务特性</strong></td>
-<td>依赖重型 vs 标准库影响显著</td>
-<td>按任务类型差异化配置</td>
-</tr>
-<tr>
-<td><strong>时间效应</strong></td>
-<td>API 延迟导致日内波动</td>
-<td>多时段重复测试</td>
-</tr>
-</tbody>
-</table>
-<h2 id="ai">对 AI 工程实践的启示</h2>
-<h3 id="1">1. 评估设计的严谨性要求</h3>
-<p><strong>传统观念：</strong> "只要模型能跑通就行"
-<strong>新认知：</strong> 基础设施配置是评估结果的一部分</p>
-<h3 id="2">2. 生产部署的资源规划</h3>
-<p><strong>教训迁移：</strong></p>
-<ul>
-<li>评估环境的资源发现也适用于生产环境</li>
-<li>Agent 系统的峰值内存需求难以预测</li>
-<li>需要监控和动态调整策略</li>
-</ul>
-<h3 id="3">3. 开源评估的可重现性危机</h3>
-<p><strong>现状挑战：</strong></p>
-<ul>
-<li>论文中很少详细记录基础设施配置</li>
-<li>"我们在 AWS 上跑的"不足以复现结果</li>
-<li>需要容器镜像、资源 YAML、运行时版本等完整信息</li>
-</ul>
-<p><strong>改进方向：</strong></p>
-<div class="codehilite"><pre><span></span><code># 评估可重现性清单
-infrastructure:
-  provider: AWS EKS
-  kubernetes_version: &quot;1.28.3&quot;
-  container_runtime: containerd 1.7.8
-  node_type: m5.2xlarge
-
-resources_per_task:
-  cpu:
-    requests: &quot;1000m&quot;
-    limits: &quot;4000m&quot;
-  memory:
-    requests: &quot;2Gi&quot;
-    limits: &quot;6Gi&quot;
-
-execution:
-  timeout: 30min
-  retry_policy: 3_attempts
-  network: isolated
-</code></pre></div>
-
-<hr />
-<p><strong>声明：</strong> 本文为学习笔记，原始版权归 Anthropic 所有。仅供技术交流使用。</p>
-        
-        
-        
-        
-        
+</code></pre>
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>量化 Agent 编码评估中的基础设施噪声<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260203-infrastructure-noise.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260203-infrastructure-noise.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/infrastructure-noise">https://www.anthropic.com/engineering/infrastructure-noise</a><br>
+                <strong>发布日期：</strong>2026 年 2 月 3 日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -970,7 +803,7 @@ execution:
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

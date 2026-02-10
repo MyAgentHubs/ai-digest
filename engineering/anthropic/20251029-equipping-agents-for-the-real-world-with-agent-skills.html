@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="本文系统阐述了 Agent Skills 的创新架构：通过 SKILL.md 文件组织的模块化能力系统，实现了 Agent 知识的高效管理和动态加载。核心设计原则是渐进式内容披露：Skills 通过元数据（名称、触发器）快速匹配需求，按需加载详细指令和可执行代码，避免上下文窗口浪费。文章详细展示了 Skill 的解剖结构（元数据、文档、脚本）、触发机制、以及与代码执行的集成模式。基于 Claude Code 的实践，验证了该架构在支持 100+ Skills 同时保持高性能的可行性。">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, Agent Skills - 为真实世界的 Agent 提供技能">
+    <meta name="keywords" content="Claude, Agent, 模型">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-equipping-agents-for-the-real-world-with-agent-skills.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Claude, AI, Agent, API, LLM, 提示词, 模型, 评估",
+      "keywords": "Claude, Agent, 模型",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -618,21 +675,11 @@
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#skill">Skill 的解剖结构</a></li>
-  <li><a href="#_1">渐进式内容加载</a></li>
-<li><a href="#skills">Skills 与上下文窗口</a></li>
-<li><a href="#skills_1">Skills 与代码执行</a></li>
-<li><a href="#skills_2">开发与评估 Skills</a></li>
-  <li><a href="#1">1. 原型设计</a></li>
-  <li><a href="#2">2. 结构化组织</a></li>
-  <li><a href="#3">3. 性能优化</a></li>
-  <li><a href="#4">4. 测试与验证</a></li>
-<li><a href="#_2">实际应用示例</a></li>
-<li><a href="#_3">总结</a></li>
-  <li><a href="#_4">关键数据</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -653,120 +700,37 @@
 <span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;PDF&quot;</span>
 <span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;</span><span class="err">\</span><span class="s">.pdf$&quot;</span>
 <span class="nn">---</span>
-</code></pre></div> <p><img alt="SKILL.md 文件结构" src="images/0b568ab1fcf4.jpg" />
-<em>图 2：SKILL.md 文件的解剖结构，包含元数据（名称、描述）和具体操作相关的上下文</em></p>
-<p>这些元数据是渐进式披露的第一层级：它只提供足够的信息让 Agent 判断何时应该使用该 Skill。</p>
-<h3 id="_1">渐进式内容加载</h3>
-<p>随着 Skill 变得越来越复杂，单个 <code>SKILL.md</code> 可能无法容纳所有上下文，或者需要包含 Agent 可以执行的代码。</p>
-<p>在下面展示的 PDF Skill 中，<code>SKILL.md</code> 引用了两个额外的文件（<code>reference.md</code> 和 <code>forms.md</code>），并包含一个 Agent 可以执行的 Python 脚本（<code>reader.py</code>）。</p>
-<p><img alt="多文件 Skill 结构" src="images/771b12d9dbce.jpg" />
-<em>图 3：如何将额外内容打包到 SKILL.md 文件中</em></p>
-<p><strong>渐进式披露</strong>是使 Agent Skills 灵活且可扩展的核心设计原则。与人类阅读培训材料的方式类似，Agent 可以先浏览高层次概述，然后在需要时深入了解特定部分的细节。</p>
-<p>具有文件系统和代码执行工具的 Agent 不需要将整个 Skill 的内容读入上下文窗口。相反，它们可以：</p>
-<ol>
-<li><strong>浏览</strong> Skill 目录以了解可用的资源</li>
-<li><strong>选择性读取</strong>所需的特定文件</li>
-<li><strong>执行</strong>包含的脚本来完成任务</li>
-</ol>
-<p>这种方法有几个关键优势：</p>
-<ul>
-<li><strong>效率</strong>：只加载完成任务所需的内容</li>
-<li><strong>可扩展性</strong>：Skills 可以包含大量资源而不会填满上下文窗口</li>
-<li><strong>灵活性</strong>：同一个 Skill 可以支持简单和复杂的用例</li>
-</ul>
-<p><img alt="渐进式披露原理" src="images/b1074b509d42.jpg" />
-<em>图 4：Skills 中上下文的渐进式披露过程</em></p>
-<h2 id="skills">Skills 与上下文窗口</h2>
-<p>下图展示了当用户消息触发 Skill 时，上下文窗口如何变化：</p>
-<p><img alt="上下文窗口变化" src="images/dd18d4d82937.jpg" />
-<em>图 5：Skills 在上下文窗口中的触发过程</em></p>
-<p>操作序列如下：</p>
-<ol>
-<li><strong>初始状态</strong>：上下文窗口包含核心系统提示词和每个已安装 Skill 的元数据（名称、描述、触发器）</li>
-<li><strong>用户请求</strong>：用户发送消息"分析这个 PDF"，触发了 PDF Skill</li>
-<li><strong>Skill 激活</strong>：系统将 <code>SKILL.md</code> 的完整内容加载到上下文窗口中</li>
-<li><strong>Agent 探索</strong>：Agent 可以使用文件系统工具读取引用的文件（<code>reference.md</code>、<code>forms.md</code>）</li>
-<li><strong>动态加载</strong>：只有 Agent 实际请求的文件才会被读入上下文</li>
-</ol>
-<p>这种设计使得可以安装数十个甚至数百个 Skills，而不会耗尽上下文窗口。</p>
-<h2 id="skills_1">Skills 与代码执行</h2>
-<p>Skills 也可以包含代码，供 Claude 自主决定何时执行为工具。</p>
-<p><img alt="代码执行流程" src="images/954720d42b5d.jpg" />
-<em>图 6：通过 Skills 执行代码的流程</em></p>
-<p>大语言模型擅长许多任务，但某些操作更适合用传统代码来处理。例如：</p>
-<ul>
-<li><strong>解析结构化数据</strong>：提取 PDF 表格、解析 JSON、处理 XML</li>
-<li><strong>执行精确计算</strong>：数学运算、数据转换、格式化</li>
-<li><strong>与外部系统交互</strong>：API 调用、数据库查询、文件操作</li>
-</ul>
-<p>在我们的示例中，PDF Skill 包含一个预先编写的 Python 脚本，用于读取 PDF 并提取所有文本、表格和表单字段。Agent 可以调用这个脚本，而不是尝试自己解析 PDF 格式（这将效率低下且容易出错）。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># reader.py - PDF 解析工具</span>
-<span class="k">def</span> <span class="nf">extract_pdf_content</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">):</span>
-<span class="w"> </span><span class="sd">&quot;&quot;&quot;提取 PDF 的文本、表格和表单字段&quot;&quot;&quot;</span> <span class="c1"># 使用专业库如 PyPDF2、pdfplumber 等</span> <span class="k">return</span> <span class="p">{</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">extracted_text</span><span class="p">,</span> <span class="s1">&#39;tables&#39;</span><span class="p">:</span> <span class="n">extracted_tables</span><span class="p">,</span> <span class="s1">&#39;forms&#39;</span><span class="p">:</span> <span class="n">form_fields</span> <span class="p">}</span>
-</code></pre></div> <p>这种方法结合了 LLM 的优势（理解用户意图、生成响应）和传统代码的优势（可靠的数据处理）。</p>
-<h2 id="skills_2">开发与评估 Skills</h2>
-<p>创建高质量的 Skills 需要迭代开发和严格的测试。我们的流程包括：</p>
-<h3 id="1">1. 原型设计</h3>
-<ul>
-<li>从最小可行的 Skill 开始（只有 <code>SKILL.md</code>）</li>
-<li>在真实用例上测试</li>
-<li>根据 Agent 的表现进行迭代</li>
-</ul>
-<h3 id="2">2. 结构化组织</h3>
-<ul>
-<li>将复杂指令分解为多个文件</li>
-<li>使用清晰的命名约定</li>
-<li>添加示例和参考文档</li>
-</ul>
-<h3 id="3">3. 性能优化</h3>
-<ul>
-<li>监控上下文窗口使用情况</li>
-<li>优化触发器模式以减少误触发</li>
-<li>平衡详细程度与简洁性</li>
-</ul>
-<h3 id="4">4. 测试与验证</h3>
-<ul>
-<li>创建测试用例集</li>
-<li>验证 Skill 在各种场景下的表现</li>
-<li>确保与其他 Skills 良好协作</li>
-</ul>
-<h2 id="_2">实际应用示例</h2>
-<p>让我们看一个完整的工作流程：</p>
-<p><strong>用户请求</strong>："分析这个研究论文 PDF，提取关键发现并总结方法论"</p>
-<p><strong>Agent 执行流程</strong>：</p>
-<ol>
-<li>✅ 识别触发词"PDF"，激活 PDF Skill</li>
-<li>✅ 读取 <code>SKILL.md</code> 了解基本能力</li>
-<li>✅ 执行 <code>reader.py</code> 提取 PDF 内容</li>
-<li>✅ 读取 <code>reference.md</code> 了解如何处理学术论文</li>
-<li>✅ 分析提取的文本，识别方法论部分</li>
-<li>✅ 生成结构化摘要</li>
-</ol>
-<p>整个过程中，Agent 只加载了必需的内容，保持了上下文窗口的效率使用。</p>
-<h2 id="_3">总结</h2>
-<p>Agent Skills 代表了构建智能 Agent 的全新范式：</p>
-<ul>
-<li>✅ <strong>模块化</strong>：每个 Skill 是独立的功能单元</li>
-<li>✅ <strong>可扩展</strong>：通过渐进式披露支持大规模资源库</li>
-<li>✅ <strong>灵活</strong>：结合 LLM 推理与传统代码执行</li>
-<li>✅ <strong>高效</strong>：只在需要时加载内容</li>
-</ul>
-<p>通过 Agent Skills，我们让 AI Agent 能够像熟练的专业人员一样工作——拥有丰富的知识库，知道何时查阅参考资料，并能使用正确的工具完成任务。</p>
-<p>这不仅仅是技术创新，更是为 AI Agent 在现实世界中发挥作用奠定了基础。</p>
-<hr />
-<h3 id="_4">关键数据</h3>
-<ul>
-<li>📊 <strong>上下文效率</strong>：通过渐进式披露，可以安装 100+ Skills 而不耗尽上下文</li>
-<li>🎯 <strong>触发精度</strong>：使用模式匹配确保 Skill 在正确时机激活</li>
-<li>🔧 <strong>代码执行</strong>：结合 LLM 推理与传统代码的可靠性</li>
-<li>📈 <strong>可扩展性</strong>：从简单的单文件 Skill 到包含多个模块的复杂系统</li>
-</ul>
-        
-        
-        
-        
+</code></pre>
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>Agent Skills - 为真实世界的 Agent 提供技能<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-equipping-agents-for-the-real-world-with-agent-skills.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-equipping-agents-for-the-real-world-with-agent-skills.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a><br>
+                <strong>发布日期：</strong>2025 年 10 月 16 日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -779,7 +743,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

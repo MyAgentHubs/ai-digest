@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="本文揭示了 LLM Agent 工具设计的范式转变：从传统的 API Schema 转向人类级别的接口文档。核心洞察是工具描述需要包含使用意图、错误预防指导和恢复策略，而非仅提供参数定义。文章系统分析了高可靠性工具的设计模式（精确字符串匹配、绝对路径、幂等性保证）、参数验证策略、以及错误处理机制。通过对比反模式与最佳实践，提供了可操作的设计检查清单，帮助开发者构建 Agent 能够正确理解和有效使用的工具接口。">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, AI Agent 工具设计架构深度分析">
+    <meta name="keywords" content="Anthropic, AI, Agent">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-writing-tools-for-agents.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Claude, Anthropic, AI, Agent, API, LLM, 评估, 工程",
+      "keywords": "Anthropic, AI, Agent",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -619,31 +676,11 @@
 <ul>
 <li><a href="#_1">一、核心概念框架</a></li>
   <li><a href="#1">1. 确定性与非确定性系统的根本差异</a></li>
-  <li><a href="#2-agent-affordances">2. Agent Affordances（可供性）理论</a></li>
-<li><a href="#_2">二、架构设计模式</a></li>
-  <li><a href="#1_1">1. 工具粒度权衡矩阵</a></li>
-  <li><a href="#2">2. 命名空间设计模式</a></li>
-  <li><a href="#3-vs">3. 响应格式工程：令牌效率 vs 灵活性</a></li>
-  <li><a href="#4">4. 令牌效率优化策略</a></li>
-<li><a href="#eval-driven-development">三、评估驱动开发（Eval-Driven Development）</a></li>
-  <li><a href="#1_2">1. 评估任务设计矩阵</a></li>
-  <li><a href="#2_1">2. 验证器设计原则</a></li>
-  <li><a href="#3">3. 分析结果的深度阅读</a></li>
-<li><a href="#_9">四、工具描述的提示工程</a></li>
-  <li><a href="#1_3">1. 描述编写框架</a></li>
-  <li><a href="#2_2">2. 工具定义最佳实践</a></li>
-  <li><a href="#3-swe-bench-verified">3. SWE-Bench Verified 优化案例</a></li>
-<li><a href="#vs">五、反模式 vs 最佳实践对比表</a></li>
-<li><a href="#_10">六、实践检查清单</a></li>
-  <li><a href="#_11">设计阶段</a></li>
-  <li><a href="#_12">实现阶段</a></li>
-  <li><a href="#_13">评估阶段</a></li>
-  <li><a href="#_14">优化阶段</a></li>
-<li><a href="#_15">七、关键洞察总结</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -663,373 +700,37 @@ graph LR
 
     note1[相同输入 = 相同输出]
     style note1 fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-</div> <p><strong>Agent 工具契约</strong>（确定性系统↔非确定性 Agent）</p>
-<div class="mermaid">
-graph TD
-    A["用户问: 需要带伞吗?"] --> B{Agent 决策}
-    B --> C[调用天气工具]
-    B --> D[使用内部知识回答]
-    B --> E[先请求位置信息]
-    B --> F[产生幻觉或误用工具]
 
-    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
-    style B fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
-    style C fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style D fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style E fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style F fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-</div> <p><strong>关键差异</strong>：工具需为 Agent 的多种推理路径设计，而非假设单一确定性调用链。</p>
-<h3 id="2-agent-affordances">2. Agent Affordances（可供性）理论</h3>
-<p>传统 API 设计：<code>list_contacts ()</code>
-Agent 友好设计：<code>search_contacts (query="Jane")</code></p>
-<p><strong>原因</strong>：</p>
-<ul>
-<li>Agent 上下文有限（LLM 处理的令牌数）</li>
-<li>计算机内存廉价→列表所有联系人</li>
-<li>Agent 上下文昂贵→逐个读取浪费资源</li>
-</ul>
-<p><strong>类比</strong>：人类搜索地址簿时，按字母顺序翻页（智能化），不会从头到尾逐页阅读。</p>
-<hr />
-<h2 id="_2">二、架构设计模式</h2>
-<h3 id="1_1">1. 工具粒度权衡矩阵</h3>
-<h4 id="api">❌ 反模式：API 包装式工具设计</h4>
-<div class="mermaid">
-graph TB
-    subgraph 单独实现
-        A[list_users]
-        B[list_events]
-        C[create_event]
-        D[send_notification]
-    end
-
-    subgraph 问题
-        E[Agent 需多次往返调用]
-        F[每个中间结果消耗上下文]
-        G[工具过多导致选择困难]
-    end
-
-    style A fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style B fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style C fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style D fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style E fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-    style F fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-    style G fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-</div> <h4 id="_3">✅ 最佳实践：工作流聚合式工具</h4>
-<div class="mermaid">
-graph TB
-    A["schedule_event(<br/>participant_name: str,<br/>topic: str,<br/>preferred_time: Optional[str])"]
-    A --> B[返回结果]
-
-    B --> C[availability_found: bool]
-    B --> D[event_id: str]
-    B --> E[notification_sent: bool]
-    B --> F["conflict_warnings: List[str]"]
-
-    subgraph 优势
-        G[单次调用完成多步操作]
-        H[降低 Agent 决策复杂度]
-        I[封装业务逻辑<br/>查询可用性+创建+通知]
-    end
-
-    style A fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style G fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style H fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style I fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-</div> <h3 id="2">2. 命名空间设计模式</h3>
-<p><strong>前缀式命名</strong>（Service-first）</p>
-<div class="codehilite"><pre><span></span><code>asana_search_tasks ()
-asana_create_project ()
-jira_search_issues ()
-jira_update_ticket ()
-</code></pre></div> <p><strong>后缀式命名</strong>（Resource-first）</p>
-<div class="codehilite"><pre><span></span><code>search_asana_tasks ()
-create_asana_project ()
-search_jira_issues ()
-update_jira_ticket ()
-</code></pre></div> <p><strong>选择标准</strong>：通过评估系统验证，不同 LLM 表现不同</p>
-<hr />
-<h3 id="3-vs">3. 响应格式工程：令牌效率 vs 灵活性</h3>
-<h4 id="206-tokens">详细响应示例（206 tokens）</h4>
-<div class="codehilite"><pre><span></span><code>{ &quot;thread_ts&quot;: &quot;1234567890.123456&quot;, &quot;channel_id&quot;: &quot;C12345&quot;, &quot;user_id&quot;: &quot;U67890&quot;, &quot;content&quot;: &quot;Project discussion...&quot;, &quot;participant_names&quot;: [&quot;Alice&quot;, &quot;Bob&quot;], &quot;attachment_urls&quot;: [...]
-}
-</code></pre></div> <h4 id="72-tokens">简洁响应示例（72 tokens）</h4>
-<div class="codehilite"><pre><span></span><code>{ &quot;content&quot;: &quot;Project discussion...&quot;, &quot;participants&quot;: [&quot;Alice&quot;, &quot;Bob&quot;]
-}
-</code></pre></div> <p><strong>响应格式枚举模式</strong></p>
-<div class="mermaid">
-graph TB
-    A[search_threads<br/>query: str<br/>response_format: ResponseFormat]
-
-    B{ResponseFormat}
-    B --> C[DETAILED<br/>包含技术 ID<br/>供下游工具调用]
-    B --> D[CONCISE 默认<br/>仅返回语义信息<br/>节省令牌]
-
-    C --> E[DetailedThreadList]
-    D --> F[ConciseThreadList]
-
-    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
-    style B fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
-    style C fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style D fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style E fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style F fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-</div> <p><strong>设计原则</strong>：</p>
-<ul>
-<li>优先返回语义字段（<code>name</code> &gt; <code>uuid</code>）</li>
-<li>用 <code>0-indexed IDs</code> 替代 UUID，减少幻觉</li>
-<li>响应结构需匹配 LLM 训练数据格式（JSON/XML/Markdown 均可，无绝对优劣）</li>
-</ul>
-<hr />
-<h3 id="4">4. 令牌效率优化策略</h3>
-<h4 id="_4">✅ 好的截断响应</h4>
-<div class="codehilite"><pre><span></span><code>日志搜索结果（前 10 条）：
-ERROR [2025-01-15 14:32] Customer ID 9182 charge failed
-...
-WARNING [2025-01-15 14:33] Similar issue detected for 5 other customers 💡 建议：尝试按客户 ID 过滤以获取更精确结果
-</code></pre></div> <h4 id="_5">❌ 差的错误响应</h4>
-<div class="codehilite"><pre><span></span><code><span class="n">ERROR</span><span class="o">:</span><span class="w"> </span><span class="mi">400</span><span class="w"> </span><span class="n">Bad</span><span class="w"> </span><span class="n">Request</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">validation_error</span>
-</code></pre></div> <h4 id="_6">✅ 好的错误响应</h4>
-<div class="codehilite"><pre><span></span><code>参数错误：&#39;status&#39; 字段期望值为 [&quot;pending&quot;, &quot;completed&quot;, &quot;failed&quot;]
-您传入了 &quot;in_progress&quot; 示例正确用法：
-search_logs (customer_id=&quot;9182&quot;, status=&quot;pending&quot;)
-</code></pre></div> <p><strong>截断策略</strong>：</p>
-<ul>
-<li>分页参数（limit, offset）</li>
-<li>范围选择（date_range, id_range）</li>
-<li>过滤器（status, priority）</li>
-<li>Claude Code 默认限制：25,000 tokens/响应</li>
-</ul>
-<hr />
-<h2 id="eval-driven-development">三、评估驱动开发（Eval-Driven Development）</h2>
-<h3 id="1_2">1. 评估任务设计矩阵</h3>
-<h4 id="_7">❌ 弱评估任务</h4>
-<div class="codehilite"><pre><span></span><code>&quot;Schedule a meeting with jane@acme.corp next week.&quot;
-&quot;Search payment logs for purchase_complete and customer_id=9182&quot;
-&quot;Find cancellation request by Customer ID 45892&quot; 问题：
-• 过度简化，无法压力测试
-• 单一工具调用即可完成
-• 不反映真实工作流
-</code></pre></div> <h4 id="_8">✅ 强评估任务</h4>
-<div class="codehilite"><pre><span></span><code>&quot;Schedule meeting with Jane next week about latest Acme Corp project. Attach notes from last planning meeting AND reserve conference room.&quot; &quot;Customer ID 9182 charged 3x for single purchase. Find ALL relevant logs AND determine if other customers affected.&quot; &quot;Customer Sarah Chen submitted cancellation. Prepare retention offer with: (1) Why leaving? (2) Best offer? (3) Risk factors?&quot; 特点：
-• 多步骤工作流（2-3+ 工具调用）
-• 需要综合判断
-• 反映真实业务复杂度
-</code></pre></div> <h3 id="2_1">2. 验证器设计原则</h3>
-<div class="codehilite"><pre><span></span><code># ❌ 过度严格的验证器
-def verify_meeting_created (response: str) -&gt; bool: return &quot;meeting scheduled for Tuesday at 2 PM&quot; in response # 问题：Wednesday 下午 14:00 也是正确答案，但会被拒绝 # ✅ 灵活的验证器
-def verify_meeting_created (response: str) -&gt; bool: has_date = any (day in response for day in [&quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, ...]) has_time = bool (re.search (r&#39;\d{1,2}:\d{2}\s*(AM|PM|am|pm)&#39;, response)) has_confirmation = &quot;meeting&quot; in response.lower () return has_date and has_time and has_confirmation # 或使用 Agent 评判
-def verify_with_claude (response: str, expected_outcome: str) -&gt; bool: judgment = claude.evaluate ( f&quot;Does this response accomplish: {expected_outcome}?\n{response}&quot; ) return judgment.verdict == &quot;yes&quot;
-</code></pre></div> <h3 id="3">3. 分析结果的深度阅读</h3>
-<p><strong>收集的指标</strong>：</p>
-<ul>
-<li>最终准确度</li>
-<li>工具调用总数（冗余调用？）</li>
-<li>单个工具调用的运行时间</li>
-<li>总令牌消耗</li>
-<li>工具错误率及类型</li>
-</ul>
-<p><strong>关键洞察来源</strong>：</p>
-<div class="mermaid">
-graph TD
-    A[Agent CoT 思维链中的显式说明] --> B[原始执行记录<br/>工具调用顺序、参数、返回值]
-    B --> C[Agent 未说出的隐含行为]
-
-    C --> D[工具调用了但未提及原因]
-    C --> E[放弃了某种策略的迹象]
-    C --> F[重复的无效尝试]
-
-    G["关键引用:<br/>Agent 省略的信息<br/>往往比包含的信息更重要"]
-
-    style A fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style B fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style C fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
-    style D fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-    style E fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-    style F fill:#FFF9E6,stroke:#FFD93D,stroke-width:2px
-    style G fill:#F5F2ED,stroke:#CC785C,stroke-width:3px
-</div> <p><strong>案例：搜索工具的偏见修复</strong></p>
-<p>Claude 自动在搜索查询末尾附加 "2025"，导致结果偏向当年信息。通过改进工具描述纠正了此行为。</p>
-<hr />
-<h2 id="_9">四、工具描述的提示工程</h2>
-<h3 id="1_3">1. 描述编写框架</h3>
-<div class="mermaid">
-graph TD
-    A[为新入职员工描述工具时会说什么?]
-
-    A --> B[这个工具做什么?]
-    A --> C[何时使用它?]
-    A --> D[哪些隐含假设需明确化?]
-    A --> E[参数名称要明确无歧义]
-    A --> F[举例演示]
-
-    D --> D1[查询格式<br/>模糊词汇定义]
-    D --> D2[资源间的关系]
-    D --> D3[限制和边界]
-
-    E --> E1["❌ user"]
-    E --> E2["✅ user_id"]
-
-    style A fill:#F5F2ED,stroke:#CC785C,stroke-width:3px
-    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style C fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style D fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style E fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
-    style F fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style E1 fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style E2 fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-</div> <h3 id="2_2">2. 工具定义最佳实践</h3>
-<div class="mermaid">
-graph TB
-    subgraph bad["❌ 模糊的描述"]
-        A["search(query: str)<br/>搜索数据库"]
-    end
-
-    subgraph good["✅ 精确的描述"]
-        B["search_customer_by_name(<br/>first_name: str,<br/>last_name: Optional[str],<br/>include_inactive: bool)"]
-
-        B --> C[返回字段说明]
-        C --> C1[name: 客户全名]
-        C --> C2[customer_id: 用于后续调用]
-        C --> C3["account_status: active/inactive/suspended"]
-
-        B --> D[注意事项]
-        D --> D1[last_name 为空时<br/>按 first_name 模糊匹配]
-
-        B --> E[使用示例]
-        E --> E1["search_customer_by_name('Jane', 'Doe')"]
-    end
-
-    style bad fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style A fill:#FFEBEE,stroke:#F44336,stroke-width:2px
-    style good fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style B fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
-    style C fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
-    style D fill:#FFE5CC,stroke:#FF9800,stroke-width:2px
-    style E fill:#F5F2ED,stroke:#CC785C,stroke-width:2px
-</div> <h3 id="3-swe-bench-verified">3. SWE-Bench Verified 优化案例</h3>
-<p>Claude Sonnet 3.5 通过精确的工具描述调整达到 SOTA：</p>
-<ul>
-<li><strong>具体化</strong>了工具的预期行为</li>
-<li><strong>减少了</strong>模糊参数导致的错误</li>
-<li><strong>显著降低</strong>错误率，提升任务完成度</li>
-</ul>
-<hr />
-<h2 id="vs">五、反模式 vs 最佳实践对比表</h2>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>❌ 反模式</th>
-<th>✅ 最佳实践</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>工具选择</strong></td>
-<td>API 端点 1:1 映射</td>
-<td>面向工作流聚合</td>
-</tr>
-<tr>
-<td><strong>命名</strong></td>
-<td><code>user</code>, <code>id</code></td>
-<td><code>user_id</code>, <code>customer_id</code></td>
-</tr>
-<tr>
-<td><strong>响应数据</strong></td>
-<td>返回所有字段+UUID</td>
-<td>语义字段+可选技术 ID</td>
-</tr>
-<tr>
-<td><strong>截断</strong></td>
-<td>静默截断，无指导</td>
-<td>明确指导+示例</td>
-</tr>
-<tr>
-<td><strong>错误</strong></td>
-<td>技术栈跟踪（traceback）</td>
-<td>问题描述+修正示例</td>
-</tr>
-<tr>
-<td><strong>工具数量</strong></td>
-<td>尽可能多的细粒度工具</td>
-<td>精选少数高价值工具</td>
-</tr>
-<tr>
-<td><strong>评估</strong></td>
-<td>简单假设（沙箱环境）</td>
-<td>真实复杂工作流</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="_10">六、实践检查清单</h2>
-<h3 id="_11">设计阶段</h3>
-<ul>
-<li>[ ] 工具是否聚合常见的多步工作流？</li>
-<li>[ ] 命名是否避免歧义（前缀 vs 后缀已评估）？</li>
-<li>[ ] 参数名称是否明确指示数据类型？</li>
-</ul>
-<h3 id="_12">实现阶段</h3>
-<ul>
-<li>[ ] 是否返回语义字段优先于技术标识符？</li>
-<li>[ ] 是否提供响应格式参数（详细 vs 简洁）？</li>
-<li>[ ] 是否实现了分页/过滤/截断机制？</li>
-</ul>
-<h3 id="_13">评估阶段</h3>
-<ul>
-<li>[ ] 评估任务是否反映真实业务复杂度？</li>
-<li>[ ] 验证器是否避免过度严格？</li>
-<li>[ ] 是否收集了工具调用指标（次数、时间、错误）？</li>
-</ul>
-<h3 id="_14">优化阶段</h3>
-<ul>
-<li>[ ] 工具描述是否为新用户清晰可理解？</li>
-<li>[ ] 错误消息是否提供修正指导？</li>
-<li>[ ] 是否用 Agent（如 Claude Code）自动化工具改进分析？</li>
-</ul>
-<hr />
-<h2 id="_15">七、关键洞察总结</h2>
-<table>
-<thead>
-<tr>
-<th>洞察</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>工具设计的非对称性</strong></td>
-<td>Agent 的认知限制（有限上下文）不同于传统软件的资源限制（廉价内存）</td>
-</tr>
-<tr>
-<td><strong>评估驱动即时反馈</strong></td>
-<td>通过系统评估发现问题比代码审查更有效（引用：web search 工具的 "2025" 偏见）</td>
-</tr>
-<tr>
-<td><strong>Agent 是合作者不是用户</strong></td>
-<td>可以让 Agent 分析评估结果并自动改进工具（相互优化循环）</td>
-</tr>
-<tr>
-<td><strong>令牌即新的货币</strong></td>
-<td>响应格式、字段选择、截阈值的优化直接影响 Agent 性能</td>
-</tr>
-<tr>
-<td><strong>隐含信息同样重要</strong></td>
-<td>工作流中未表达的决策有时比明确的推理更能暴露设计问题</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<p><strong>致谢</strong></p>
-<p>由 Ken Aizawa 撰写，获得来自研究（Barry Zhang、Zachary Witten、Daniel Jiang、Sami Al-Sheikh、Matt Bell、Maggie Vo）、MCP（Theodora Chu、John Welsh、David Soria Parra、Adam Jones）、产品工程（Santiago Seira）、市场营销（Molly Vorwerck）、设计（Drew Roper）和应用 AI（Christian Ryan、Alexander Bricken）同事的宝贵贡献。</p>
-        
-        
-        
-        
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>AI Agent 工具设计架构深度分析<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-writing-tools-for-agents.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-writing-tools-for-agents.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">https://www.anthropic.com/engineering/writing-tools-for-agents</a><br>
+                <strong>发布日期：</strong>2025 年 9 月 11 日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -1042,7 +743,7 @@ graph TB
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

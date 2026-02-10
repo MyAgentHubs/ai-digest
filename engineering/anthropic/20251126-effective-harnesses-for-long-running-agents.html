@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="长运行 Agent 的有效框架 发布日期: 2025 年 11 月 26 日 概述 Anthropic 发布的这篇工程博客介绍了如何让 AI Agent 在多个 context window 中持续高效工作。文章通过实践经验总结了一套两部分解决方案：初始化 agent 和编码 agent，帮助开发者构建能够跨越多个上下文窗口的长运行 Agent 系统。 核心问题 长运行 Agent 面临的主要挑战...">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 长运行 Agent 的有效框架">
+    <meta name="keywords" content="Claude, Anthropic, AI, Agent, 工程, 实践">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -16,7 +20,7 @@
     <meta property="og:description" content="长运行 Agent 的有效框架 发布日期: 2025 年 11 月 26 日 概述 Anthropic 发布的这篇工程博客介绍了如何让 AI Agent 在多个 context window 中持续高效工作。文章通过实践经验总结了一套两部分解决方案：初始化 agent 和编码 agent，帮助开发者构建能够跨越多个上下文窗口的长运行 Agent 系统。 核心问题 长运行 Agent 面临的主要挑战...">
     <meta property="og:url" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html">
     <meta property="og:site_name" content="Anthropic Engineering 中文实践">
-    <meta property="og:image" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/f94c2257964fb2d623f1e81f874977ebfc0986bc-1920x1080.gif">
+    <meta property="og:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="zh_CN">
@@ -30,7 +34,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="长运行 Agent 的有效框架">
     <meta name="twitter:description" content="长运行 Agent 的有效框架 发布日期: 2025 年 11 月 26 日 概述 Anthropic 发布的这篇工程博客介绍了如何让 AI Agent 在多个 context window 中持续高效工作。文章通过实践经验总结了一套两部分解决方案：初始化 agent 和编码 agent，帮助开发者构建能够跨越多个上下文窗口的长运行 Agent 系统。 核心问题 长运行 Agent 面临的主要挑战...">
-    <meta name="twitter:image" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/f94c2257964fb2d623f1e81f874977ebfc0986bc-1920x1080.gif">
+    <meta name="twitter:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png">
     <meta name="twitter:site" content="@AnthropicAI">
 
     <!-- Google Analytics 4 -->
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -541,7 +598,7 @@
       "datePublished": "2025-11-26",
       "dateModified": "2026-02-10",
       "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html",
-      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/f94c2257964fb2d623f1e81f874977ebfc0986bc-1920x1080.gif",
+      "image": "https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png",
       "publisher": {
         "@type": "Organization",
         "name": "AI Digest",
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Claude, Anthropic, AI, Agent, SDK, 工程, 实践, 优化",
+      "keywords": "Claude, Anthropic, AI, Agent, 工程, 实践",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -624,17 +681,11 @@
   <li><a href="#_5">两部分框架</a></li>
 <li><a href="#_6">环境管理最佳实践</a></li>
   <li><a href="#_7">功能列表设置</a></li>
-  <li><a href="#_8">增量进度</a></li>
-  <li><a href="#_9">测试策略</a></li>
-<li><a href="#_10">启动新会话的标准流程</a></li>
-<li><a href="#_11">失败模式与解决方案表</a></li>
-<li><a href="#_12">未来方向</a></li>
-<li><a href="#_13">致谢</a></li>
-<li><a href="#_14">注脚</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -683,96 +734,37 @@ Agent 倾向于一次做太多事，导致在实现过程中耗尽上下文，�
     ],
     &quot;passes&quot;: false
 }
-</code></pre></div> <p>claude.ai 克隆示例包含 200+ 个功能特性，所有功能初始标记为"failing"。使用 JSON 格式而非 Markdown，因为 Claude 不太可能不恰当地修改 JSON 文件。</p>
-<p>强制要求："仅通过修改 passes 字段来编辑此文件。不能删除或编辑测试，因为这会导致功能缺失或 bug。"</p>
-<h3 id="_8">增量进度</h3>
-<p>将工作分解为单个功能的增量实现。每次代码变更后，Agent 必须：</p>
-<ul>
-<li>提交到 git（附带描述性提交信息）</li>
-<li>在进度文件中编写总结</li>
-</ul>
-<p>这使 Agent 能够使用 git 回滚坏改动并恢复工作状态，同时提高效率。</p>
-<h3 id="_9">测试策略</h3>
-<p>"Claude 倾向于在没有适当测试的情况下将功能标记为完成。"显式要求 Agent 使用浏览器自动化工具进行端到端测试。</p>
-<p>使用 Puppeteer MCP 服务器进行测试可"显著改进性能，使 Agent 能够识别并修复代码中不明显的 bug"。</p>
-<p><strong>测试截图示例</strong>：
-<img alt="Claude 通过 Puppeteer MCP 服务器截图测试 claude.ai 克隆" src="images/f94c2257964fb2d623f1e81f874977ebfc0986bc-1920x1080.gif" /></p>
-<p>注意：当前存在局限，如 Claude 无法通过 Puppeteer MCP 看到浏览器原生警告框，导致依赖这些模式的功能更容易出现 bug。</p>
-<h2 id="_10">启动新会话的标准流程</h2>
-<p>每个编码 Agent 会话开始时运行一系列步骤：</p>
-<ol>
-<li><strong>运行 <code>pwd</code></strong> 查看工作目录</li>
-<li><strong>读取 git 日志和进度文件</strong> 了解最近工作</li>
-<li><strong>读取功能列表文件</strong> 选择最高优先级未完成功能</li>
-</ol>
-<div class="codehilite"><pre><span></span><code><span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">I</span><span class="err">&#39;</span><span class="n">ll</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">getting</span><span class="w"> </span><span class="n">my</span><span class="w"> </span><span class="n">bearings</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">understanding</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">project</span><span class="p">.</span>
-<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">bash</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">pwd</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">read</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">claude</span><span class="o">-</span><span class="n">progress</span><span class="p">.</span><span class="n">txt</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">read</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">feature_list</span><span class="p">.</span><span class="n">json</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="n">log</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="n">recent</span><span class="w"> </span><span class="n">work</span><span class="p">.</span>
-<span class="p">[</span><span class="n">Tool</span><span class="w"> </span><span class="n">Use</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="n">bash</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">git</span><span class="w"> </span><span class="n">log</span><span class="w"> </span><span class="o">--</span><span class="n">oneline</span><span class="w"> </span><span class="mi">-20</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Now</span><span class="w"> </span><span class="n">let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">there</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">init</span><span class="p">.</span><span class="n">sh</span><span class="w"> </span><span class="n">script</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">restart</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">servers</span><span class="p">.</span>
-<span class="o">&lt;</span><span class="n">Starts</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">development</span><span class="w"> </span><span class="n">server</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Excellent</span><span class="o">!</span><span class="w"> </span><span class="n">Now</span><span class="w"> </span><span class="n">let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">navigate</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">application</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">verify</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">fundamental</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">still</span><span class="w"> </span><span class="n">working</span><span class="p">.</span>
-<span class="o">&lt;</span><span class="n">Tests</span><span class="w"> </span><span class="n">basic</span><span class="w"> </span><span class="n">functionality</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">Assistant</span><span class="p">]</span><span class="w"> </span><span class="n">Based</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">my</span><span class="w"> </span><span class="n">verification</span><span class="w"> </span><span class="n">testing</span><span class="p">,</span><span class="w"> </span><span class="n">I</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">fundamental</span><span class="w"> </span><span class="n">functionality</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">working</span><span class="w"> </span><span class="n">well</span><span class="p">.</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">core</span><span class="w"> </span><span class="n">chat</span><span class="w"> </span><span class="n">features</span><span class="p">,</span><span class="w"> </span><span class="n">theme</span><span class="w"> </span><span class="n">switching</span><span class="p">,</span><span class="w"> </span><span class="n">conversation</span><span class="w"> </span><span class="n">loading</span><span class="p">,</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">error</span><span class="w"> </span><span class="n">handling</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">functioning</span><span class="w"> </span><span class="n">correctly</span><span class="p">.</span><span class="w"> </span><span class="n">Now</span><span class="w"> </span><span class="n">let</span><span class="w"> </span><span class="n">me</span><span class="w"> </span><span class="n">review</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">tests</span><span class="p">.</span><span class="n">json</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">more</span><span class="w"> </span><span class="n">comprehensively</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">understand</span><span class="w"> </span><span class="n">what</span><span class="w"> </span><span class="n">needs</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">implemented</span><span class="w"> </span><span class="n">next</span><span class="p">.</span>
-<span class="o">&lt;</span><span class="n">Starts</span><span class="w"> </span><span class="n">work</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">new</span><span class="w"> </span><span class="n">feature</span><span class="o">&gt;</span>
-</code></pre></div> <p>此方法在每个会话中节省 token，因为 Agent 不需要自行找出测试方法。</p>
-<h2 id="_11">失败模式与解决方案表</h2>
-<table>
-<thead>
-<tr>
-<th>问题</th>
-<th>初始化 Agent 行为</th>
-<th>编码 Agent 行为</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Claude 过早宣布整个项目完成</td>
-<td>建立功能列表文件：基于输入规范，创建包含端到端功能描述的结构化 JSON 文件</td>
-<td>在会话开始读取功能列表。选择单个功能着手处理</td>
-</tr>
-<tr>
-<td>Claude 留下含 bug 或未记录进度的环境</td>
-<td>编写初始 git repo 和进度备注文件</td>
-<td>会话开始时读取进度和 git 日志，在开发服务器上运行基础测试捕获未记录的 bug；会话结束时编写 git 提交和进度更新</td>
-</tr>
-<tr>
-<td>Claude 过早标记功能完成</td>
-<td>建立功能列表文件</td>
-<td>自我验证所有功能。仅在仔细测试后标记功能"通过"</td>
-</tr>
-<tr>
-<td>Claude 浪费时间了解如何运行应用</td>
-<td>编写能运行开发服务器的 <code>init.sh</code> 脚本</td>
-<td>会话开始时读取 <code>init.sh</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="_12">未来方向</h2>
-<p>研究表明，单一通用编码 Agent 是否在多个 context 中表现最好仍不确定。使用专门的 Agent（测试 Agent、质量保证 Agent、代码清理 Agent）进行子任务可能效果更佳。</p>
-<p>此演示针对全栈 Web 应用开发优化。泛化这些发现到其他领域（如科学研究或财务建模）是有前景的方向。</p>
-<h2 id="_13">致谢</h2>
-<p>由 Justin Young 撰写。感谢 David Hershey、Prithvi Rajasakeran、Jeremy Hadfield、Naia Bouscal、Michael Tingley、Jesse Mu、Jake Eaton、Marius Buleandara、Maggie Vo、Pedram Navid、Nadine Yasser 和 Alex Notov 的贡献。</p>
-<p>此工作得到 Anthropic 多个团队的支持，特别是代码 RL 和 Claude Code 团队。感兴趣的候选人欢迎在 <a href="http://anthropic.com/careers">anthropic.com/careers</a> 申请。</p>
-<h2 id="_14">注脚</h2>
-<ol>
-<li>仅因初始用户提示不同而称之为"单独的 Agent"。系统提示、工具集和整体 Agent harness 在其他方面相同。</li>
-</ol>
-<hr />
-<p><strong>相关资源</strong>：</p>
-<ul>
-<li><a href="https://platform.claude.com/docs/en/agent-sdk/overview">Claude Agent SDK 文档</a></li>
-<li><a href="https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding">快速入门代码示例</a></li>
-<li><a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices#multi-context-window-workflows">Claude 4 提示工程最佳实践</a></li>
-</ul>
-        
-        
-        
-        
+</code></pre>
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>长运行 Agent 的有效框架<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</a><br>
+                <strong>发布日期：</strong>2025年11月26日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -785,7 +777,7 @@ Agent 倾向于一次做太多事，导致在实现过程中耗尽上下文，�
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

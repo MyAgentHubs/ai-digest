@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="本文是 Anthropic 基于数千个生产系统的实践总结，系统阐述了 AI Agent 架构设计的核心原则：从简单工作流到自主智能体的六种模式（提示链、路由、并行化、编排-工作者、评估-优化、自主 Agent），以及何时使用确定性工作流、何时需要自主决策的判断准则。文章强调简洁优于复杂的设计哲学，提供了完整的架构决策检查清单、反模式警告和真实案例分析（客户支持、SWE-bench 编码任务），是构建生产级 Agent 系统的权威实践指南。">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, AI Agent 架构设计权威指南：从工作流到自主系统">
+    <meta name="keywords" content="Anthropic, AI, Agent, LLM, 实践">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-building-effective-agents.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Claude, Anthropic, AI, Agent, API, LLM, prompt, 模型",
+      "keywords": "Anthropic, AI, Agent, LLM, 实践",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -621,41 +678,11 @@
 <li><a href="#workflows-vs-agents">一、架构分类：Workflows vs Agents</a></li>
   <li><a href="#1">1. 核心定义</a></li>
   <li><a href="#2">2. 架构对比图</a></li>
-  <li><a href="#3">3. 选择矩阵</a></li>
-<li><a href="#llm">二、基础构建块：增强型 LLM</a></li>
-<li><a href="#_2">三、六种工作流架构模式</a></li>
-  <li><a href="#1prompt-chaining">模式 1：Prompt Chaining（提示链）</a></li>
-  <li><a href="#2routing">模式 2：Routing（路由）</a></li>
-  <li><a href="#3parallelization">模式 3：Parallelization（并行化）</a></li>
-  <li><a href="#4orchestrator-workers-">模式 4：Orchestrator-Workers（编排-工作者）</a></li>
-  <li><a href="#5evaluator-optimizer-">模式 5：Evaluator-Optimizer（评估-优化）</a></li>
-  <li><a href="#6autonomous-agents">模式 6：Autonomous Agents（自主智能体）</a></li>
-<li><a href="#_3">四、三大核心设计原则</a></li>
-  <li><a href="#1simplicity">原则 1：简洁性（Simplicity）</a></li>
-  <li><a href="#2transparency">原则 2：透明性（Transparency）</a></li>
-  <li><a href="#3agent-computer-interface">原则 3：工具文档（Agent-Computer Interface）</a></li>
-<li><a href="#_4">五、实际应用案例深度分析</a></li>
-  <li><a href="#1-agent">案例 1：客户支持 Agent</a></li>
-  <li><a href="#2-agentswe-bench-verified">案例 2：编码 Agent（SWE-bench Verified）</a></li>
-<li><a href="#_5">六、架构决策检查清单</a></li>
-  <li><a href="#_6">设计阶段</a></li>
-  <li><a href="#_7">实现阶段</a></li>
-  <li><a href="#_8">测试阶段</a></li>
-  <li><a href="#_9">部署阶段</a></li>
-<li><a href="#_10">七、反模式警告</a></li>
-  <li><a href="#1-agent_1">反模式 1：过早优化为自主 Agent</a></li>
-  <li><a href="#2_1">反模式 2：忽视成本和延迟</a></li>
-  <li><a href="#3_1">反模式 3：工具描述不足</a></li>
-  <li><a href="#4-agent">反模式 4：隐藏 Agent 决策</a></li>
-<li><a href="#_11">八、关键架构权衡矩阵</a></li>
-<li><a href="#anthropic-agent">九、总结：Anthropic 的 Agent 设计哲学</a></li>
-  <li><a href="#_12">核心理念</a></li>
-  <li><a href="#_13">实践建议</a></li>
-  <li><a href="#_14">未来展望</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -717,1123 +744,37 @@ graph TB
     style env fill:#FFB74D,stroke:#E65100
     style agentllm fill:#FFB74D,stroke:#E65100
     style decision fill:#FFE082,stroke:#F57F17
-</div>
 
-
-<h3 id="3">3. 选择矩阵</h3>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>Workflows</th>
-<th>Agents</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>可预测性</strong></td>
-<td>高（固定路径）</td>
-<td>低（动态决策）</td>
-</tr>
-<tr>
-<td><strong>开发复杂度</strong></td>
-<td>低（代码逻辑清晰）</td>
-<td>中（需设计约束）</td>
-</tr>
-<tr>
-<td><strong>调试难度</strong></td>
-<td>易（步骤可追踪）</td>
-<td>难（非确定性）</td>
-</tr>
-<tr>
-<td><strong>任务适应性</strong></td>
-<td>低（需重新编码）</td>
-<td>高（自动调整）</td>
-</tr>
-<tr>
-<td><strong>成本/延迟</strong></td>
-<td>可优化（少轮调用）</td>
-<td>高（多轮探索）</td>
-</tr>
-<tr>
-<td><strong>失败模式</strong></td>
-<td>明确边界</td>
-<td>需设停止条件</td>
-</tr>
-</tbody>
-</table>
-<p><strong>黄金法则</strong>：从最简单方案开始，仅在必要时增加复杂度。</p>
-<hr />
-<h2 id="llm">二、基础构建块：增强型 LLM</h2>
-<p><strong>架构组成</strong>：增强型 LLM = 基础 LLM + 检索 + 工具 + 记忆</p>
-
-<!-- Mermaid.js 现代化版本 -->
-<div class="mermaid">
-graph TB
-    input["用户输入"]
-
-    retrieval["检索层 (Retrieval)<br/>• 向量数据库查询<br/>• 知识库上下文注入"]
-
-    llm["LLM 推理层<br/>• 分析 + 规划<br/>• 决定工具调用"]
-
-    tools["工具层 (Tools)<br/>• API 调用<br/>• 数据库查询<br/>• 代码执行"]
-
-    memory["记忆层 (Memory)<br/>• 对话历史<br/>• 长期上下文存储"]
-
-    input --> retrieval
-    retrieval --> llm
-    llm --> tools
-    tools --> memory
-    memory -.上下文反馈.-> llm
-
-    style input fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style retrieval fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style llm fill:#FFE082,stroke:#F57F17,stroke-width:3px
-    style tools fill:#FFCCBC,stroke:#D84315,stroke-width:2px
-    style memory fill:#F8BBD0,stroke:#C2185B,stroke-width:2px
-</div>
-
-
-<p><strong>技术实现</strong>：</p>
-<ul>
-<li><strong>检索</strong>：通过 Model Context Protocol (MCP) 集成第三方数据源</li>
-<li><strong>工具</strong>：标准化接口定义（schema + 描述 + 示例）</li>
-<li><strong>记忆</strong>：短期（对话历史）+ 长期（外部存储）</li>
-</ul>
-<hr />
-<h2 id="_2">三、六种工作流架构模式</h2>
-<h3 id="1prompt-chaining">模式 1：Prompt Chaining（提示链）</h3>
-<p><strong>原理</strong>：将复杂任务分解为顺序 LLM 调用链，每步输出作为下一步输入。</p>
-<p><strong>架构图</strong>：</p>
-
-<!-- Mermaid.js 现代化版本 -->
-<div class="mermaid">
-graph LR
-    input["输入"] --> llm1["LLM₁<br/>(分析)"]
-    llm1 --> result1["中间结果₁"]
-    result1 --> llm2["LLM₂<br/>(执行)"]
-    llm2 --> result2["中间结果₂"]
-    result2 --> llm3["LLM₃<br/>(验证)"]
-    llm3 --> output["输出"]
-
-    llm1 -.-> gate1["代码门控<br/>检查格式/质量"]
-    llm2 -.-> gate2["代码门控<br/>检查格式/质量"]
-    llm3 -.-> gate3["代码门控<br/>检查格式/质量"]
-
-    style input fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style output fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style llm1 fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style llm2 fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style llm3 fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style result1 fill:#F5F5F5,stroke:#9E9E9E
-    style result2 fill:#F5F5F5,stroke:#9E9E9E
-    style gate1 fill:#FFCCBC,stroke:#D84315,stroke-dasharray: 5 5
-    style gate2 fill:#FFCCBC,stroke:#D84315,stroke-dasharray: 5 5
-    style gate3 fill:#FFCCBC,stroke:#D84315,stroke-dasharray: 5 5
-</div>
-
-
-<p><strong>代码示例</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 反模式：单一提示处理多步骤</span>
-<span class="k">def</span> <span class="nf">generate_and_translate</span>(<span class="n">topic</span>: <span class="nb">str</span>) <span class="o">-&gt;</span> <span class="nb">str</span>:
-    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;生成关于</span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">的营销文案，然后翻译成西班牙语&quot;</span>
-    <span class="k">return</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="n">prompt</span>)
-    <span class="c1"># 两个任务混在一起，难以控制质量</span>
-
-
-<span class="c1"># ✅ 最佳实践：链式分解 + 门控验证</span>
-<span class="k">def</span> <span class="nf">generate_and_translate_chained</span>(<span class="n">topic</span>: <span class="nb">str</span>) <span class="o">-&gt;</span> <span class="nb">str</span>:
-    <span class="c1"># 步骤 1: 生成文案</span>
-    <span class="n">copy</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;为</span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">生成营销文案&quot;</span>)
-
-    <span class="c1"># 门控 1: 验证长度和关键词</span>
-    <span class="k">if</span> <span class="nb">len</span>(<span class="n">copy</span><span class="o">.</span><span class="n">split</span>()) <span class="o">&lt;</span> <span class="mi">50</span> <span class="ow">or</span> <span class="n">topic</span><span class="o">.</span><span class="n">lower</span>() <span class="ow">not</span> <span class="ow">in</span> <span class="n">copy</span><span class="o">.</span><span class="n">lower</span>():
-        <span class="k">raise</span> <span class="ne">ValueError</span>(<span class="s2">&quot;文案质量不达标&quot;</span>)
-
-    <span class="c1"># 步骤 2: 翻译</span>
-    <span class="n">translation</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;将以下文案翻译成西班牙语：\n</span><span class="si">{</span><span class="n">copy</span><span class="si">}</span><span class="s2">&quot;</span>)
-
-    <span class="c1"># 门控 2: 验证翻译保留了关键信息</span>
-    <span class="n">key_terms</span> <span class="o">=</span> <span class="n">extract_key_terms</span>(<span class="n">copy</span>)
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span>(<span class="n">term</span> <span class="ow">in</span> <span class="n">translation</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">key_terms</span>):
-        <span class="k">return</span> <span class="n">retry_translation</span>(<span class="n">copy</span>)
-
-    <span class="k">return</span> <span class="n">translation</span>
-</code></pre></div> <p><strong>适用场景</strong>：</p>
-<ul>
-<li>需要中间步骤验证的任务（如代码生成 → 测试 → 修复）</li>
-<li>输出格式要求严格（生成数据 → 格式化 → 验证）</li>
-<li>任务自然分解为顺序步骤（研究 → 撰写 → 编辑）</li>
-</ul>
-<hr />
-<h3 id="2routing">模式 2：Routing（路由）</h3>
-<p><strong>原理</strong>：根据输入分类，路由到专用 LLM 或提示。</p>
-<p><strong>架构图</strong>：</p>
-
-<!-- Mermaid.js 现代化版本 -->
-<div class="mermaid">
-graph LR
-    input["用户输入"] --> router["分类器 LLM"]
-
-    router -->|技术问题| tech["LLM_技术支持"]
-    router -->|退款请求| refund["LLM_退款处理"]
-    router -->|销售咨询| sales["LLM_销售咨询"]
-
-    tech --> tech_out["技术方案"]
-    refund --> refund_out["退款流程"]
-    sales --> sales_out["产品推荐"]
-
-    style input fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style router fill:#FFE082,stroke:#F57F17,stroke-width:3px
-    style tech fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style refund fill:#F8BBD0,stroke:#C2185B,stroke-width:2px
-    style sales fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px
-    style tech_out fill:#F5F5F5,stroke:#9E9E9E
-    style refund_out fill:#F5F5F5,stroke:#9E9E9E
-    style sales_out fill:#F5F5F5,stroke:#9E9E9E
-</div>
-
-
-<p><strong>代码示例</strong>：</p>
-<div class="codehilite"><pre><span></span><code># ❌ 反模式：单一超大提示处理所有场景
-MEGA_PROMPT = &quot;&quot;&quot;
-你是客服系统，需要处理：
-1.技术问题（查阅文档，提供代码示例）
-2.退款请求（检查订单，处理退款）
-3.销售咨询（推荐产品，生成报价）
-...（500+ 行提示）
-&quot;&quot;&quot;
-
-
-<span class="c1"># ✅ 最佳实践：专用路由 + 专家提示</span>
-<span class="k">def</span> <span class="nf">route_customer_query</span>(<span class="n">query</span>: <span class="nb">str</span>):
-    <span class="c1"># 路由器：轻量级分类</span>
-    <span class="n">category</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(
-        <span class="sa">f</span><span class="s2">&quot;将以下查询分类为 [technical, refund, sales]:\n</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span>,
-        <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-haiku&quot;</span>  <span class="c1"># 使用快速模型</span>
-    )
-
-    <span class="c1"># 专家处理器</span>
-    <span class="n">handlers</span> <span class="o">=</span> {
-        <span class="s2">&quot;technical&quot;</span>: <span class="n">TechnicalSupportAgent</span>(<span class="n">knowledge_base</span><span class="o">=</span><span class="s2">&quot;docs&quot;</span>),
-        <span class="s2">&quot;refund&quot;</span>: <span class="n">RefundAgent</span>(<span class="n">api</span><span class="o">=</span><span class="n">payment_system</span>),
-        <span class="s2">&quot;sales&quot;</span>: <span class="n">SalesAgent</span>(<span class="n">crm</span><span class="o">=</span><span class="n">customer_data</span>)
-    }
-
-    <span class="k">return</span> <span class="n">handlers</span>[<span class="n">category</span>]<span class="o">.</span><span class="n">handle</span>(<span class="n">query</span>)
-
-
-<span class="c1"># 专家提示示例</span>
-<span class="k">class</span> <span class="nc">TechnicalSupportAgent</span>:
-    <span class="n">PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    你是技术支持专家，专注于：</span>
-<span class="s2">      - 诊断 API 错误</span>
-<span class="s2">      - 提供代码示例</span>
-<span class="s2">      - 引用官方文档</span>
-
-<span class="s2">    可用工具：search_docs(), run_code_sample()</span>
-<span class="s2">    &quot;&quot;&quot;</span>
-</code></pre></div> <p><strong>性能优势</strong>：</p>
-<ul>
-<li>路由器可用小模型（Haiku，延迟 &lt; 1s）</li>
-<li>专家提示更聚焦（token 消耗降低 40-60 %）</li>
-<li>各路径独立优化和监控</li>
-</ul>
-<hr />
-<h3 id="3parallelization">模式 3：Parallelization（并行化）</h3>
-<p><strong>两种子模式</strong>：</p>
-<h4 id="asectioning">子模式 A：Sectioning（分段并行）</h4>
-<p><strong>原理</strong>：将独立子任务并行执行，聚合结果。</p>
-
-<!-- Mermaid.js 现代化版本 -->
-<div class="mermaid">
-graph LR
-    input["输入文档"] --> llm1["LLM₁<br/>(第 1-10 页)"]
-    input --> llm2["LLM₂<br/>(第 11-20 页)"]
-    input --> llm3["LLM₃<br/>(第 21-30 页)"]
-
-    llm1 --> agg["聚合 LLM"]
-    llm2 --> agg
-    llm3 --> agg
-
-    agg --> output["最终摘要"]
-
-    style input fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style llm1 fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style llm2 fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style llm3 fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style agg fill:#C8E6C9,stroke:#388E3C,stroke-width:3px
-    style output fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
-</div>
-
- <div class="codehilite"><pre><span></span><code># 并行分段代码审查
-        <span class="kn">import</span> <span class="nn">asyncio</span>
-
-<span class="k">async</span> <span class="k">def</span> <span class="nf">parallel_code_review</span>(<span class="n">files</span>: <span class="nb">list</span>[<span class="nb">str</span>]):
-        # 并行审查每个文件 reviews = await asyncio.gather(*[review_file(f)
-        for f in files]) # 聚合发现的问题 all_issues = aggregate_issues(reviews) # LLM 优先级排序 prioritized = llm.call(f&amp;quot;对以下代码问题按严重性排序：\n{all_issues}&amp;quot;)
-        return prioritized async
-
-    def review_file(filepath: str):
-        
-        code = read_file(filepath)
-        return await llm.call_async(f&amp;quot;审查以下代码的安全性和性能问题：\n{code}&amp;quot;)
-</code></pre></div> <h4 id="bvoting">子模式 B：Voting（投票并行）</h4>
-<p><strong>原理</strong>：同一任务多次并行执行，投票选择最佳结果。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 高可靠性代码生成</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">voted_code_generation</span>(<span class="n">spec</span>: <span class="nb">str</span>, <span class="n">num_attempts</span><span class="o">=</span><span class="mi">5</span>):
-    <span class="c1"># 并行生成多个候选</span>
-    <span class="n">candidates</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span>(<span class="o">*</span>[
-        <span class="n">llm</span><span class="o">.</span><span class="n">call_async</span>(<span class="sa">f</span><span class="s2">&quot;根据规格生成代码：</span><span class="se">\n</span><span class="si">{</span><span class="n">spec</span><span class="si">}</span><span class="s2">&quot;</span>)
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span>(<span class="n">num_attempts</span>)
-    ])
-
-    <span class="c1"># 每个候选运行测试</span>
-    <span class="n">test_results</span> <span class="o">=</span> [<span class="n">run_tests</span>(<span class="n">code</span>) <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">candidates</span>]
-
-    <span class="c1"># 选择通过最多测试的版本</span>
-    <span class="n">best_idx</span> <span class="o">=</span> <span class="nb">max</span>(<span class="nb">range</span>(<span class="n">num_attempts</span>), <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span>: <span class="n">test_results</span>[<span class="n">i</span>]<span class="o">.</span><span class="n">passed_count</span>)
-    <span class="k">return</span> <span class="n">candidates</span>[<span class="n">best_idx</span>]
-</code></pre></div> <p><strong>成本-可靠性权衡</strong>：</p>
-<table>
-<thead>
-<tr>
-<th>投票数</th>
-<th>Token 成本</th>
-<th>成功率提升</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>1x</td>
-<td>基线</td>
-<td>低风险任务</td>
-</tr>
-<tr>
-<td>3</td>
-<td>3x</td>
-<td>+15-25 %</td>
-<td>中等风险</td>
-</tr>
-<tr>
-<td>5</td>
-<td>5x</td>
-<td>+30-40 %</td>
-<td>高风险（如安全审计）</td>
-</tr>
-<tr>
-<td>10</td>
-<td>10x</td>
-<td>+45-55 %</td>
-<td>关键任务（如医疗诊断）</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="4orchestrator-workers-">模式 4：Orchestrator-Workers（编排-工作者）</h3>
-<p><strong>原理</strong>：中央 LLM 动态分解任务并协调多个 Worker LLM 执行。</p>
-<p><strong>架构图</strong>：</p>
-
-<!-- Mermaid.js 现代化版本 -->
-<div class="mermaid">
-graph TB
-    task["接收任务：重构整个模块"] --> orch["Orchestrator LLM<br/>(任务分解)"]
-
-    orch -->|子任务1| worker1["Worker₁<br/>修改 auth.py"]
-    orch -->|子任务2| worker2["Worker₂<br/>修改 db.py"]
-    orch -->|子任务3| worker3["Worker₃<br/>更新测试"]
-
-    worker1 --> collect["收集结果"]
-    worker2 --> collect
-    worker3 --> collect
-
-    collect --> validate["合并代码变更<br/>验证一致性"]
-
-    style task fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style orch fill:#FFE082,stroke:#F57F17,stroke-width:3px
-    style worker1 fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style worker2 fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style worker3 fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style collect fill:#F5F5F5,stroke:#9E9E9E
-    style validate fill:#F8BBD0,stroke:#C2185B,stroke-width:2px
-</div>
-
-
-<p><strong>代码示例</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">OrchestratorAgent</span>:
-    <span class="k">def</span> <span class="nf">execute_coding_task</span>(<span class="bp">self</span>, <span class="n">task</span>: <span class="nb">str</span>, <span class="n">codebase</span>: <span class="nb">dict</span>):
-        <span class="c1"># 步骤 1: 规划</span>
-        <span class="n">plan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrator_llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            任务：</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">            代码库结构：</span><span class="si">{</span><span class="n">codebase</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">            生成执行计划，格式：</span>
-<span class="s2">            {{&quot;subtasks&quot;: [{{&quot;file&quot;: &quot;auth.py&quot;, &quot;action&quot;: &quot;add_oauth_support&quot;}}, ...],</span>
-<span class="s2">             &quot;dependencies&quot;: {{&quot;auth.py&quot;: [], &quot;tests.py&quot;: [&quot;auth.py&quot;]}}}}</span>
-<span class="s2">        &quot;&quot;&quot;</span>)
-
-        <span class="c1"># 步骤 2: 拓扑排序（处理依赖）</span>
-        <span class="n">ordered_tasks</span> <span class="o">=</span> <span class="n">topological_sort</span>(<span class="n">plan</span>[<span class="s1">&#39;subtasks&#39;</span>], <span class="n">plan</span>[<span class="s1">&#39;dependencies&#39;</span>])
-
-        <span class="c1"># 步骤 3: 执行（考虑依赖顺序）</span>
-        <span class="n">results</span> <span class="o">=</span> {}
-        <span class="k">for</span> <span class="n">subtask</span> <span class="ow">in</span> <span class="n">ordered_tasks</span>:
-            <span class="c1"># Worker 执行具体修改</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">worker_llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                修改文件 </span><span class="si">{</span><span class="n">subtask</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span>
-<span class="s2">                当前代码：</span><span class="si">{</span><span class="n">codebase</span><span class="p">[</span><span class="n">subtask</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span><span class="p">]</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">                任务：</span><span class="si">{</span><span class="n">subtask</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">                已有变更：</span><span class="si">{</span><span class="n">results</span><span class="si">}</span><span class="s2">  # 传递上下文</span>
-<span class="s2">            &quot;&quot;&quot;</span>)
-            <span class="n">results</span>[<span class="n">subtask</span>[<span class="s1">&#39;file&#39;</span>]] <span class="o">=</span> <span class="n">result</span>
-
-        <span class="c1"># 步骤 4: 验证一致性</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">validate_changes</span>(<span class="n">results</span>)
-        <span class="k">return</span> <span class="n">results</span>
-</code></pre></div> <p><strong>适用场景</strong>：</p>
-<ul>
-<li>多文件代码修改（需协调接口变更）</li>
-<li>复杂数据处理管道（动态选择步骤）</li>
-<li>多步骤研究任务（根据中间结果调整策略）</li>
-</ul>
-<hr />
-<h3 id="5evaluator-optimizer-">模式 5：Evaluator-Optimizer（评估-优化）</h3>
-<p><strong>原理</strong>：迭代生成 → 评估 → 改进的循环。</p>
-<p><strong>架构图</strong>：</p>
-
-<div class="mermaid">
-graph TB
-    input["输入"] --> generator["生成器 LLM"]
-    generator --> output1["初版输出"]
-    output1 --> evaluator["评估器 LLM"]
-    evaluator --> feedback["评分 + 改进建议"]
-    feedback --> decision{"是否满足阈值?"}
-    decision -->|No| generator
-    decision -->|Yes| final["返回结果"]
-
-    style input fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style generator fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style evaluator fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style decision fill:#FFCCBC,stroke:#D84315,stroke-width:2px
-    style final fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
-    style output1 fill:#F5F5F5,stroke:#9E9E9E
-    style feedback fill:#F5F5F5,stroke:#9E9E9E
-</div>
-(最多 N 轮)
-</pre>
-<p><strong>代码示例</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 文学翻译迭代优化</span>
-<span class="k">def</span> <span class="nf">iterative_translation</span>(<span class="n">text</span>: <span class="nb">str</span>, <span class="n">target_lang</span>: <span class="nb">str</span>, <span class="n">quality_threshold</span><span class="o">=</span><span class="mf">8.5</span>, <span class="n">max_iterations</span><span class="o">=</span><span class="mi">5</span>):
-    <span class="n">current_translation</span> <span class="o">=</span> <span class="kc">None</span>
-
-    <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span>(<span class="n">max_iterations</span>):
-        <span class="c1"># 生成阶段</span>
-        <span class="k">if</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span>:
-            <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;翻译成</span><span class="si">{</span><span class="n">target_lang</span><span class="si">}</span><span class="s2">：\n</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">else</span>:
-            <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                改进以下翻译（上一版评分：</span><span class="si">{</span><span class="n">score</span><span class="si">}</span><span class="s2">）</span>
-<span class="s2">                原文：</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">                当前翻译：</span><span class="si">{</span><span class="n">current_translation</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">                问题：</span><span class="si">{</span><span class="n">feedback</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">            &quot;&quot;&quot;</span>
-
-        <span class="n">current_translation</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="n">prompt</span>)
-
-        <span class="c1"># 评估阶段</span>
-        <span class="n">evaluation</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            评估翻译质量（1-10 分）：</span>
-<span class="s2">            原文：</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"></span>
-<span class="s2">            译文：</span><span class="si">{</span><span class="n">current_translation</span><span class="si">}</span><span class="s2"></span>
-
-<span class="s2">            评估维度：</span>
-<span class="s2">              - 准确性（是否忠于原文）</span>
-<span class="s2">              - 流畅性（目标语言自然度）</span>
-<span class="s2">              - 文化适配（习语和文化引用）</span>
-
-<span class="s2">            返回：</span><span class="si">{{</span><span class="s2">&quot;score&quot;: X, &quot;feedback&quot;: &quot;...&quot;</span><span class="si">}}</span><span class="s2"></span>
-<span class="s2">        &quot;&quot;&quot;</span>)
-
-        <span class="n">score</span> <span class="o">=</span> <span class="n">evaluation</span>[<span class="s1">&#39;score&#39;</span>]
-        <span class="n">feedback</span> <span class="o">=</span> <span class="n">evaluation</span>[<span class="s1">&#39;feedback&#39;</span>]
-
-        <span class="c1"># 停止条件</span>
-        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="n">quality_threshold</span>:
-            <span class="k">return</span> <span class="n">current_translation</span>
-
-    <span class="c1"># 达到最大迭代次数</span>
-    <span class="k">return</span> <span class="n">current_translation</span>
-
-
-<span class="c1"># ❌ 反模式：无限循环风险</span>
-<span class="k">def</span> <span class="nf">bad_iterative</span>(<span class="n">text</span>):
-    <span class="k">while</span> <span class="kc">True</span>:  <span class="c1"># 危险！可能永不停止</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">generate</span>(<span class="n">text</span>)
-        <span class="k">if</span> <span class="n">is_perfect</span>(<span class="n">result</span>):  <span class="c1"># 可能永远不完美</span>
-            <span class="k">return</span> <span class="n">result</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="n">improve_prompt</span>(<span class="n">text</span>, <span class="n">result</span>)
-</code></pre></div> <p><strong>停止条件设计</strong>：</p>
-<ul>
-<li>✅ 质量阈值（评分 &gt; X）</li>
-<li>✅ 最大迭代次数（防止成本失控）</li>
-<li>✅ 改进停滞检测（连续 N 轮无提升）</li>
-<li>✅ 用户主动终止（人工介入）</li>
-</ul>
-<hr />
-<h3 id="6autonomous-agents">模式 6：Autonomous Agents（自主智能体）</h3>
-<p><strong>原理</strong>：LLM 在环境中持续感知 → 规划 → 执行的循环，无预定义路径。</p>
-<p><strong>完整 Agent 循环</strong>：</p>
-<div class="mermaid">
-graph TB
-    env["环境/任务状态"]
-    env -->|观察| agent["Agent LLM<br/>• 分析当前状态<br/>• 规划下一步行动<br/>• 选择工具调用"]
-    agent -->|执行| tools["工具执行层<br/>• 修改文件<br/>• 运行测试<br/>• 搜索文档"]
-    tools -->|反馈| check["停止条件判断<br/>• 任务完成？<br/>• 达到最大步数？<br/>• 遇到不可恢复错误？"]
-    check -->|继续| env
-    check -->|停止| stop["结束"]
-
-    style env fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style agent fill:#FFE082,stroke:#F57F17,stroke-width:3px
-    style tools fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style check fill:#FFCCBC,stroke:#D84315,stroke-width:2px
-    style stop fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
-</div>
-<p><strong>SWE-bench 编码 Agent 实现</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">CodingAgent</span>:
-    <span class="k">def</span> <span class="nf">solve_github_issue</span>(<span class="bp">self</span>, issue_description: <span class="nb">str</span>, repo_path: <span class="nb">str</span>, max_steps=<span class="mi">100</span>):
-        step_count = <span class="mi">0</span>
-
-        <span class="c1"># 初始化上下文</span>
-        context = {
-            <span class="s2">&quot;issue&quot;</span>: issue_description,
-            <span class="s2">&quot;repo&quot;</span>: load_repo_structure(repo_path),
-            <span class="s2">&quot;actions_taken&quot;</span>: []
-        }
-
-        <span class="k">while</span> step_count &lt; max_steps:
-            <span class="c1"># 观察当前状态</span>
-            observation = <span class="bp">self</span>.observe(context)
-
-            <span class="c1"># Agent 决策下一步</span>
-            action = <span class="bp">self</span>.llm.call(<span class="sa">f</span><span class="s2">&quot;&quot;&quot;
-                任务：</span><span class="si">{</span>context[<span class="s1">&#39;issue&#39;</span>]<span class="si">}</span><span class="s2">
-                当前状态：</span><span class="si">{</span>observation<span class="si">}</span><span class="s2">
-                已执行步骤：</span><span class="si">{</span>context[<span class="s1">&#39;actions_taken&#39;</span>]<span class="si">}</span><span class="s2">
-
-                可用工具：
-                  - read_file(path)
-                  - edit_file(path, changes)
-                  - run_tests()
-                  - search_codebase(query)
-                  - bash_command(cmd)
-
-                决定下一步行动（JSON 格式）：
-                {{&quot;tool&quot;: &quot;...&quot;, &quot;args&quot;: {{...}}, &quot;reasoning&quot;: &quot;...&quot;}}
-            &quot;&quot;&quot;</span>)
-
-            <span class="c1"># 执行工具调用</span>
-            result = <span class="bp">self</span>.execute_tool(action[<span class="s1">&#39;tool&#39;</span>], action[<span class="s1">&#39;args&#39;</span>])
-
-            <span class="c1"># 更新上下文</span>
-            context[<span class="s1">&#39;actions_taken&#39;</span>].append({
-                <span class="s2">&quot;step&quot;</span>: step_count,
-                <span class="s2">&quot;action&quot;</span>: action,
-                <span class="s2">&quot;result&quot;</span>: result
-            })
-
-            <span class="c1"># 检查停止条件</span>
-            <span class="k">if</span> <span class="bp">self</span>.should_stop(context, result):
-                <span class="k">break</span>
-
-            step_count += <span class="mi">1</span>
-
-        <span class="c1"># 最终验证</span>
-        test_results = <span class="bp">self</span>.run_all_tests(repo_path)
-        <span class="k">return</span> {
-            <span class="s2">&quot;solution&quot;</span>: context[<span class="s1">&#39;actions_taken&#39;</span>],
-            <span class="s2">&quot;tests_passed&quot;</span>: test_results.passed,
-            <span class="s2">&quot;steps_used&quot;</span>: step_count
-        }
-
-    <span class="k">def</span> <span class="nf">should_stop</span>(<span class="bp">self</span>, context, result):
-        <span class="c1"># 停止条件 1: 显式完成信号</span>
-        <span class="k">if</span> <span class="s2">&quot;TASK_COMPLETE&quot;</span> <span class="ow">in</span> result:
-            <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="c1"># 停止条件 2: 测试全部通过</span>
-        <span class="k">if</span> result.get(<span class="s1">&#39;all_tests_passed&#39;</span>):
-            <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="c1"># 停止条件 3: 连续失败</span>
-        recent_failures = [
-            a <span class="k">for</span> a <span class="ow">in</span> context[<span class="s1">&#39;actions_taken&#39;</span>][-<span class="mi">5</span>:]
-            <span class="k">if</span> a[<span class="s1">&#39;result&#39;</span>].get(<span class="s1">&#39;error&#39;</span>)
-        ]
-        <span class="k">if</span> <span class="nb">len</span>(recent_failures) &gt;= <span class="mi">3</span>:
-            <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># 卡住了，停止</span>
-
-        <span class="k">return</span> <span class="kc">False</span>
-</code></pre></div> <p><strong>关键设计要素</strong>：</p>
-<ol>
-<li>
-<p><strong>工具集设计</strong>： - ✅ 原子性（每个工具做一件事） - ✅ 幂等性（重复调用安全） - ✅ 丰富反馈（返回执行结果 + 环境变化）</p>
-</li>
-<li>
-<p><strong>停止条件</strong>： - 任务成功完成（测试通过、目标达成） - 资源限制（最大步数、时间、成本） - 失败检测（循环行为、重复错误）</p>
-</li>
-<li>
-<p><strong>可观测性</strong>： <code>text # 记录 Agent 推理过程 logger.info ({ "step": step_count, "reasoning": action['reasoning'], "tool": action['tool'], "result_summary": result[:200], "context_size": len (context['actions_taken']) })</code></p>
-</li>
-</ol>
-<hr />
-<h2 id="_3">四、三大核心设计原则</h2>
-<h3 id="1simplicity">原则 1：简洁性（Simplicity）</h3>
-<p><strong>反模式示例</strong>：过度工程化的 Agent 框架</p>
-<div class="codehilite"><pre><span></span><code># ❌ 过度设计：引入不必要的抽象层
-<span class="k">class</span> <span class="nc">AgentOrchestrator</span>:
-    <span class="k">def</span> <span class="fm">__init__</span>(<span class="bp">self</span>):
-        <span class="bp">self</span>.state_machine = StateMachine()
-        <span class="bp">self</span>.memory_manager = VectorMemorySystem()
-        <span class="bp">self</span>.tool_registry = DynamicToolLoader()
-        <span class="bp">self</span>.planning_engine = HierarchicalPlanner()
-        <span class="c1"># ... 10+ 组件</span>
-
-    <span class="c1"># 100+ 行的复杂执行逻辑</span> # ✅ 最佳实践：从简单循环开始
-<span class="k">def</span> <span class="nf">simple_agent</span>(task: <span class="nb">str</span>):
-    context = []
-
-    <span class="k">for</span> step <span class="ow">in</span> <span class="nb">range</span>(MAX_STEPS):
-        response = llm.call(
-            messages=context + [{<span class="s2">&quot;role&quot;</span>: <span class="s2">&quot;user&quot;</span>, <span class="s2">&quot;content&quot;</span>: task}],
-            tools=AVAILABLE_TOOLS
-        )
-
-        <span class="k">if</span> response.stop_reason == <span class="s2">&quot;end_turn&quot;</span>:
-            <span class="k">return</span> response.content
-
-        <span class="c1"># 执行工具调用</span>
-        tool_results = execute_tools(response.tool_calls)
-        context.append(response)
-        context.append(tool_results)
-
-    <span class="k">return</span> <span class="s2">&quot;达到最大步数&quot;</span>
-</code></pre></div> <p><strong>渐进复杂度路线图</strong>：</p>
-
-<div class="mermaid">
-graph TD
-    L1["Level 1<br/>单次 LLM 调用 + 提示优化"]
-    L2["Level 2<br/>提示链 (Prompt Chaining)"]
-    L3["Level 3<br/>并行化 + 路由"]
-    L4["Level 4<br/>Orchestrator-Workers"]
-    L5["Level 5<br/>自主 Agent"]
-
-    L1 -->|性能不足时| L2
-    L2 -->|需要并行处理时| L3
-    L3 -->|需要动态规划时| L4
-    L4 -->|需要环境交互时| L5
-
-    style L1 fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style L2 fill:#B3E5FC,stroke:#0288D1,stroke-width:2px
-    style L3 fill:#81D4FA,stroke:#039BE5,stroke-width:2px
-    style L4 fill:#4FC3F7,stroke:#03A9F4,stroke-width:2px
-    style L5 fill:#29B6F6,stroke:#0277BD,stroke-width:3px
-</div>
-<h3 id="2transparency">原则 2：透明性（Transparency）</h3>
-<p><strong>反模式</strong>：隐藏 Agent 推理过程</p>
-<div class="codehilite"><pre><span></span><code># ❌ 黑盒执行
-result = agent.solve(task) # 用户不知道发生了什么 # ✅ 展示规划步骤
-plan = agent.create_plan(task)
-show_to_user(f&quot;我计划执行以下步骤：\n{plan}&quot;) for step in plan: result = agent.execute_step(step) show_to_user(f&quot;✓ 完成：{step.description}\n 结果：{result}&quot;)
-</code></pre></div> <p><strong>透明性的技术实现</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">TransparentAgent</span>:
-    <span class="k">def</span> <span class="nf">solve_with_visibility</span>(<span class="bp">self</span>, <span class="n">task</span>: <span class="nb">str</span>):
-        <span class="c1"># 显示初始分析</span>
-        <span class="n">analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;分析任务：</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span>)
-        <span class="bp">self</span><span class="o">.</span><span class="n">emit_event</span>({
-            <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;analysis&quot;</span>,
-            <span class="s2">&quot;content&quot;</span>: <span class="n">analysis</span>,
-            <span class="s2">&quot;timestamp&quot;</span>: <span class="n">now</span>()
-        })
-
-        <span class="c1"># 显示规划</span>
-        <span class="n">plan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;基于分析制定计划：</span><span class="se">\n</span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span><span class="s2">&quot;</span>)
-        <span class="bp">self</span><span class="o">.</span><span class="n">emit_event</span>({
-            <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;plan&quot;</span>,
-            <span class="s2">&quot;steps&quot;</span>: <span class="n">plan</span>[<span class="s1">&#39;steps&#39;</span>],
-            <span class="s2">&quot;estimated_time&quot;</span>: <span class="n">plan</span>[<span class="s1">&#39;estimate&#39;</span>]
-        })
-
-        <span class="c1"># 执行并报告进度</span>
-        <span class="k">for</span> <span class="n">i</span>, <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span>(<span class="n">plan</span>[<span class="s1">&#39;steps&#39;</span>]):
-            <span class="bp">self</span><span class="o">.</span><span class="n">emit_event</span>({
-                <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;progress&quot;</span>,
-                <span class="s2">&quot;current_step&quot;</span>: <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>,
-                <span class="s2">&quot;total_steps&quot;</span>: <span class="nb">len</span>(<span class="n">plan</span>[<span class="s1">&#39;steps&#39;</span>]),
-                <span class="s2">&quot;action&quot;</span>: <span class="n">step</span>[<span class="s1">&#39;action&#39;</span>]
-            })
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute</span>(<span class="n">step</span>)
-            <span class="bp">self</span><span class="o">.</span><span class="n">emit_event</span>({
-                <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;step_complete&quot;</span>,
-                <span class="s2">&quot;result&quot;</span>: <span class="n">result</span>,
-                <span class="s2">&quot;next_action&quot;</span>: <span class="n">plan</span>[<span class="s1">&#39;steps&#39;</span>][<span class="n">i</span><span class="o">+</span><span class="mi">1</span>] <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span>(<span class="n">plan</span>[<span class="s1">&#39;steps&#39;</span>]) <span class="k">else</span> <span class="kc">None</span>
-            })
-</code></pre></div> <p><strong>用户体验收益</strong>：</p>
-<ul>
-<li>建立信任（用户看到推理过程）</li>
-<li>早期干预（发现错误方向时可停止）</li>
-<li>调试友好（问题定位精确到具体步骤）</li>
-</ul>
-<h3 id="3agent-computer-interface">原则 3：工具文档（Agent-Computer Interface）</h3>
-<p><strong>ACI 设计框架</strong>（参见《Writing Tools for Agents》）：</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 模糊的工具描述</span>
-{
-    <span class="nt">&quot;name&quot;</span>: <span class="s2">&quot;edit&quot;</span>,
-    <span class="nt">&quot;description&quot;</span>: <span class="s2">&quot;编辑文件&quot;</span>,
-    <span class="nt">&quot;parameters&quot;</span>: {
-        <span class="nt">&quot;file&quot;</span>: <span class="s2">&quot;str&quot;</span>,
-        <span class="nt">&quot;content&quot;</span>: <span class="s2">&quot;str&quot;</span>
-    }
-}
-
-<span class="c1"># ✅ Agent 友好的工具描述</span>
-{
-    <span class="nt">&quot;name&quot;</span>: <span class="s2">&quot;edit_file_string_replace&quot;</span>,
-    <span class="nt">&quot;description&quot;</span>: <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        通过精确字符串替换编辑文件。</span>
-<span class="s2">        约束：</span>
-<span class="s2">        - 必须使用绝对路径（不接受相对路径）</span>
-<span class="s2">        - old_string 必须在文件中唯一匹配（避免歧义）</span>
-<span class="s2">        - 保留原始缩进和换行符</span>
-<span class="s2">        失败模式：</span>
-<span class="s2">        - 如果 old_string 多次出现，返回错误并列出所有匹配位置</span>
-<span class="s2">        - 如果文件不存在，返回可用文件列表</span>
-<span class="s2">        示例：</span>
-<span class="s2">        edit_file_string_replace(</span>
-<span class="s2">            path=&quot;/repo/auth.py&quot;,</span>
-<span class="s2">            old_string=&quot;def login(user):\\n    return True&quot;,</span>
-<span class="s2">            new_string=&quot;def login(user):\\n    validate(user)\\n    return True&quot;</span>
-<span class="s2">        )</span>
-<span class="s2">    &quot;&quot;&quot;</span>,
-    <span class="nt">&quot;parameters&quot;</span>: {
-        <span class="nt">&quot;path&quot;</span>: {
-            <span class="nt">&quot;type&quot;</span>: <span class="s2">&quot;string&quot;</span>,
-            <span class="nt">&quot;description&quot;</span>: <span class="s2">&quot;绝对文件路径&quot;</span>
-        },
-        <span class="nt">&quot;old_string&quot;</span>: {
-            <span class="nt">&quot;type&quot;</span>: <span class="s2">&quot;string&quot;</span>,
-            <span class="nt">&quot;description&quot;</span>: <span class="s2">&quot;要替换的精确字符串&quot;</span>
-        },
-        <span class="nt">&quot;new_string&quot;</span>: {
-            <span class="nt">&quot;type&quot;</span>: <span class="s2">&quot;string&quot;</span>,
-            <span class="nt">&quot;description&quot;</span>: <span class="s2">&quot;替换后的字符串&quot;</span>
-        }
-    }
-}
-</code></pre></div> <p><strong>测试驱动的工具设计</strong>：</p>
-<div class="codehilite"><pre><span></span><code># 在 Workbench 中测试工具
-def test_tool_with_llm():
-    # 故意模糊的任务
-    task = "修改登录函数添加验证"  # 未指定文件路径
-
-    # 观察 Agent 如何使用工具
-    trace = agent.execute_with_trace(task, tools=[edit_file])
-
-    # 分析失败原因
-    for call in trace.tool_calls:
-        if call.error:
-            print(f"错误：{call.error}")
-            print(f"Agent 推理：{call.reasoning}")
-            # → 发现 Agent 猜测了相对路径
-
-    # 改进工具描述
-    edit_file.description += "
-注意：必须先用 search_files() 查找精确路径"
-</code></pre></div> <hr />
-<h2 id="_4">五、实际应用案例深度分析</h2>
-<h3 id="1-agent">案例 1：客户支持 Agent</h3>
-<p><strong>架构设计</strong>：</p>
-<div class="mermaid">
-graph TB
-    msg["用户消息"] --> router["路由器"]
-    router -->|分类| classify["技术/订单/投诉"]
-    classify --> agent["专用 Agent<br/>• 检索: 知识库/订单历史<br/>• 工具: 查询数据库/创建工单<br/>• 记忆: 对话上下文"]
-    agent --> decision{"是否需要<br/>人工介入?"}
-    decision -->|Yes| human["转人工客服"]
-    decision -->|No| auto["自动解决"]
-
-    style msg fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style router fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style classify fill:#F5F5F5,stroke:#9E9E9E
-    style agent fill:#C8E6C9,stroke:#388E3C,stroke-width:3px
-    style decision fill:#FFCCBC,stroke:#D84315,stroke-width:2px
-    style human fill:#F8BBD0,stroke:#C2185B,stroke-width:2px
-    style auto fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px
-</div>
-<p><strong>工具设计示例</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="n">SUPPORT_TOOLS</span> <span class="o">=</span> [
-    {
-        <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;search_knowledge_base&quot;</span>,
-        <span class="s2">&quot;description&quot;</span>: <span class="s2">&quot;搜索产品文档和常见问题&quot;</span>,
-        <span class="s2">&quot;parameters&quot;</span>: {
-            <span class="s2">&quot;query&quot;</span>: <span class="s2">&quot;str&quot;</span>,
-            <span class="s2">&quot;filters&quot;</span>: {
-                <span class="s2">&quot;product&quot;</span>: <span class="s2">&quot;optional[str]&quot;</span>,
-                <span class="s2">&quot;category&quot;</span>: <span class="s2">&quot;optional[str]&quot;</span>
-            }
-        }
-    },
-    {
-        <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;get_order_status&quot;</span>,
-        <span class="s2">&quot;description&quot;</span>: <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            查询订单状态。</span>
-<span class="s2">            返回信息：</span>
-<span class="s2">            - 订单状态（pending/shipped/delivered）</span>
-<span class="s2">            - 物流跟踪号</span>
-<span class="s2">            - 预计送达时间</span>
-<span class="s2">            隐私：仅返回与当前用户关联的订单</span>
-<span class="s2">        &quot;&quot;&quot;</span>,
-        <span class="s2">&quot;parameters&quot;</span>: {
-            <span class="s2">&quot;order_id&quot;</span>: <span class="s2">&quot;str&quot;</span>
-        }
-    },
-    {
-        <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;create_support_ticket&quot;</span>,
-        <span class="s2">&quot;description&quot;</span>: <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            创建支持工单（需要人工处理时）。</span>
-<span class="s2">            触发条件：</span>
-<span class="s2">            - 请求退款</span>
-<span class="s2">            - 技术问题超出知识库范围</span>
-<span class="s2">            - 用户明确要求人工客服</span>
-<span class="s2">        &quot;&quot;&quot;</span>,
-        <span class="s2">&quot;parameters&quot;</span>: {
-            <span class="s2">&quot;category&quot;</span>: <span class="s2">&quot;enum[refund, technical, complaint]&quot;</span>,
-            <span class="s2">&quot;priority&quot;</span>: <span class="s2">&quot;enum[low, medium, high, urgent]&quot;</span>,
-            <span class="s2">&quot;summary&quot;</span>: <span class="s2">&quot;str&quot;</span>,
-            <span class="s2">&quot;user_context&quot;</span>: <span class="s2">&quot;str&quot;</span>
-        }
-    }
-]
-</code></pre></div> <p><strong>成功指标</strong>：</p>
-<table>
-<thead>
-<tr>
-<th>指标</th>
-<th>传统客服</th>
-<th>Agent 客服</th>
-<th>改进</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>平均响应时间</td>
-<td>5-10 分钟</td>
-<td>&lt; 30 秒</td>
-<td>10-20x</td>
-</tr>
-<tr>
-<td>解决率（首次）</td>
-<td>45 %</td>
-<td>68 %</td>
-<td>+51 %</td>
-</tr>
-<tr>
-<td>客户满意度</td>
-<td>3.8/5</td>
-<td>4.3/5</td>
-<td>+13 %</td>
-</tr>
-<tr>
-<td>成本/对话</td>
-<td>$2.50</td>
-<td>$0.15</td>
-<td>-94 %</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Anthropic 的信心指标</strong>：采用 <strong>使用量计费</strong>（usage-based pricing），证明对 Agent 质量的信心。</p>
-<hr />
-<h3 id="2-agentswe-bench-verified">案例 2：编码 Agent（SWE-bench Verified）</h3>
-<p><strong>任务定义</strong>：根据 GitHub Issue 自动修复真实代码库的 bug。</p>
-<p><strong>架构设计</strong>：</p>
-<div class="mermaid">
-graph TB
-    issue["GitHub Issue"] --> understand["理解问题<br/>• 阅读 Issue<br/>• 搜索相关代码<br/>• 理解预期行为"]
-    understand --> solution["生成解决方案<br/>• 定位 bug<br/>• 编写修复代码<br/>• 考虑边界情况"]
-    solution --> verify["验证和迭代<br/>• 运行现有测试<br/>• 添加新测试<br/>• 根据失败调整"]
-    verify --> check{"所有测试<br/>通过?"}
-    check -->|No| retry["重新修复<br/>(最多 N 次)"]
-    retry --> solution
-    check -->|Yes| pr["提交 PR"]
-
-    style issue fill:#E1F5FE,stroke:#0277BD,stroke-width:2px
-    style understand fill:#FFE082,stroke:#F57F17,stroke-width:2px
-    style solution fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style verify fill:#B3E5FC,stroke:#0288D1,stroke-width:2px
-    style check fill:#FFCCBC,stroke:#D84315,stroke-width:2px
-    style retry fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
-    style pr fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px
-</div>
-<p><strong>关键工具实现</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 代码搜索工具</span>
-{
-  <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;search_codebase&quot;</span>,
-  <span class="s2">&quot;description&quot;</span>: <span class="s2">&quot;&quot;&quot;
-    语义搜索代码库中的相关代码。
-    搜索策略：
-      - 函数名/类名精确匹配
-      - 文档字符串语义搜索
-      - 使用模式匹配（如错误处理模式）
-    返回格式：
-      [{&quot;file&quot;: &quot;绝对路径&quot;, &quot;line&quot;: 行号, &quot;code&quot;: &quot;匹配的代码片段&quot;, &quot;context&quot;: &quot;周围 5 行代码&quot;}]
-    提示：先搜索后修改，避免盲目更改
-  &quot;&quot;&quot;</span>,
-  <span class="s2">&quot;parameters&quot;</span>: {
-    <span class="s2">&quot;query&quot;</span>: <span class="s2">&quot;str&quot;</span>,
-    <span class="s2">&quot;search_type&quot;</span>: <span class="s2">&quot;enum[function_name, class_name, semantic, regex]&quot;</span>
-  }
-}
-
-<span class="c1"># 测试执行工具</span>
-{
-  <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;run_tests&quot;</span>,
-  <span class="s2">&quot;description&quot;</span>: <span class="s2">&quot;&quot;&quot;
-    运行测试套件并返回详细结果。
-    执行流程：
-      1. 安装依赖（如需要）
-      2. 运行指定测试
-      3. 捕获 stdout/stderr
-      4. 解析失败原因
-    返回格式：
-      {&quot;passed&quot;: 15, &quot;failed&quot;: 2, &quot;failures&quot;: [{&quot;test&quot;: &quot;...&quot;, &quot;error&quot;: &quot;...&quot;, &quot;traceback&quot;: &quot;...&quot;}]}
-    注意：测试失败是正常的，用失败信息指导下一步修复
-  &quot;&quot;&quot;</span>,
-  <span class="s2">&quot;parameters&quot;</span>: {
-    <span class="s2">&quot;test_path&quot;</span>: <span class="s2">&quot;optional[str]&quot;</span>,  <span class="c1"># 为空则运行所有测试</span>
-    <span class="s2">&quot;verbose&quot;</span>: <span class="s2">&quot;bool&quot;</span>
-  }
-}
-</code></pre></div> <p><strong>真实性能数据</strong>（Claude 3.5 Sonnet on SWE-bench Verified）：</p>
-<ul>
-<li>成功解决率：<strong>49 %</strong>（SWE-bench Verified）</li>
-<li>平均步数：<strong>12-100+</strong> 步</li>
-<li>平均 token 消耗：<strong>100k+</strong> tokens/任务</li>
-<li>关键成功因素：</li>
-<li>工具描述优化（提升 ~20 %）</li>
-<li>迭代测试反馈（提升 ~15 %）</li>
-<li>代码搜索质量（提升 ~10 %）</li>
-</ul>
-<p><strong>人类监督的重要性</strong>：</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 强制人类审查</span>
-<span class="k">def</span> <span class="nf">submit_solution</span>(agent_solution):
-    <span class="c1"># 自动检查</span>
-    auto_checks = {
-        <span class="s2">&quot;tests_pass&quot;</span>: run_tests(agent_solution),
-        <span class="s2">&quot;no_security_issues&quot;</span>: security_scan(agent_solution),
-        <span class="s2">&quot;code_quality&quot;</span>: lint_check(agent_solution)
-    }
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span>(auto_checks.values()):
-        <span class="k">return</span> <span class="s2">&quot;拒绝：未通过自动检查&quot;</span>
-
-    <span class="c1"># 人类审查</span>
-    review = request_human_review({
-        <span class="s2">&quot;changes&quot;</span>: agent_solution.diff,
-        <span class="s2">&quot;reasoning&quot;</span>: agent_solution.explanation,
-        <span class="s2">&quot;test_results&quot;</span>: auto_checks
-    })
-
-    <span class="k">if</span> review.approved:
-        merge_to_main(agent_solution)
-    <span class="k">else</span>:
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;拒绝：</span><span class="si">{</span>review<span class="o">.</span>feedback<span class="si">}</span><span class="s2">&quot;</span>
-</code></pre></div> <hr />
-<h2 id="_5">六、架构决策检查清单</h2>
-<h3 id="_6">设计阶段</h3>
-<ul>
-<li>[ ] <strong>问题定义</strong>：任务是否明确定义了成功标准？</li>
-<li>[ ] <strong>复杂度评估</strong>：是否可用单次 LLM 调用 + 优化提示解决？</li>
-<li>[ ] <strong>模式选择</strong>：选择的架构模式是否是最简单的可行方案？</li>
-<li>[ ] <strong>工具规划</strong>：是否列出了必需工具及其接口？</li>
-</ul>
-<h3 id="_7">实现阶段</h3>
-<ul>
-<li>[ ] <strong>工具文档</strong>：每个工具是否有详细描述、示例和失败模式说明？</li>
-<li>[ ] <strong>错误处理</strong>：是否实现了重试逻辑和优雅降级？</li>
-<li>[ ] <strong>停止条件</strong>：Agent 循环是否有明确的退出条件（成功 + 失败）？</li>
-<li>[ ] <strong>可观测性</strong>：是否记录了 Agent 推理、工具调用和结果？</li>
-</ul>
-<h3 id="_8">测试阶段</h3>
-<ul>
-<li>[ ] <strong>单元测试</strong>：工具是否独立测试？</li>
-<li>[ ] <strong>集成测试</strong>：Agent 是否在真实场景中测试？</li>
-<li>[ ] <strong>失败案例</strong>：是否收集并分析了失败案例？</li>
-<li>[ ] <strong>成本分析</strong>：token 消耗是否在预算内？</li>
-</ul>
-<h3 id="_9">部署阶段</h3>
-<ul>
-<li>[ ] <strong>人类监督</strong>：高风险操作是否需要人工审批？</li>
-<li>[ ] <strong>回滚机制</strong>：是否可快速回滚到上一版本？</li>
-<li>[ ] <strong>监控告警</strong>：是否监控成功率、延迟、成本？</li>
-<li>[ ] <strong>用户反馈</strong>：是否收集用户对 Agent 表现的反馈？</li>
-</ul>
-<hr />
-<h2 id="_10">七、反模式警告</h2>
-<h3 id="1-agent_1">反模式 1：过早优化为自主 Agent</h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误：从复杂 Agent 开始</span>
-<span class="k">class</span> <span class="nc">ComplexAgent</span>:
-    <span class="k">def</span> <span class="fm">__init__</span>(<span class="bp">self</span>):
-        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">VectorDatabase</span>()
-        <span class="bp">self</span><span class="o">.</span><span class="n">planner</span> <span class="o">=</span> <span class="n">HierarchicalPlanner</span>()
-        <span class="bp">self</span><span class="o">.</span><span class="n">tools</span> <span class="o">=</span> <span class="n">ToolRegistry</span>()
-        <span class="c1"># ...</span>
-        <span class="c1"># 数百行代码</span>
-
-<span class="c1"># ✅ 正确：从提示链开始</span>
-<span class="k">def</span> <span class="nf">simple_workflow</span>(<span class="n">task</span>):
-    <span class="n">step1</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;分析：</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span>)
-    <span class="n">step2</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">call</span>(<span class="sa">f</span><span class="s2">&quot;基于分析生成方案：</span><span class="si">{</span><span class="n">step1</span><span class="si">}</span><span class="s2">&quot;</span>)
-    <span class="k">return</span> <span class="n">step2</span>
-</code></pre></div> <h3 id="2_1">反模式 2：忽视成本和延迟</h3>
-<div class="codehilite"><pre><span></span><code># ❌ 错误：无限循环 + 大模型
-while not perfect(result): result = llm.call(task, model=&quot;opus&quot;) # 昂贵！ # ✅ 正确：分层模型选择
-router_result = llm.call(task, model=&quot;haiku&quot;) # 快速路由
-if needs_deep_analysis(router_result): result = llm.call(task, model=&quot;sonnet&quot;) # 仅必要时用大模型
-</code></pre></div> <h3 id="3_1">反模式 3：工具描述不足</h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误：最小化文档</span>
-<span class="n">tools</span> <span class="o">=</span> [{
-    <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;search&quot;</span>,
-    <span class="s2">&quot;params&quot;</span>: {<span class="s2">&quot;q&quot;</span>: <span class="s2">&quot;str&quot;</span>}
-}]
-
-<span class="c1"># ✅ 正确：详细文档</span>
-<span class="n">tools</span> <span class="o">=</span> [{
-    <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;search_customer_database&quot;</span>,
-    <span class="s2">&quot;description&quot;</span>: <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        搜索客户数据库（限当前用户权限范围）。</span>
-<span class="s2">        查询语法：</span>
-<span class="s2">        - 精确匹配：&#39;email:&quot;user@example.com&quot;&#39;</span>
-<span class="s2">        - 模糊匹配：&#39;name:John&#39;</span>
-<span class="s2">        - 日期范围：&#39;created:[2024-01-01 TO 2024-12-31]&#39;</span>
-<span class="s2">        返回：最多 50 条结果，按相关性排序</span>
-<span class="s2">        示例：search_customer_database(q=&#39;status:active AND created:[2024-01-01 TO *]&#39;)</span>
-<span class="s2">    &quot;&quot;&quot;</span>,
-    <span class="s2">&quot;parameters&quot;</span>: {...}
-}]
-</code></pre></div> <h3 id="4-agent">反模式 4：隐藏 Agent 决策</h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># ❌ 错误：黑盒执行</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">execute</span>(<span class="n">task</span>)
-
-
-<span class="c1"># ✅ 正确：透明流程</span>
-<span class="k">def</span> <span class="nf">transparent_agent</span>(<span class="n">task</span>):
-    <span class="nb">print</span>(<span class="sa">f</span><span class="s2">&quot;📋 任务：</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span>)
-
-    <span class="n">plan</span> <span class="o">=</span> <span class="n">create_plan</span>(<span class="n">task</span>)
-    <span class="nb">print</span>(<span class="sa">f</span><span class="s2">&quot;📝 计划：\n</span><span class="si">{</span><span class="n">format_plan</span>(<span class="n">plan</span>)<span class="si">}</span><span class="s2">&quot;</span>)
-
-    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">plan</span>:
-        <span class="nb">print</span>(<span class="sa">f</span><span class="s2">&quot;⚙️ 执行：</span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">&quot;</span>)
-        <span class="n">result</span> <span class="o">=</span> <span class="n">execute_step</span>(<span class="n">step</span>)
-        <span class="nb">print</span>(<span class="sa">f</span><span class="s2">&quot;✅ 完成：</span><span class="si">{</span><span class="n">summarize</span>(<span class="n">result</span>)<span class="si">}</span><span class="s2">&quot;</span>)
-
-    <span class="k">return</span> <span class="n">result</span>
-</code></pre></div> <hr />
-<h2 id="_11">八、关键架构权衡矩阵</h2>
-<table>
-<thead>
-<tr>
-<th>决策维度</th>
-<th>Workflows</th>
-<th>Agents</th>
-<th>推荐选择</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>可预测性需求</strong></td>
-<td>高 ✅</td>
-<td>低 ❌</td>
-<td>金融/医疗 → Workflows</td>
-</tr>
-<tr>
-<td><strong>任务多样性</strong></td>
-<td>低 ❌</td>
-<td>高 ✅</td>
-<td>开放域任务 → Agents</td>
-</tr>
-<tr>
-<td><strong>调试要求</strong></td>
-<td>易 ✅</td>
-<td>难 ❌</td>
-<td>生产系统 → Workflows</td>
-</tr>
-<tr>
-<td><strong>开发速度</strong></td>
-<td>快 ✅</td>
-<td>慢 ❌</td>
-<td>MVP → Workflows</td>
-</tr>
-<tr>
-<td><strong>运行成本</strong></td>
-<td>低 ✅</td>
-<td>高 ❌</td>
-<td>预算紧张 → Workflows</td>
-</tr>
-<tr>
-<td><strong>适应性</strong></td>
-<td>低 ❌</td>
-<td>高 ✅</td>
-<td>动态环境 → Agents</td>
-</tr>
-</tbody>
-</table>
-<p><strong>黄金法则</strong>：从 Workflows 开始，仅在证明必要性后升级为 Agents。</p>
-<hr />
-<h2 id="anthropic-agent">九、总结：Anthropic 的 Agent 设计哲学</h2>
-<h3 id="_12">核心理念</h3>
-<ol>
-<li>
-<p><strong>简洁优于复杂</strong> "成功不在于构建最复杂的系统，而在于构建最合适的系统"</p>
-</li>
-<li>
-<p><strong>渐进式增强</strong> 优化提示 → 提示链 → 并行化 → 编排 → 自主 Agent</p>
-</li>
-<li>
-<p><strong>透明性即信任</strong> 展示推理过程，让用户理解 Agent 的决策</p>
-</li>
-<li>
-<p><strong>工具即语言</strong> 工具描述是嵌入式提示工程，影响 Agent 行为</p>
-</li>
-<li>
-<p><strong>验证优于信任</strong> 通过测试、人类审查、监控确保 Agent 可靠性</p>
-</li>
-</ol>
-<h3 id="_13">实践建议</h3>
-<ul>
-<li><strong>开始</strong>：用 LLM API 直接构建，不要过早引入框架</li>
-<li><strong>测试</strong>：在真实任务上验证，而非合成 benchmark</li>
-<li><strong>迭代</strong>：分析失败案例，持续优化工具描述</li>
-<li><strong>监控</strong>：追踪成功率、成本、延迟，建立告警</li>
-<li><strong>人机协作</strong>：高风险决策保留人类监督</li>
-</ul>
-<h3 id="_14">未来展望</h3>
-<p>随着 LLM 能力提升（更大上下文、更强推理），Agent 架构将：</p>
-<ul>
-<li>更复杂的任务可用简单模式解决</li>
-<li>自主 Agent 的可靠性提升</li>
-<li>工具使用更高效（更少试错）</li>
-</ul>
-<p><strong>但核心不变</strong>：简洁性、透明性、验证优先的设计原则。</p>
-<hr />
-<p><strong>致谢</strong></p>
-<p>本文由 Erik Schluntz 和 Barry Zhang 撰写，是 Anthropic 团队基于数千个生产 Agent 系统的实践总结。</p>
-        
-        
-        
-        
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>AI Agent 架构设计权威指南：从工作流到自主系统<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-building-effective-agents.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-building-effective-agents.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/building-effective-agents">https://www.anthropic.com/engineering/building-effective-agents</a><br>
+                <strong>发布日期：</strong>2024 年 12 月 19 日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -1846,7 +787,7 @@ if needs_deep_analysis(router_result): result = llm.call(task, model=&quot;sonne
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

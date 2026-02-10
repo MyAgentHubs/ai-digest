@@ -8,7 +8,11 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="本文全面介绍了 Claude Agent SDK 的架构设计与开发实践，提供了构建生产级 Agent 的完整工具链。核心是三阶段反馈循环：收集上下文（文件系统访问、语义搜索、子 Agent 委派）、采取行动（Bash 执行、代码生成）、验证工作（规则检查、视觉反馈、LLM 评判）。文章深入分析了每个阶段的工具选择、最佳实践（渐进式信息披露、明确工具边界、迭代验证）、以及错误处理策略。通过代码审查 Agent 等真实案例，展示了 SDK 在简化复杂任务开发的有效性。">
     <meta name="author" content="Anthropic Engineering Team">
-    <meta name="keywords" content="Anthropic, AI, Claude, 人工智能, 工程实践, 使用 Claude Agent SDK 构建 Agent">
+    <meta name="keywords" content="Claude, Anthropic, AI, Agent, SDK, LLM, 模型, 安全">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="Anthropic">
+    <meta name="article:section" content="engineering">
 
     <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
     <meta property="og:type" content="article">
@@ -458,6 +462,59 @@
             color: var(--primary-color);
         }
 
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* 页脚 */
         footer {
             margin-top: 64px;
@@ -555,7 +612,7 @@
         "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-building-agents-with-the-claude-agent-sdk.html"
       },
       "inLanguage": "zh-CN",
-      "keywords": "Claude, Anthropic, AI, Agent, API, SDK, LLM, prompt",
+      "keywords": "Claude, Anthropic, AI, Agent, SDK, LLM, 模型, 安全",
       "articleSection": "engineering",
       "isAccessibleForFree": true,
       "isPartOf": {
@@ -622,23 +679,11 @@
 <li><a href="#agent_1">构建 Agent 循环</a></li>
 <li><a href="#_1">收集上下文</a></li>
   <li><a href="#agent_2">Agent 搜索与文件系统</a></li>
-  <li><a href="#_2">语义搜索</a></li>
-  <li><a href="#agent_3">子 Agent</a></li>
-<li><a href="#_3">采取行动</a></li>
-  <li><a href="#bash">Bash 与脚本</a></li>
-  <li><a href="#_4">代码生成</a></li>
-<li><a href="#_5">验证工作</a></li>
-  <li><a href="#_6">定义规则</a></li>
-  <li><a href="#_7">视觉反馈</a></li>
-  <li><a href="#llm">LLM 评判</a></li>
-<li><a href="#_8">实际应用示例</a></li>
-<li><a href="#_9">最佳实践</a></li>
-<li><a href="#_10">开始使用</a></li>
-<li><a href="#_11">总结</a></li>
 </ul>
 </nav>
 
             <div class="content" itemprop="articleBody">
+                
                 
             
             
@@ -683,113 +728,37 @@
 <div class="codehilite"><pre><span></span><code><span class="c1">// Agent 使用文件系统工具</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">glob</span><span class="p">(</span><span class="s2">&quot;src/**/*.ts&quot;</span><span class="p">);</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="s2">&quot;src/index.ts&quot;</span><span class="p">);</span>
-</code></pre></div> <h3 id="_2">语义搜索</h3>
-<p>对于大型代码库或文档集合，语义搜索允许 Agent 基于含义而非精确匹配来查找相关内容。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// 语义搜索示例</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">semanticSearch</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;authentication logic&quot;</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">scope</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;src/&quot;</span>
-<span class="p">});</span>
-</code></pre></div> <h3 id="agent_3">子 Agent</h3>
-<p>对于复杂任务，可以将工作分解并委派给专门的子 Agent。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// 使用子 Agent 分解任务</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">codeReview</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">delegate</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">task</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;review code quality&quot;</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">agent</span><span class="o">:</span><span class="w"> </span><span class="kt">codeReviewAgent</span>
-<span class="p">});</span>
-</code></pre></div> <h2 id="_3">采取行动</h2>
-<p>收集足够的上下文后，Agent 可以执行实际操作。</p>
-<h3 id="bash">Bash 与脚本</h3>
-<p>Agent 可以执行 Bash 命令和脚本来与系统交互。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Agent 执行的示例命令</span>
-npm<span class="w"> </span>install
-npm<span class="w"> </span><span class="nb">test</span>
-git<span class="w"> </span>status
-</code></pre></div> <h3 id="_4">代码生成</h3>
-<p>Claude 可以生成代码、修改现有文件、创建新模块。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// Agent 生成代码</span>
-<span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">write</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;src/newFeature.ts&quot;</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">generatedCode</span>
-<span class="p">});</span>
-</code></pre></div> <h2 id="_5">验证工作</h2>
-<p>Agent 完成任务后，重要的是验证输出的正确性。</p>
-<h3 id="_6">定义规则</h3>
-<p>您可以定义明确的规则来检查 Agent 的输出。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// 定义验证规则</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">rules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w"> </span><span class="nx">noErrors</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">output</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="o">!</span><span class="nx">output</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="s2">&quot;ERROR&quot;</span><span class="p">),</span>
-<span class="w"> </span><span class="nx">testsPass</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">output</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">output</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="s2">&quot;All tests passed&quot;</span><span class="p">)</span>
-<span class="p">};</span>
-</code></pre></div> <h3 id="_7">视觉反馈</h3>
-<p>对于某些任务，视觉确认是必要的。SDK 支持向 Claude 显示截图或渲染结果以进行验证。</p>
-<h3 id="llm">LLM 评判</h3>
-<p>在某些情况下，可以使用另一个 LLM 实例来评估 Agent 的输出质量。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// 使用 LLM 作为评判</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">evaluation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">judge</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">output</span><span class="o">:</span><span class="w"> </span><span class="kt">agentOutput</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">criteria</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;clarity, correctness, completeness&quot;</span>
-<span class="p">});</span>
-</code></pre></div> <h2 id="_8">实际应用示例</h2>
-<p>让我们看一个完整的示例：创建一个代码审查 Agent。</p>
-<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ClaudeAgent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@anthropic-ai/agent-sdk&#39;</span><span class="p">;</span> <span class="c1">// 初始化 Agent</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">codeReviewAgent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ClaudeAgent</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;code-reviewer&#39;</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">tools</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;read&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;glob&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bash&#39;</span><span class="p">],</span>
-<span class="w"> </span><span class="nx">systemPrompt</span><span class="o">:</span><span class="w"> </span><span class="sb">`你是专业的代码审查员。</span>
-<span class="sb"> 分析代码质量、发现潜在问题、建议改进。`</span>
-<span class="p">});</span> <span class="c1">// 执行代码审查</span>
-<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">reviewPullRequest</span><span class="p">(</span><span class="nx">prNumber</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w"> </span><span class="c1">// 1. 收集上下文</span>
-<span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">changedFiles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">codeReviewAgent</span><span class="p">.</span><span class="nx">bash</span><span class="p">(</span>
-<span class="w"> </span><span class="sb">`git diff main...HEAD --name-only`</span>
-<span class="w"> </span><span class="p">);</span> <span class="w"> </span><span class="c1">// 2. 分析每个文件</span>
-<span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">reviews</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
-<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">file</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">changedFiles</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;\n&#39;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
-<span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">codeReviewAgent</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
-<span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">review</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">codeReviewAgent</span><span class="p">.</span><span class="nx">analyze</span><span class="p">(</span><span class="nx">content</span><span class="p">);</span>
-<span class="w"> </span><span class="nx">reviews</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span><span class="w"> </span><span class="nx">file</span><span class="p">,</span><span class="w"> </span><span class="nx">review</span><span class="w"> </span><span class="p">});</span>
-<span class="w"> </span><span class="p">}</span> <span class="w"> </span><span class="c1">// 3. 验证建议</span>
-<span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">finalReport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">codeReviewAgent</span><span class="p">.</span><span class="nx">judge</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">reviews</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">criteria</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;actionable, specific, constructive&#39;</span>
-<span class="w"> </span><span class="p">});</span> <span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">finalReport</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div> <h2 id="_9">最佳实践</h2>
-<p>基于在 Claude Code 中使用 Agent SDK 的经验：</p>
-<ol>
-<li><strong>渐进式信息披露</strong> - 让 Agent 按需探索和加载内容</li>
-<li><strong>明确的工具边界</strong> - 为每个工具定义清晰的职责</li>
-<li><strong>迭代验证</strong> - 在整个过程中进行多次检查</li>
-<li><strong>优雅的错误处理</strong> - 构建可以从失败中恢复的系统</li>
-<li><strong>人机协作</strong> - 对于关键决策，让人类参与其中</li>
-</ol>
-<h2 id="_10">开始使用</h2>
-<p>安装 Claude Agent SDK：</p>
-<div class="codehilite"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>@anthropic-ai/agent-sdk
-</code></pre></div> <p>创建您的第一个 Agent：</p>
-<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ClaudeAgent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@anthropic-ai/agent-sdk&#39;</span><span class="p">;</span> <span class="kd">const</span><span class="w"> </span><span class="nx">agent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ClaudeAgent</span><span class="p">({</span>
-<span class="w"> </span><span class="nx">apiKey</span><span class="o">:</span><span class="w"> </span><span class="kt">process.env.ANTHROPIC_API_KEY</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">model</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;claude-3-5-sonnet-20241022&#39;</span><span class="p">,</span>
-<span class="w"> </span><span class="nx">tools</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;bash&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;read&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;write&#39;</span><span class="p">]</span>
-<span class="p">});</span> <span class="c1">// 让 Agent 完成任务</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">agent</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="s1">&#39;分析这个项目的测试覆盖率&#39;</span><span class="p">);</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">);</span>
-</code></pre></div> <h2 id="_11">总结</h2>
-<p>Claude Agent SDK 使构建智能、可靠的 Agent 成为现实。核心优势：</p>
-<ul>
-<li>✅ <strong>生产就绪</strong> - 经过实战检验的模式</li>
-<li>✅ <strong>灵活</strong> - 适应各种用例</li>
-<li>✅ <strong>可靠</strong> - 内置错误处理和验证</li>
-<li>✅ <strong>易用</strong> - 清晰的 API 和文档</li>
-</ul>
-<p>开始构建您的 Agent，让 AI 成为您团队中真正有用的成员。</p>
-        
-        
-        
-        
+</code></pre>
             </div>
         </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>使用 Claude Agent SDK 构建 Agent<br>
+                <strong>来源：</strong>Anthropic 官方博客（中文翻译）<br>
+                <strong>译文 URL：</strong><a href="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-building-agents-with-the-claude-agent-sdk.html">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-building-agents-with-the-claude-agent-sdk.html</a><br>
+                <strong>原文 URL：</strong><a href="https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk">https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk</a><br>
+                <strong>发布日期：</strong>2025 年 10 月 16 日<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 Anthropic 官方博客的中文学习笔记。原始内容版权归 Anthropic 所有。翻译内容仅供学习交流使用，禁止商业用途。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注译文性质：</strong>明确说明这是翻译/学习笔记，非 Anthropic 官方中文内容</li>
+                <li><strong>提供原文链接：</strong>务必同时提供原文链接，方便读者查看权威来源</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>AI 技术发展迅速，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
 
         <footer>
             <p style="margin-bottom: 16px;">
@@ -802,7 +771,7 @@ git<span class="w"> </span>status
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:45:50<br>
+                生成时间：2026-02-10 10:53:29<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
