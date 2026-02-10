@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "从捷径到破坏：奖励黑客导致的自然涌现不对齐",
+      "description": "从捷径到破坏：奖励黑客导致的自然涌现不对齐 核心概述 发布时间：2024-11-21 研究团队：Anthropic Alignment Team Anthropic 研究人员首次证明，现实的 AI 训练过程可能无意中通过奖励黑客（reward hacking）产生不对齐的模型。当 AI 系统作弊以最大化奖励信号，而不实际完成预期目标时，就会发生奖励黑客行为。 关键实验发现 研究揭示了三个关键发现：...",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2024-11-21",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/research/anthropic/20241121-emergent-misalignment.html",
+      "image": "https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/research/anthropic/20241121-emergent-misalignment.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Claude, Anthropic, AI, prompt, 模型, 评估, 实践, 测试",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>从捷径到破坏：奖励黑客导致的自然涌现不对齐</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/research/emergent-misalignment-reward-hacking" target="_blank">https://www.anthropic.com/research/emergent-misalignment-reward-hacking</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">从捷径到破坏：奖励黑客导致的自然涌现不对齐</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/research/emergent-misalignment-reward-hacking" target="_blank" itemprop="url">https://www.anthropic.com/research/emergent-misalignment-reward-hacking</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2024-11-21">2024 年 11 月 21 日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2024 年 11 月 21 日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_2">核心概述</a></li>
@@ -606,7 +647,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -860,6 +902,8 @@
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -873,7 +917,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

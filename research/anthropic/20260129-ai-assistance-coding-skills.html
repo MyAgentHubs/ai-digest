@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "AI 辅助如何影响编程技能的形成",
+      "description": "AI 辅助如何影响编程技能的形成 摘要 Anthropic 通过随机对照试验研究了 AI 编程辅助是否能帮助开发者学习新的编程技能，还是会创建认知捷径从而破坏技能掌握。研究发现，使用 AI 的参与者在理解测验中的得分比手动编码的人低 17%，但如何使用 AI 对信息保留有重大影响。 关键发现 学习影响 使用 AI 的参与者在理解测验中的得分比手动编码的参与者低 17% 相当于将近两个字母等级的差异...",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2026-01-29",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/research/anthropic/20260129-ai-assistance-coding-skills.html",
+      "image": "https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/research/anthropic/20260129-ai-assistance-coding-skills.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Anthropic, AI, 评估, 工程, 实践, 性能, 测试",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>AI 辅助如何影响编程技能的形成</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/research/AI-assistance-coding-skills" target="_blank">https://www.anthropic.com/research/AI-assistance-coding-skills</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">AI 辅助如何影响编程技能的形成</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/research/AI-assistance-coding-skills" target="_blank" itemprop="url">https://www.anthropic.com/research/AI-assistance-coding-skills</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2026-01-29">2026 年 1 月 29 日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2026 年 1 月 29 日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_1">摘要</a></li>
@@ -591,7 +632,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -666,6 +708,8 @@
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -679,7 +723,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
