@@ -14,9 +14,9 @@
     <meta property="og:type" content="article">
     <meta property="og:title" content="介绍上下文检索（Contextual Retrieval）">
     <meta property="og:description" content="本文提出了 Contextual Retrieval 技术，通过为文档块添加上下文解释，将 RAG 系统的检索失败率降低 67%（从 5.7% 降至 1.9%）。核心创新是索引时的上下文增强：使用 LLM 为每个块生成简洁的上下文说明（50-100 字），结合 Contextual Embeddings 和 Contextual BM25 实现混合检索。文章详细分析了实现细节（提示工程、模型选择、Prompt Caching 优化）、成本效益（每 1M tokens 仅 $0.29）、以及 Reranking 的进一步提升。基于三个真实数据集的基准测试，验证了该方法的普适性和性价比。">
-    <meta property="og:url" content="https://myopenclaws.github.io/ai-digest/engineering/anthropic/20251029-contextual-retrieval.html">
+    <meta property="og:url" content="https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-contextual-retrieval.html">
     <meta property="og:site_name" content="Anthropic Engineering 中文实践">
-    <meta property="og:image" content="https://myopenclaws.github.io/ai-digest/images/default-og.png">
+    <meta property="og:image" content="https://myagenthubs.github.io/ai-digest/images/default-og.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="介绍上下文检索（Contextual Retrieval）">
     <meta name="twitter:description" content="本文提出了 Contextual Retrieval 技术，通过为文档块添加上下文解释，将 RAG 系统的检索失败率降低 67%（从 5.7% 降至 1.9%）。核心创新是索引时的上下文增强：使用 LLM 为每个块生成简洁的上下文说明（50-100 字），结合 Contextual Embeddings 和 Contextual BM25 实现混合检索。文章详细分析了实现细节（提示工程、模型选择、Prompt Caching 优化）、成本效益（每 1M tokens 仅 $0.29）、以及 Reranking 的进一步提升。基于三个真实数据集的基准测试，验证了该方法的普适性和性价比。">
-    <meta name="twitter:image" content="https://myopenclaws.github.io/ai-digest/images/default-og.png">
+    <meta name="twitter:image" content="https://myagenthubs.github.io/ai-digest/images/default-og.png">
     <meta name="twitter:site" content="@AnthropicAI">
 
     <style>
