@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "长运行 Agent 的有效框架",
+      "description": "长运行 Agent 的有效框架 发布日期: 2025 年 11 月 26 日 概述 Anthropic 发布的这篇工程博客介绍了如何让 AI Agent 在多个 context window 中持续高效工作。文章通过实践经验总结了一套两部分解决方案：初始化 agent 和编码 agent，帮助开发者构建能够跨越多个上下文窗口的长运行 Agent 系统。 核心问题 长运行 Agent 面临的主要挑战...",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2025-11-26",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html",
+      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/f94c2257964fb2d623f1e81f874977ebfc0986bc-1920x1080.gif",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Claude, Anthropic, AI, Agent, SDK, 工程, 实践, 优化",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>长运行 Agent 的有效框架</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank">https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">长运行 Agent 的有效框架</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" itemprop="url">https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2025-11-26">2025年11月26日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2025年11月26日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_1">概述</a></li>
@@ -593,7 +634,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -728,6 +770,8 @@ Agent 倾向于一次做太多事，导致在实现过程中耗尽上下文，�
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -741,7 +785,7 @@ Agent 倾向于一次做太多事，导致在实现过程中耗尽上下文，�
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

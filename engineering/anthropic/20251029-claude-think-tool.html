@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "The "Think" Tool: 让 Claude 在复杂工具使用中停下来思考",
+      "description": "本文深度剖析了 Claude 的 Think Tool 设计，这是一个将 AI 推理过程可视化的创新机制。核心价值在于提升决策透明度：Agent 通过显式的思维链展示问题分析、方案评估、以及决策依据，使开发者能够理解、调试和优化 Agent 行为。文章详细阐述了 Think Tool 的技术实现（结构化输出、上下文管理）、使用模式（复杂推理、多步骤规划）、以及性能影响评估。通过对比有无 Think Tool 的任务完成质量，验证了显式推理对提升 Agent 可靠性和可解释性的显著作用。",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2025-03-20",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html",
+      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/3fa633f6a9fb.jpg",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251029-claude-think-tool.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Claude, Anthropic, 代理, 缓存, 模型, 评估, 实践, 优化",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>The "Think" Tool: 让 Claude 在复杂工具使用中停下来思考</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/engineering/claude-think-tool" target="_blank">https://www.anthropic.com/engineering/claude-think-tool</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">The "Think" Tool: 让 Claude 在复杂工具使用中停下来思考</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/engineering/claude-think-tool" target="_blank" itemprop="url">https://www.anthropic.com/engineering/claude-think-tool</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2025-03-20">2025年3月20日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2025年3月20日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_1">概述</a></li>
@@ -595,7 +636,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -706,6 +748,8 @@
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -719,7 +763,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

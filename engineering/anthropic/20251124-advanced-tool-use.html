@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Claude 开发者平台高级 Tool Use 功能介绍",
+      "description": "Claude 开发者平台高级 Tool Use 功能介绍 发布日期: 2025 年 11 月 24 日 概述 Anthropic 发布了三个新的 beta 功能，使 Claude 能够动态发现、学习和执行工具。这些功能旨在解决 AI 代理在处理大规模工具库时面临的核心挑战。 核心问题与解决方案 AI 代理的三个关键需求 无上限工具库访问：代理需要在不将每个工具定义都加载到上下文的情况下，访问数百或...",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2025-11-24",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251124-advanced-tool-use.html",
+      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/f359296f770706608901eadaffbff4ca0b67874c-1999x1125.png",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251124-advanced-tool-use.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Claude, Anthropic, AI, API, LLM, prompt, caching, 代理",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>Claude 开发者平台高级 Tool Use 功能介绍</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/engineering/advanced-tool-use" target="_blank">https://www.anthropic.com/engineering/advanced-tool-use</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">Claude 开发者平台高级 Tool Use 功能介绍</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/engineering/advanced-tool-use" target="_blank" itemprop="url">https://www.anthropic.com/engineering/advanced-tool-use</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2025-11-24">2025年11月24日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2025年11月24日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_1">概述</a></li>
@@ -609,7 +650,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -1060,6 +1102,8 @@ Returns:
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -1073,7 +1117,7 @@ Returns:
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

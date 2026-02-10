@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Code Execution with MCP: Building More Efficient Agents",
+      "description": "Code Execution with MCP: Building More Efficient Agents 发布日期: 2025 年 11 月 4 日 概述 "直接工具调用会消耗上下文来处理每个定义和结果。代理通过编写代码调用工具时扩展性更好。"这篇文章探讨如何使用代码执行与 MCP 服务器更高效地交互。 Model Context Protocol (MCP) 简介 MCP 是一个开放标准，...",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2025-11-04",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251104-code-execution-with-mcp.html",
+      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/9ecf165020005c09a22a9472cee6309555485619-1920x1080.png",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251104-code-execution-with-mcp.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Claude, AI, Agent, API, SDK, LLM, 代理, 模型",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>Code Execution with MCP: Building More Efficient Agents</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/engineering/code-execution-with-mcp" target="_blank">https://www.anthropic.com/engineering/code-execution-with-mcp</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">Code Execution with MCP: Building More Efficient Agents</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/engineering/code-execution-with-mcp" target="_blank" itemprop="url">https://www.anthropic.com/engineering/code-execution-with-mcp</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2025-11-04">2025年11月4日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2025年11月4日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_1">概述</a></li>
@@ -598,7 +639,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -797,6 +839,8 @@ console.log(pendingOrders.slice(0, 5)); // Only log first 5 for review
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -810,7 +854,7 @@ console.log(pendingOrders.slice(0, 5)); // Only log first 5 for review
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>

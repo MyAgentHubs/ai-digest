@@ -525,6 +525,46 @@
             }
         }
     </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "设计抗 AI 的技术评估",
+      "description": "设计抗 AI 的技术评估 摘要 Anthropic 的性能工程团队开发了一套 take-home 评估系统，用于评估候选人的优化技能。这个评估使用模拟加速器环境，已有超过 1,000 名申请者完成测试，成功识别出数十名高性能工程师。然而，随着 Claude 模型的不断进化，每一代新模型都能击败现有的评估版本，迫使团队持续重新设计评估方案。 原始 Take-Home 评估（版本 1） 设计目标 评估...",
+      "author": {
+        "@type": "Organization",
+        "name": "Anthropic",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2026-01-21",
+      "dateModified": "2026-02-10",
+      "url": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260121-ai-resistant-technical-evaluations.html",
+      "image": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/images/564c3ae60e4a.png",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260121-ai-resistant-technical-evaluations.html"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Claude, Anthropic, AI, 模型, 评估, 工程, 优化, 性能",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- 阅读进度条 -->
@@ -551,29 +591,30 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>设计抗 AI 的技术评估</h1>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">原文链接：</span>
-                    <a href="https://www.anthropic.com/engineering/AI-resistant-technical-evaluations" target="_blank">https://www.anthropic.com/engineering/AI-resistant-technical-evaluations</a>
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">设计抗 AI 的技术评估</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://www.anthropic.com/engineering/AI-resistant-technical-evaluations" target="_blank" itemprop="url">https://www.anthropic.com/engineering/AI-resistant-technical-evaluations</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2026-01-21">2026 年 1 月 21 日</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-10">2026-02-10</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">发布日期：</span>
-                    <span>2026 年 1 月 21 日</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理日期：</span>
-                    <span>2026-02-10</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">整理者：</span>
-                    <span class="author">Panda</span>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <nav class="toc">
+            <nav class="toc">
 <div class="toc-title">📑 目录</div>
 <ul>
 <li><a href="#_1">摘要</a></li>
@@ -594,7 +635,8 @@
 </ul>
 </nav>
 
-        <article class="content">
+            <div class="content" itemprop="articleBody">
+                
             
             
             
@@ -663,6 +705,8 @@
         
         
         
+        
+            </div>
         </article>
 
         <footer>
@@ -676,7 +720,7 @@
                 <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code GitHub</a>
             </div>
             <p style="margin-top: 16px; font-size: 0.85rem;">
-                生成时间：2026-02-10 10:12:14<br>
+                生成时间：2026-02-10 10:45:50<br>
                 由 <strong>Claude Code Agent Skill</strong> 自动生成
             </p>
         </footer>
