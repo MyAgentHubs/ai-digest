@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='utf-8'?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.w3.org/2005/Atom" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>AI Digest - Anthropic 博客中文摘要</title>
+    <link>https://myagenthubs.github.io/ai-digest/</link>
+    <description>Anthropic 工程博客和研究论文的中文学习笔记，涵盖 Claude、AI Agent、LLM 等前沿技术</description>
+    <language>zh-CN</language>
+    <lastBuildDate>Tue, 10 Feb 2026 10:52:32 +0000</lastBuildDate>
+    <generator>Claude Code Agent</generator>
+    <copyright>Copyright 2026 Anthropic (原文) / Panda (翻译)</copyright>
+    <ns0:link href="https://myagenthubs.github.io/ai-digest/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>量化 Agent 编码评估中的基础设施噪声</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260203-infrastructure-noise.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260203-infrastructure-noise.html</guid>
+      <pubDate>Tue, 03 Feb 2026 00:00:00 +0000</pubDate>
+      <description>量化 Agent 编码评估中的基础设施噪声</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/infrastructure-noise</comments>
+    </item>
+    <item>
+      <title>用并行 Claude 团队构建 C 编译器</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260205-building-c-compiler.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260205-building-c-compiler.html</guid>
+      <pubDate>Thu, 05 Feb 2026 00:00:00 +0000</pubDate>
+      <description>用并行 Claude 团队构建 C 编译器</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/building-c-compiler</comments>
+    </item>
+    <item>
+      <title>Anthropic 经济指数：理解 AI 使用的新基础模块</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20260115-economic-index-primitives.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20260115-economic-index-primitives.html</guid>
+      <pubDate>Thu, 15 Jan 2026 00:00:00 +0000</pubDate>
+      <description>Anthropic 经济指数：理解 AI 使用的新基础模块</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/economic-index-primitives</comments>
+    </item>
+    <item>
+      <title>下一代宪法分类器：更高效地防护通用越狱攻击</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20260109-next-generation-constitutional-classifiers.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20260109-next-generation-constitutional-classifiers.html</guid>
+      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
+      <description>下一代宪法分类器：更高效地防护通用越狱攻击</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/next-generation-constitutional-classifiers</comments>
+    </item>
+    <item>
+      <title>AI 辅助如何影响编程技能的形成</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20260129-ai-assistance-coding-skills.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20260129-ai-assistance-coding-skills.html</guid>
+      <pubDate>Thu, 29 Jan 2026 00:00:00 +0000</pubDate>
+      <description>AI 辅助如何影响编程技能的形成</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/AI-assistance-coding-skills</comments>
+    </item>
+    <item>
+      <title>揭秘 AI Agent 评估</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260109-demystifying-evals-for-ai-agents.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260109-demystifying-evals-for-ai-agents.html</guid>
+      <pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate>
+      <description>揭秘 AI Agent 评估</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</comments>
+    </item>
+    <item>
+      <title>设计抗 AI 的技术评估</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260121-ai-resistant-technical-evaluations.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20260121-ai-resistant-technical-evaluations.html</guid>
+      <pubDate>Wed, 21 Jan 2026 00:00:00 +0000</pubDate>
+      <description>设计抗 AI 的技术评估</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/AI-resistant-technical-evaluations</comments>
+    </item>
+    <item>
+      <title>Anthropic Interviewer：1250 名专业人士对 AI 协作的见解</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241204-anthropic-interviewer.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241204-anthropic-interviewer.html</guid>
+      <pubDate>Wed, 04 Dec 2024 00:00:00 +0000</pubDate>
+      <description>Anthropic Interviewer：1250 名专业人士对 AI 协作的见解</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/anthropic-interviewer</comments>
+    </item>
+    <item>
+      <title>AI 如何改变 Anthropic 的工作方式</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241202-ai-transforming-work.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241202-ai-transforming-work.html</guid>
+      <pubDate>Mon, 02 Dec 2024 00:00:00 +0000</pubDate>
+      <description>AI 如何改变 Anthropic 的工作方式</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic</comments>
+    </item>
+    <item>
+      <title>从 Claude 对话中估算 AI 生产力提升</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241125-estimating-productivity-gains.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241125-estimating-productivity-gains.html</guid>
+      <pubDate>Mon, 25 Nov 2024 00:00:00 +0000</pubDate>
+      <description>从 Claude 对话中估算 AI 生产力提升</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/estimating-productivity-gains</comments>
+    </item>
+    <item>
+      <title>缓解浏览器使用中的提示注入风险</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241124-prompt-injection-defenses.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241124-prompt-injection-defenses.html</guid>
+      <pubDate>Sun, 24 Nov 2024 00:00:00 +0000</pubDate>
+      <description>缓解浏览器使用中的提示注入风险</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/prompt-injection-defenses</comments>
+    </item>
+    <item>
+      <title>从捷径到破坏：奖励黑客导致的自然涌现不对齐</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241121-emergent-misalignment.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241121-emergent-misalignment.html</guid>
+      <pubDate>Thu, 21 Nov 2024 00:00:00 +0000</pubDate>
+      <description>从捷径到破坏：奖励黑客导致的自然涌现不对齐</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/emergent-misalignment-reward-hacking</comments>
+    </item>
+    <item>
+      <title>Project Fetch：Claude 能训练机器狗吗？</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241112-project-fetch.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241112-project-fetch.html</guid>
+      <pubDate>Tue, 12 Nov 2024 00:00:00 +0000</pubDate>
+      <description>Project Fetch：Claude 能训练机器狗吗？</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/project-fetch-robot-dog</comments>
+    </item>
+    <item>
+      <title>模型弃用和保留承诺</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241104-model-deprecation.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241104-model-deprecation.html</guid>
+      <pubDate>Mon, 04 Nov 2024 00:00:00 +0000</pubDate>
+      <description>模型弃用和保留承诺</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/deprecation-commitments</comments>
+    </item>
+    <item>
+      <title>Project Vend：第二阶段 - AI 自主商业运营实验</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241218-project-vend-2.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241218-project-vend-2.html</guid>
+      <pubDate>Wed, 18 Dec 2024 00:00:00 +0000</pubDate>
+      <description>Project Vend：第二阶段 - AI 自主商业运营实验</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/project-vend-2</comments>
+    </item>
+    <item>
+      <title>Bloom：AI 模型自动化行为评估工具</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20241219-bloom.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20241219-bloom.html</guid>
+      <pubDate>Thu, 19 Dec 2024 00:00:00 +0000</pubDate>
+      <description>Bloom：AI 模型自动化行为评估工具</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/bloom</comments>
+    </item>
+    <item>
+      <title>Code Execution with MCP: Building More Efficient Agents</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251104-code-execution-with-mcp.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251104-code-execution-with-mcp.html</guid>
+      <pubDate>Tue, 04 Nov 2025 00:00:00 +0000</pubDate>
+      <description>Code Execution with MCP: Building More Efficient Agents</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/code-execution-with-mcp</comments>
+    </item>
+    <item>
+      <title>Claude 开发者平台高级 Tool Use 功能介绍</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251124-advanced-tool-use.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251124-advanced-tool-use.html</guid>
+      <pubDate>Mon, 24 Nov 2025 00:00:00 +0000</pubDate>
+      <description>Claude 开发者平台高级 Tool Use 功能介绍</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/advanced-tool-use</comments>
+    </item>
+    <item>
+      <title>长运行 Agent 的有效框架</title>
+      <link>https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/engineering/anthropic/20251126-effective-harnesses-for-long-running-agents.html</guid>
+      <pubDate>Wed, 26 Nov 2025 00:00:00 +0000</pubDate>
+      <description>长运行 Agent 的有效框架</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Engineering</category>
+      <comments>https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</comments>
+    </item>
+    <item>
+      <title>为网络防御人员构建 AI</title>
+      <link>https://myagenthubs.github.io/ai-digest/research/anthropic/20251103-building-ai-cyber-defenders.html</link>
+      <guid isPermaLink="true">https://myagenthubs.github.io/ai-digest/research/anthropic/20251103-building-ai-cyber-defenders.html</guid>
+      <pubDate>Tue, 10 Feb 2026 10:52:32 +0000</pubDate>
+      <description>为网络防御人员构建 AI</description>
+      <dc:creator>Anthropic</dc:creator>
+      <category>Research</category>
+      <comments>https://www.anthropic.com/research/building-ai-cyber-defenders</comments>
+    </item>
+  </channel>
+</rss>
