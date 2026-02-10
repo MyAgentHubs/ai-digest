@@ -1,0 +1,43 @@
+# AI Digest - Robots Configuration
+# 允许所有 AI 爬虫访问
+
+# OpenAI GPT
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic Claude
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Google
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+# 通用规则
+User-agent: *
+Allow: /
+
+# Sitemap 位置
+Sitemap: https://myagenthubs.github.io/ai-digest/sitemap.xml
+Sitemap: https://myagenthubs.github.io/ai-digest/sitemap_engineering.xml
+Sitemap: https://myagenthubs.github.io/ai-digest/sitemap_research.xml
+
+# 爬取频率建议（延迟1秒）
+Crawl-delay: 1
