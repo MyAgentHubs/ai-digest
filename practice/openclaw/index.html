@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 实战手册 - AI Digest</title>
+    <meta name="description" content="OpenClaw 自托管网关的实践指南、排查手册和最佳实践">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fafafa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #191A1A;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #CC785C;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .category-section {
+            margin-bottom: 40px;
+        }
+
+        .category-title {
+            font-size: 1.5em;
+            color: #191A1A;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #CC785C;
+        }
+
+        .article-list {
+            list-style: none;
+        }
+
+        .article-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .article-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .article-link {
+            text-decoration: none;
+            color: #191A1A;
+            display: block;
+        }
+
+        .article-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .article-meta {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .coming-soon {
+            color: #999;
+            font-style: italic;
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+
+        .footer a {
+            color: #CC785C;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦞 OpenClaw 实战手册</h1>
+        <p class="subtitle">从部署到排查的完整指南 | 专注实践与问题解决</p>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value">4</div>
+                <div class="stat-label">已发布文章</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">7</div>
+                <div class="stat-label">内容栏目</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">v2026.2.23</div>
+                <div class="stat-label">当前版本</div>
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="category-section">
+            <h2 class="category-title">🚀 快速入门</h2>
+            <ul class="article-list">
+                <li class="article-item">
+                    <a href="getting-started/20260225-quick-deploy-guide.html" class="article-link">
+                        <div class="article-title">OpenClaw 快速部署指南</div>
+                        <div class="article-meta">
+                            2026-02-25 | 15分钟快速上手 OpenClaw 自托管 AI 网关，包含完整的部署步骤、常见问题排查和架构说明
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="category-section">
+            <h2 class="category-title">🔍 问题排查</h2>
+            <ul class="article-list">
+                <li class="article-item">
+                    <a href="troubleshooting/20260225-websocket-troubleshooting.html" class="article-link">
+                        <div class="article-title">OpenClaw WebSocket 连接故障排查指南</div>
+                        <div class="article-meta">
+                            2026-02-25 | 解决连接被拒绝、超时、认证失败等 WebSocket 常见问题，包含完整的排查流程和解决方案
+                        </div>
+                    </a>
+                </li>
+                <li class="article-item coming-soon">
+                    <div class="article-title">常见错误和解决方案</div>
+                    <div class="article-meta">Coming soon... | 汇总社区常见问题和官方解决方案</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="category-section">
+            <h2 class="category-title">⚡ 最佳实践</h2>
+            <ul class="article-list">
+                <li class="article-item">
+                    <a href="best-practices/20260225-security-guide.html" class="article-link">
+                        <div class="article-title">OpenClaw 安全配置最佳实践</div>
+                        <div class="article-meta">
+                            2026-02-25 | 生产环境安全配置指南，包括认证、TLS、防火墙、API Key 管理和审计日志
+                        </div>
+                    </a>
+                </li>
+                <li class="article-item coming-soon">
+                    <div class="article-title">生产部署检查清单</div>
+                    <div class="article-meta">Coming soon... | 从开发到生产的完整部署流程</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Architecture -->
+        <div class="category-section">
+            <h2 class="category-title">🏗️ 架构演进</h2>
+            <ul class="article-list">
+                <li class="article-item coming-soon">
+                    <div class="article-title">Gateway 设计演进</div>
+                    <div class="article-meta">Coming soon... | 单一 Gateway 架构的设计理念和演化历程</div>
+                </li>
+                <li class="article-item coming-soon">
+                    <div class="article-title">Multi-Agent 路由详解</div>
+                    <div class="article-meta">Coming soon... | 8 层优先级路由规则和实战配置</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Changelog -->
+        <div class="category-section">
+            <h2 class="category-title">📋 版本变更</h2>
+            <ul class="article-list">
+                <li class="article-item">
+                    <a href="changelog/20260225-version-evolution.html" class="article-link">
+                        <div class="article-title">OpenClaw 版本演进总结（2025.11 - 2026.2）</div>
+                        <div class="article-meta">
+                            2026-02-25 | 从 v2025.11.1 到 v2026.2.23 的完整版本历史、新功能、破坏性改动和升级路径
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Deployment -->
+        <div class="category-section">
+            <h2 class="category-title">🌐 部署案例</h2>
+            <ul class="article-list">
+                <li class="article-item coming-soon">
+                    <div class="article-title">macOS 本地部署</div>
+                    <div class="article-meta">Coming soon... | macOS 平台的详细部署步骤和优化</div>
+                </li>
+                <li class="article-item coming-soon">
+                    <div class="article-title">Oracle Cloud 部署</div>
+                    <div class="article-meta">Coming soon... | 云端部署的最佳实践</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Performance -->
+        <div class="category-section">
+            <h2 class="category-title">⚙️ 性能优化</h2>
+            <ul class="article-list">
+                <li class="article-item coming-soon">
+                    <div class="article-title">连接池调优</div>
+                    <div class="article-meta">Coming soon... | WebSocket 连接池的性能优化策略</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>OpenClaw 实战手册</strong> |
+                <a href="https://docs.openclaw.ai" target="_blank">官方文档</a> |
+                <a href="https://github.com/openclaw/openclaw" target="_blank">GitHub</a> |
+                <a href="https://discord.gg/clawd" target="_blank">Discord 社区</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                📝 本站内容每周更新 | 最后更新: 2026-02-25
+            </p>
+        </div>
+    </div>
+</body>
+</html>

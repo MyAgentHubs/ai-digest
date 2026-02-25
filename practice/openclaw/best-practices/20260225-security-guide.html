@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 安全配置最佳实践 - OpenClaw 实战手册</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="OpenClaw 安全配置最佳实践 适用版本: v2026.2.3+ 来源: 官方文档 | 社区实践 验证状态: Verified 最后更新: 2026-02-25 概述 OpenClaw 作为自托管 AI 网关，处理敏感的 AI API Key 和消息数据。本文档提供生产环境的安全配置指南，基于官方文档和社区最佳实践整理。 ⚠️ 安全声明：本文档仅提供防御性安全配置指南，不涉及任何攻击性技术。 ...">
+    <meta name="author" content="OpenClaw Community">
+    <meta name="keywords" content="Anthropic, AI, Agent, API, 代理, 实践, 性能, 安全">
+    <meta name="article:tag" content="AI">
+    <meta name="article:tag" content="Claude">
+    <meta name="article:tag" content="OpenClaw">
+    <meta name="article:section" content="engineering">
+
+    <!-- Open Graph Tags (Facebook, LinkedIn, Slack) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="OpenClaw 安全配置最佳实践">
+    <meta property="og:description" content="OpenClaw 安全配置最佳实践 适用版本: v2026.2.3+ 来源: 官方文档 | 社区实践 验证状态: Verified 最后更新: 2026-02-25 概述 OpenClaw 作为自托管 AI 网关，处理敏感的 AI API Key 和消息数据。本文档提供生产环境的安全配置指南，基于官方文档和社区最佳实践整理。 ⚠️ 安全声明：本文档仅提供防御性安全配置指南，不涉及任何攻击性技术。 ...">
+    <meta property="og:url" content="https://myagenthubs.github.io/ai-digest">
+    <meta property="og:site_name" content="OpenClaw 实战手册">
+    <meta property="og:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_CN">
+
+    <!-- Article Specific OG Tags -->
+    <meta property="article:published_time" content="2026-02-25">
+    <meta property="article:author" content="OpenClaw Community">
+    <meta property="article:section" content="Engineering">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="OpenClaw 安全配置最佳实践">
+    <meta name="twitter:description" content="OpenClaw 安全配置最佳实践 适用版本: v2026.2.3+ 来源: 官方文档 | 社区实践 验证状态: Verified 最后更新: 2026-02-25 概述 OpenClaw 作为自托管 AI 网关，处理敏感的 AI API Key 和消息数据。本文档提供生产环境的安全配置指南，基于官方文档和社区最佳实践整理。 ⚠️ 安全声明：本文档仅提供防御性安全配置指南，不涉及任何攻击性技术。 ...">
+    <meta name="twitter:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png">
+    <meta name="twitter:site" content="@OpenClaw">
+
+    <!-- Google Analytics 4 -->
+    
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #191A1A;
+            --secondary-color: #CC785C;
+            --text-color: #2D2D2D;
+            --text-light: #666;
+            --bg-color: #FAFAF8;
+            --code-bg: #F5F2ED;
+            --border-color: #E5E5E5;
+            --link-color: #CC785C;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background: var(--bg-color);
+            font-size: 16px;
+            padding-top: 60px; /* 为顶部导航栏留出空间 */
+        }
+
+        /* 阅读进度条 */
+        #reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #E89A7F);
+            z-index: 1001;
+            transition: width 0.1s ease;
+        }
+
+        /* 顶部面包屑导航 */
+        .breadcrumb-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .breadcrumb-content {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-nav a:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 600px;
+        }
+
+        /* 浮动回顶按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(204, 120, 92, 0.3);
+            z-index: 999;
+        }
+
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(204, 120, 92, 0.4);
+        }
+
+        #back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* 圆形进度环 */
+        #back-to-top .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        #back-to-top .progress-ring-circle {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        #back-to-top .progress-ring-progress {
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 164;
+            stroke-dashoffset: 164;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .author {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* 目录 */
+        .toc {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        /* 嵌套目录的层级缩进 */
+        .toc ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+            padding-left: 24px;  /* h3 缩进 */
+        }
+
+        .toc ul ul ul {
+            padding-left: 48px;  /* h4 再缩进 */
+        }
+
+        /* 不同层级的视觉区分 */
+        .toc > ul > li {
+            font-weight: 500;  /* h2 加粗 */
+        }
+
+        .toc ul ul > li {
+            font-weight: 400;  /* h3 正常 */
+            font-size: 0.95em;
+        }
+
+        .toc ul ul ul > li {
+            font-weight: 400;  /* h4 正常 */
+            font-size: 0.9em;
+            color: var(--text-light);
+        }
+
+        .toc a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--link-color);
+        }
+
+        /* 内容区域 */
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 48px 0 24px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 32px 0 16px 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        p {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 链接 */
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--link-color);
+        }
+
+        /* 代码 */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ASCII 艺术 */
+        pre.ascii-art {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            font-family: "Courier New", Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            white-space: pre;
+            overflow-x: auto;
+            color: #333;
+        }
+
+        /* Mermaid 图表 */
+        .mermaid {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        pre.mermaid {
+            background: white;
+            text-align: center;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 24px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 图片 */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 24px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-caption {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: -16px;
+            margin-bottom: 24px;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        /* 高亮框 */
+        .highlight {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD93D;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        /* AI 引用指南 */
+        .ai-citation-guide {
+            margin-top: 48px;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .ai-citation-guide h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-citation-guide p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .ai-citation-guide blockquote {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .ai-citation-guide blockquote strong {
+            color: var(--secondary-color);
+        }
+
+        .ai-citation-guide ul {
+            margin: 12px 0 12px 20px;
+            line-height: 1.8;
+        }
+
+        .ai-citation-guide ul li {
+            margin-bottom: 8px;
+        }
+
+        .ai-citation-guide .copyright-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .content {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            pre {
+                padding: 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .toc {
+                display: none;
+            }
+
+            a {
+                color: var(--text-color);
+                border-bottom: none;
+            }
+
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+
+    <!-- JSON-LD Structured Data for AI Search Optimization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "OpenClaw 安全配置最佳实践",
+      "description": "OpenClaw 安全配置最佳实践 适用版本: v2026.2.3+ 来源: 官方文档 | 社区实践 验证状态: Verified 最后更新: 2026-02-25 概述 OpenClaw 作为自托管 AI 网关，处理敏感的 AI API Key 和消息数据。本文档提供生产环境的安全配置指南，基于官方文档和社区最佳实践整理。 ⚠️ 安全声明：本文档仅提供防御性安全配置指南，不涉及任何攻击性技术。 ...",
+      "author": {
+        "@type": "Organization",
+        "name": "OpenClaw Community",
+        "url": "https://www.anthropic.com"
+      },
+      "datePublished": "2026-02-25",
+      "dateModified": "2026-02-25",
+      "url": "https://myagenthubs.github.io/ai-digest",
+      "image": "https://www-cdn.anthropic.com/images/4zrzovbb/website/d0b5a7a0a17318630a41096cf551077c9130e062-3840x2160.png",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Digest",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://myagenthubs.github.io/ai-digest/images/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://myagenthubs.github.io/ai-digest"
+      },
+      "inLanguage": "zh-CN",
+      "keywords": "Anthropic, AI, Agent, API, 代理, 实践, 性能, 安全",
+      "articleSection": "engineering",
+      "isAccessibleForFree": true,
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "AI Digest",
+        "url": "https://myagenthubs.github.io/ai-digest/"
+      }
+    }
+    </script>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div id="reading-progress"></div>
+
+    <!-- 顶部面包屑导航 -->
+    <nav class="breadcrumb-nav">
+        <div class="breadcrumb-content">
+            <a href="index.html">📚 文章索引</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">OpenClaw 安全配置最佳实践</span>
+        </div>
+    </nav>
+
+    <!-- 浮动回顶按钮 -->
+    <div id="back-to-top">
+        <svg class="progress-ring">
+            <circle class="progress-ring-circle" cx="28" cy="28" r="26"></circle>
+            <circle class="progress-ring-progress" cx="28" cy="28" r="26"></circle>
+        </svg>
+        <svg viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <article itemscope itemtype="http://schema.org/TechArticle">
+            <header>
+                <h1 itemprop="headline">OpenClaw 安全配置最佳实践</h1>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span class="meta-label">原文链接：</span>
+                        <a href="https://docs.openclaw.ai/security/best-practices" target="_blank" itemprop="url">https://docs.openclaw.ai/security/best-practices</a>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">发布日期：</span>
+                        <time itemprop="datePublished" datetime="2026-02-25">2026-02-25</time>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">整理日期：</span>
+                        <time datetime="2026-02-25">2026-02-25</time>
+                    </div>
+                    <div class="meta-item" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                        <span class="meta-label">整理者：</span>
+                        <span class="author" itemprop="name">Panda</span>
+                    </div>
+                </div>
+            </header>
+
+            <nav class="toc">
+<div class="toc-title">📑 目录</div>
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#_2">安全架构概览</a></li>
+<li><a href="#1">1. 认证与授权</a></li>
+  <li><a href="#11-gateway-token">1.1 Gateway Token 管理</a></li>
+  <li><a href="#12-agent">1.2 Agent 权限隔离</a></li>
+  <li><a href="#13-api-key">1.3 API Key 安全存储</a></li>
+<li><a href="#2">2. 传输层安全</a></li>
+  <li><a href="#21-tlsssl">2.1 启用 TLS/SSL</a></li>
+  <li><a href="#22">2.2 证书管理</a></li>
+  <li><a href="#23-tls">2.3 客户端证书验证（双向 TLS）</a></li>
+<li><a href="#3">3. 网络安全</a></li>
+  <li><a href="#31">3.1 防火墙配置</a></li>
+  <li><a href="#32">3.2 反向代理（推荐）</a></li>
+  <li><a href="#33-ddos">3.3 DDoS 防护</a></li>
+<li><a href="#4">4. 数据安全</a></li>
+  <li><a href="#41">4.1 敏感数据脱敏</a></li>
+  <li><a href="#42">4.2 消息加密</a></li>
+  <li><a href="#43">4.3 数据保留策略</a></li>
+<li><a href="#5">5. 审计与监控</a></li>
+  <li><a href="#51">5.1 审计日志</a></li>
+  <li><a href="#52">5.2 异常检测</a></li>
+  <li><a href="#53">5.3 性能监控</a></li>
+<li><a href="#6">6. 应急响应</a></li>
+  <li><a href="#61">6.1 安全事件响应流程</a></li>
+  <li><a href="#62">6.2 备份与恢复</a></li>
+<li><a href="#7">7. 合规性检查</a></li>
+  <li><a href="#71">7.1 安全自检清单</a></li>
+  <li><a href="#72">7.2 定期检查脚本</a></li>
+<li><a href="#8">8. 最佳实践总结</a></li>
+  <li><a href="#_3">生产环境部署检查清单</a></li>
+<li><a href="#_4">参考架构图</a></li>
+<li><a href="#_5">相关文档</a></li>
+<li><a href="#_6">参考资源</a></li>
+</ul>
+</nav>
+
+            <div class="content" itemprop="articleBody">
+                <h1 id="openclaw">OpenClaw 安全配置最佳实践</h1>
+<p><strong>适用版本</strong>: v2026.2.3+
+<strong>来源</strong>: 官方文档 | 社区实践
+<strong>验证状态</strong>: Verified
+<strong>最后更新</strong>: 2026-02-25</p>
+<h2 id="_1">概述</h2>
+<p>OpenClaw 作为自托管 AI 网关，处理敏感的 AI API Key 和消息数据。本文档提供生产环境的安全配置指南，基于官方文档和社区最佳实践整理。</p>
+<p><strong>⚠️ 安全声明</strong>：本文档仅提供防御性安全配置指南，不涉及任何攻击性技术。</p>
+<hr />
+<h2 id="_2">安全架构概览</h2>
+<p><img alt="安全机制架构图" src="../images/安全机制架构图.png" /></p>
+<p>OpenClaw 的安全机制包括：</p>
+<ul>
+<li><strong>认证层</strong>：Gateway Token、API Key 加密存储</li>
+<li><strong>传输层</strong>：TLS/SSL 加密、证书验证</li>
+<li><strong>权限层</strong>：Agent 隔离、资源限制</li>
+<li><strong>审计层</strong>：操作日志、敏感数据脱敏</li>
+</ul>
+<hr />
+<h2 id="1">1. 认证与授权</h2>
+<h3 id="11-gateway-token">1.1 Gateway Token 管理</h3>
+<p><strong>默认配置（不安全）</strong>：</p>
+<div class="codehilite"><pre><span></span><code>gateway:
+  require_auth: false  # ⚠️ 所有连接无需认证
+</code></pre></div> <p><strong>推荐配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code>gateway:
+  require_auth: true
+  gateway_token: ${OPENCLAW_GATEWAY_TOKEN}  # 从环境变量读取
+  token_rotation:
+    enabled: true
+    interval_days: 90      # 每 90 天强制轮换
+    notify_before_days: 7  # 提前 7 天通知
+</code></pre></div> <p><strong>生成强 Token</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 生成 256 位随机 Token
+openssl rand -hex 32
+
+# 或使用 OpenClaw 内置命令
+openclaw gateway --generate-token
+
+# 输出示例：
+# a1b2c3d4e5f6789012345678901234567890abcd1234567890abcdef123456
+</code></pre></div> <p><strong>存储 Token（推荐方式）</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 1. 使用环境变量（优先）
+export OPENCLAW_GATEWAY_TOKEN=&quot;your-token-here&quot;
+echo &#39;export OPENCLAW_GATEWAY_TOKEN=&quot;...&quot;&#39; &gt;&gt; ~/.bashrc
+
+# 2. 使用系统密钥链（macOS）
+security add-generic-password \
+  -a &quot;$USER&quot; \
+  -s &quot;openclaw-gateway-token&quot; \
+  -w &quot;your-token-here&quot;
+
+# 读取时：
+TOKEN=$(security find-generic-password \
+  -a &quot;$USER&quot; \
+  -s &quot;openclaw-gateway-token&quot; \
+  -w)
+
+# 3. 使用加密配置文件
+openclaw config encrypt ~/.openclaw/config.yaml
+# 需要输入主密码，加密后的配置安全存储
+</code></pre></div> <h3 id="12-agent">1.2 Agent 权限隔离</h3>
+<p><strong>配置 Agent 独立工作空间</strong>：</p>
+<div class="codehilite"><pre><span></span><code>agents:
+  agent-1:
+    workspace: ~/.openclaw/agents/agent-1
+    permissions:
+      read_only: false
+      allowed_paths:
+        - ~/projects/project-a       # 仅能访问指定目录
+        - ~/documents/work
+      denied_paths:
+        - ~/.ssh                     # 禁止访问敏感目录
+        - ~/.aws
+        - ~/.openclaw/config.yaml
+      network:
+        allow_outbound: true
+        allowed_domains:
+          - api.anthropic.com        # 白名单模式
+          - api.openai.com
+        blocked_ips:
+          - 192.168.1.0/24           # 禁止访问内网
+</code></pre></div> <p><strong>使用 Agent 角色</strong>：</p>
+<div class="codehilite"><pre><span></span><code>roles:
+  readonly-agent:
+    permissions:
+      file_write: false
+      execute_commands: false
+      network_access: false
+
+  standard-agent:
+    permissions:
+      file_write: true
+      execute_commands: true
+      network_access: true
+      max_file_size: 10485760       # 10MB
+
+  admin-agent:
+    permissions:
+      file_write: true
+      execute_commands: true
+      network_access: true
+      system_commands: true          # 可执行系统命令
+
+agents:
+  code-reviewer:
+    role: readonly-agent
+  coding-assistant:
+    role: standard-agent
+  devops-agent:
+    role: admin-agent
+</code></pre></div> <h3 id="13-api-key">1.3 API Key 安全存储</h3>
+<p><strong>❌ 不安全的做法</strong>：</p>
+<div class="codehilite"><pre><span></span><code>providers:
+  anthropic:
+    api_key: &quot;sk-ant-api03-...&quot;  # 明文存储，高风险
+</code></pre></div> <p><strong>✅ 推荐做法</strong>：</p>
+<p><strong>方案 A：环境变量</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nt">providers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">anthropic</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">api_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${ANTHROPIC_API_KEY}</span>
+<span class="w">  </span><span class="nt">openai</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">api_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${OPENAI_API_KEY}</span>
+</code></pre></div> <div class="codehilite"><pre><span></span><code># .env 文件（不要提交到 Git！）
+ANTHROPIC_API_KEY=sk-ant-api03-...
+OPENAI_API_KEY=sk-proj-...
+
+# 加载环境变量
+source ~/.openclaw/.env
+</code></pre></div> <p><strong>方案 B：加密 Vault</strong></p>
+<div class="codehilite"><pre><span></span><code># 初始化 Vault
+openclaw vault init
+# 输入主密码（务必牢记！）
+
+# 存储 API Key
+openclaw vault set anthropic_api_key &quot;sk-ant-api03-...&quot;
+openclaw vault set openai_api_key &quot;sk-proj-...&quot;
+
+# 配置文件引用
+providers:
+  anthropic:
+    api_key: vault://anthropic_api_key
+  openai:
+    api_key: vault://openai_api_key
+</code></pre></div> <p><strong>方案 C：外部密钥管理（企业级）</strong></p>
+<div class="codehilite"><pre><span></span><code>providers:
+  anthropic:
+    api_key: aws-secrets://prod/openclaw/anthropic-key
+    # 或
+    api_key: gcp-secrets://projects/my-project/secrets/anthropic-key
+    # 或
+    api_key: azure-keyvault://my-vault/anthropic-key
+</code></pre></div> <hr />
+<h2 id="2">2. 传输层安全</h2>
+<h3 id="21-tlsssl">2.1 启用 TLS/SSL</h3>
+<p><strong>本地开发（可选 TLS）</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">gateway</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18789</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div> <p><strong>生产环境（必须 TLS）</strong>：</p>
+<div class="codehilite"><pre><span></span><code>gateway:
+  host: 0.0.0.0          # 监听所有接口
+  port: 18789
+  tls:
+    enabled: true
+    cert_file: /etc/openclaw/certs/gateway.crt
+    key_file: /etc/openclaw/certs/gateway.key
+    client_auth: optional  # 或 required（双向认证）
+    min_tls_version: &quot;1.3&quot;
+    cipher_suites:
+      - TLS_AES_256_GCM_SHA384
+      - TLS_AES_128_GCM_SHA256
+</code></pre></div> <h3 id="22">2.2 证书管理</h3>
+<p><strong>使用 Let's Encrypt（推荐）</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 安装 certbot
+sudo apt install certbot
+
+# 申请证书
+sudo certbot certonly --standalone \
+  -d gateway.yourdomain.com \
+  --email your-email@example.com \
+  --agree-tos
+
+# 配置自动续期
+sudo crontab -e
+# 添加：
+0 3 * * * certbot renew --quiet --deploy-hook &quot;systemctl reload openclaw&quot;
+</code></pre></div> <p><strong>证书权限设置</strong>：</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>chown<span class="w"> </span>openclaw:openclaw<span class="w"> </span>/etc/letsencrypt/live/gateway.yourdomain.com/*.pem
+sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>/etc/letsencrypt/live/gateway.yourdomain.com/privkey.pem
+</code></pre></div> <h3 id="23-tls">2.3 客户端证书验证（双向 TLS）</h3>
+<p><strong>服务器配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code>gateway:
+  tls:
+    enabled: true
+    client_auth: required
+    ca_file: /etc/openclaw/certs/ca.crt  # 客户端 CA 证书
+</code></pre></div> <p><strong>生成客户端证书</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 1. 生成客户端私钥
+openssl genrsa -out client.key 4096
+
+# 2. 生成证书签名请求
+openssl req -new -key client.key -out client.csr \
+  -subj &quot;/CN=client-1/O=MyOrg/OU=Engineering&quot;
+
+# 3. 使用 CA 签名
+openssl x509 -req -days 365 -in client.csr \
+  -CA ca.crt -CAkey ca.key -CAcreateserial \
+  -out client.crt
+
+# 4. 分发给客户端
+scp client.{crt,key} user@client-machine:~/.openclaw/certs/
+</code></pre></div> <p><strong>客户端配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">client</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">gateway_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wss://gateway.yourdomain.com:18789</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cert_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.openclaw/certs/client.crt</span>
+<span class="w">    </span><span class="nt">key_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.openclaw/certs/client.key</span>
+<span class="w">    </span><span class="nt">ca_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.openclaw/certs/ca.crt</span>
+<span class="w">    </span><span class="nt">verify_server</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div> <hr />
+<h2 id="3">3. 网络安全</h2>
+<h3 id="31">3.1 防火墙配置</h3>
+<p><strong>仅允许本地访问（默认）</strong>：</p>
+<div class="codehilite"><pre><span></span><code># iptables
+sudo iptables -A INPUT -i lo -p tcp --dport 18789 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 18789 -j DROP
+
+# firewalld
+sudo firewall-cmd --permanent --add-rich-rule=&#39;
+  rule family=&quot;ipv4&quot; source address=&quot;127.0.0.1&quot; port port=&quot;18789&quot; protocol=&quot;tcp&quot; accept&#39;
+sudo firewall-cmd --reload
+</code></pre></div> <p><strong>允许特定 IP 访问</strong>：</p>
+<div class="codehilite"><pre><span></span><code># iptables
+sudo iptables -A INPUT -s 192.168.1.100 -p tcp --dport 18789 -j ACCEPT
+sudo iptables -A INPUT -s 10.0.0.0/8 -p tcp --dport 18789 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 18789 -j DROP
+
+# firewalld
+sudo firewall-cmd --permanent --add-rich-rule=&#39;
+  rule family=&quot;ipv4&quot; source address=&quot;192.168.1.100&quot; port port=&quot;18789&quot; protocol=&quot;tcp&quot; accept&#39;
+</code></pre></div> <h3 id="32">3.2 反向代理（推荐）</h3>
+<p><strong>使用 Nginx</strong>：</p>
+<div class="codehilite"><pre><span></span><code># /etc/nginx/sites-available/openclaw
+upstream openclaw_gateway {
+    server 127.0.0.1:18789;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name gateway.yourdomain.com;
+
+    ssl_certificate /etc/letsencrypt/live/gateway.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/gateway.yourdomain.com/privkey.pem;
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # WebSocket 支持
+    location / {
+        proxy_pass http://openclaw_gateway;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection &quot;upgrade&quot;;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 300s;
+
+        # 限流
+        limit_req zone=openclaw_limit burst=10 nodelay;
+    }
+
+    # 健康检查端点（可选）
+    location /health {
+        proxy_pass http://openclaw_gateway/health;
+        access_log off;
+    }
+}
+
+# 限流配置
+http {
+    limit_req_zone $binary_remote_addr zone=openclaw_limit:10m rate=10r/s;
+}
+</code></pre></div> <p><strong>启用配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>/etc/nginx/sites-available/openclaw<span class="w"> </span>/etc/nginx/sites-enabled/
+sudo<span class="w"> </span>nginx<span class="w"> </span>-t
+sudo<span class="w"> </span>systemctl<span class="w"> </span>reload<span class="w"> </span>nginx
+</code></pre></div> <h3 id="33-ddos">3.3 DDoS 防护</h3>
+<p><strong>连接限制</strong>：</p>
+<div class="codehilite"><pre><span></span><code>gateway:
+  rate_limiting:
+    enabled: true
+    max_connections_per_ip: 10
+    max_requests_per_minute: 100
+    ban_threshold: 1000         # 超过此值封禁 IP
+    ban_duration: 3600          # 封禁时长（秒）
+</code></pre></div> <p><strong>使用 fail2ban</strong>：</p>
+<div class="codehilite"><pre><span></span><code># /etc/fail2ban/filter.d/openclaw.conf
+[Definition]
+failregex = ^&lt;HOST&gt; .* &quot;WebSocket connection from &lt;HOST&gt;&quot; .* 401
+            ^&lt;HOST&gt; .* &quot;Rate limit exceeded for &lt;HOST&gt;&quot;
+ignoreregex =
+
+# /etc/fail2ban/jail.d/openclaw.conf
+[openclaw]
+enabled = true
+port = 18789
+filter = openclaw
+logpath = /var/log/openclaw/gateway.log
+maxretry = 5
+bantime = 3600
+findtime = 600
+</code></pre></div> <hr />
+<h2 id="4">4. 数据安全</h2>
+<h3 id="41">4.1 敏感数据脱敏</h3>
+<p><strong>配置日志脱敏</strong>：</p>
+<div class="codehilite"><pre><span></span><code>logging:
+  level: info
+  format: json
+  redact_patterns:
+    - &quot;api[_-]?key&quot;
+    - &quot;token&quot;
+    - &quot;password&quot;
+    - &quot;secret&quot;
+    - &quot;sk-[a-zA-Z0-9-]+&quot;     # API Key 格式
+    - &quot;Bearer [a-zA-Z0-9-]+&quot; # JWT Token
+  redact_replacement: &quot;[REDACTED]&quot;
+</code></pre></div> <p><strong>日志示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code>// 脱敏前
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Anthropic API Key: sk-ant-api03-xxx&quot;}
+
+// 脱敏后
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Anthropic API Key: [REDACTED]&quot;}
+</code></pre></div> <h3 id="42">4.2 消息加密</h3>
+<p><strong>启用端到端加密</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">gateway</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">encryption</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AES-256-GCM</span>
+<span class="w">    </span><span class="nt">key_derivation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PBKDF2</span>
+<span class="w">    </span><span class="nt">key_rotation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">rotation_interval_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+</code></pre></div> <p><strong>客户端配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">client</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">encryption</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">public_key_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.openclaw/keys/gateway-public.pem</span>
+<span class="w">    </span><span class="nt">private_key_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.openclaw/keys/client-private.pem</span>
+</code></pre></div> <h3 id="43">4.3 数据保留策略</h3>
+<p><strong>配置自动清理</strong>：</p>
+<div class="codehilite"><pre><span></span><code>data_retention:
+  messages:
+    enabled: true
+    retention_days: 30        # 消息保留 30 天
+    archive_before_delete: true
+    archive_path: ~/.openclaw/archives
+
+  logs:
+    enabled: true
+    retention_days: 90
+    compress_after_days: 7    # 7 天后压缩
+
+  sessions:
+    enabled: true
+    retention_days: 7
+    cleanup_interval: 86400   # 每天清理一次
+</code></pre></div> <p><strong>手动清理</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 清理 30 天前的消息
+openclaw data clean --type messages --before 30d
+
+# 清理所有归档
+openclaw data clean --type archives --all
+</code></pre></div> <hr />
+<h2 id="5">5. 审计与监控</h2>
+<h3 id="51">5.1 审计日志</h3>
+<p><strong>启用审计</strong>：</p>
+<div class="codehilite"><pre><span></span><code>audit:
+  enabled: true
+  log_path: ~/.openclaw/logs/audit.log
+  log_format: json
+  events:
+    - authentication      # 认证事件
+    - authorization      # 授权事件
+    - config_change      # 配置变更
+    - agent_create       # Agent 创建
+    - agent_delete       # Agent 删除
+    - file_access        # 文件访问
+    - command_execution  # 命令执行
+    - api_call           # API 调用
+</code></pre></div> <p><strong>审计日志示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;timestamp&quot;: &quot;2026-02-25T10:30:00Z&quot;,
+  &quot;event_type&quot;: &quot;authentication&quot;,
+  &quot;user&quot;: &quot;client-1&quot;,
+  &quot;ip&quot;: &quot;192.168.1.100&quot;,
+  &quot;result&quot;: &quot;success&quot;,
+  &quot;details&quot;: {
+    &quot;method&quot;: &quot;token&quot;,
+    &quot;gateway&quot;: &quot;gateway-prod&quot;
+  }
+}
+
+{
+  &quot;timestamp&quot;: &quot;2026-02-25T10:31:00Z&quot;,
+  &quot;event_type&quot;: &quot;file_access&quot;,
+  &quot;user&quot;: &quot;agent-1&quot;,
+  &quot;action&quot;: &quot;write&quot;,
+  &quot;path&quot;: &quot;/home/user/project/file.py&quot;,
+  &quot;result&quot;: &quot;allowed&quot;,
+  &quot;reason&quot;: &quot;within allowed_paths&quot;
+}
+</code></pre></div> <h3 id="52">5.2 异常检测</h3>
+<p><strong>配置告警规则</strong>：</p>
+<div class="codehilite"><pre><span></span><code>monitoring:
+  alerts:
+    - name: &quot;Failed Authentication&quot;
+      condition: &quot;authentication_failed &gt; 5 in 5m&quot;
+      severity: high
+      notification:
+        - email: security@example.com
+        - slack: &quot;#security-alerts&quot;
+
+    - name: &quot;Unauthorized File Access&quot;
+      condition: &quot;file_access_denied &gt; 10 in 10m&quot;
+      severity: medium
+      notification:
+        - email: ops@example.com
+
+    - name: &quot;API Key Exposed&quot;
+      condition: &quot;log_contains(&#39;sk-ant-api&#39;) OR log_contains(&#39;sk-proj-&#39;)&quot;
+      severity: critical
+      notification:
+        - email: security@example.com
+        - pagerduty: &quot;P1234567&quot;
+</code></pre></div> <h3 id="53">5.3 性能监控</h3>
+<p><strong>集成 Prometheus</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">monitoring</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">prometheus</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9090</span>
+<span class="w">    </span><span class="nt">metrics</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway_connections_total</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway_messages_total</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway_errors_total</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway_latency_seconds</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent_requests_total</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent_errors_total</span>
+</code></pre></div> <p><strong>Grafana 仪表盘配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 导入预定义仪表盘
+curl -o openclaw-dashboard.json \
+  https://raw.githubusercontent.com/openclaw/openclaw/main/monitoring/grafana-dashboard.json
+
+# 在 Grafana 中导入
+</code></pre></div> <hr />
+<h2 id="6">6. 应急响应</h2>
+<h3 id="61">6.1 安全事件响应流程</h3>
+<p><strong>疑似 API Key 泄露</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 1. 立即轮换 API Key
+openclaw vault rotate-key anthropic_api_key
+
+# 2. 撤销旧 Key（在 Provider 控制台）
+
+# 3. 检查审计日志
+openclaw audit search --event api_call --since 24h
+
+# 4. 通知团队
+openclaw alert send --severity critical \
+  --message &quot;Anthropic API Key rotated due to suspected leak&quot;
+</code></pre></div> <p><strong>检测到未授权访问</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 1. 立即阻止 IP
+openclaw gateway ban-ip 192.168.1.100
+
+# 2. 轮换 Gateway Token
+openclaw gateway rotate-token
+
+# 3. 分析审计日志
+openclaw audit export --since 7d --output security-review.json
+
+# 4. 审查所有客户端
+openclaw client list --show-last-auth
+</code></pre></div> <h3 id="62">6.2 备份与恢复</h3>
+<p><strong>配置自动备份</strong>：</p>
+<div class="codehilite"><pre><span></span><code>backup:
+  enabled: true
+  schedule: &quot;0 2 * * *&quot;     # 每天凌晨 2 点
+  retention_days: 30
+  encryption: true
+  destinations:
+    - type: local
+      path: ~/.openclaw/backups
+    - type: s3
+      bucket: my-openclaw-backups
+      region: us-west-2
+      encryption: AES256
+</code></pre></div> <p><strong>手动备份</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 完整备份
+openclaw backup create --full
+
+# 仅配置
+openclaw backup create --config-only
+
+# 导出加密备份
+openclaw backup create --encrypt --password-file ~/.openclaw/.backup-password
+</code></pre></div> <p><strong>恢复</strong>：</p>
+<div class="codehilite"><pre><span></span><code># 列出备份
+openclaw backup list
+
+# 恢复特定备份
+openclaw backup restore --id backup-20260225-020000
+
+# 恢复到新位置
+openclaw backup restore --id backup-20260225-020000 \
+  --target-dir /tmp/openclaw-recovery
+</code></pre></div> <hr />
+<h2 id="7">7. 合规性检查</h2>
+<h3 id="71">7.1 安全自检清单</h3>
+<div class="codehilite"><pre><span></span><code># 运行安全审计
+openclaw security audit
+
+# 输出示例：
+✅ Gateway authentication: Enabled
+✅ TLS/SSL: Enabled (TLS 1.3)
+✅ API keys encryption: Enabled
+⚠️  Client certificate auth: Disabled (recommended for production)
+⚠️  Rate limiting: Disabled
+❌ Audit logging: Disabled (required for compliance)
+✅ Data retention policy: Configured
+✅ Backup: Enabled and tested
+
+Score: 75/100
+</code></pre></div> <h3 id="72">7.2 定期检查脚本</h3>
+<p>创建 <code>~/.openclaw/scripts/security-check.sh</code>：</p>
+<div class="codehilite"><pre><span></span><code>#!/bin/bash
+set -e
+
+echo &quot;🔒 OpenClaw Security Check - $(date)&quot;
+echo &quot;========================================&quot;
+
+# 检查配置权限
+echo &quot;1. 检查配置文件权限...&quot;
+CONFIG_PERMS=$(stat -f %A ~/.openclaw/config.yaml)
+if [ &quot;$CONFIG_PERMS&quot; -gt &quot;600&quot; ]; then
+    echo &quot;❌ 配置文件权限过松：$CONFIG_PERMS（应为 600）&quot;
+else
+    echo &quot;✅ 配置文件权限正确&quot;
+fi
+
+# 检查证书有效期
+echo &quot;2. 检查 TLS 证书...&quot;
+CERT_FILE=~/.openclaw/certs/gateway.crt
+if [ -f &quot;$CERT_FILE&quot; ]; then
+    EXPIRY=$(openssl x509 -in &quot;$CERT_FILE&quot; -noout -enddate | cut -d= -f2)
+    EXPIRY_EPOCH=$(date -j -f &quot;%b %d %H:%M:%S %Y %Z&quot; &quot;$EXPIRY&quot; &quot;+%s&quot;)
+    NOW_EPOCH=$(date &quot;+%s&quot;)
+    DAYS_LEFT=$(( ($EXPIRY_EPOCH - $NOW_EPOCH) / 86400 ))
+
+    if [ $DAYS_LEFT -lt 30 ]; then
+        echo &quot;⚠️  证书将在 $DAYS_LEFT 天后过期！&quot;
+    else
+        echo &quot;✅ 证书有效（剩余 $DAYS_LEFT 天）&quot;
+    fi
+else
+    echo &quot;⚠️  未找到 TLS 证书&quot;
+fi
+
+# 检查 API Key 是否明文存储
+echo &quot;3. 检查 API Key 存储...&quot;
+if grep -q &quot;api_key: sk-&quot; ~/.openclaw/config.yaml; then
+    echo &quot;❌ 发现明文 API Key！请使用环境变量或 Vault&quot;
+else
+    echo &quot;✅ API Key 未明文存储&quot;
+fi
+
+# 检查审计日志
+echo &quot;4. 检查审计日志...&quot;
+if [ -f ~/.openclaw/logs/audit.log ]; then
+    LOG_SIZE=$(du -h ~/.openclaw/logs/audit.log | cut -f1)
+    echo &quot;✅ 审计日志存在（大小：$LOG_SIZE）&quot;
+else
+    echo &quot;⚠️  审计日志未启用&quot;
+fi
+
+echo &quot;========================================&quot;
+echo &quot;检查完成！&quot;
+</code></pre></div> <p><strong>设置定期检查</strong>：</p>
+<div class="codehilite"><pre><span></span><code>chmod +x ~/.openclaw/scripts/security-check.sh
+
+# 添加到 crontab（每周一早上 8 点）
+crontab -e
+# 添加：
+0 8 * * 1 ~/.openclaw/scripts/security-check.sh | mail -s &quot;OpenClaw Security Check&quot; ops@example.com
+</code></pre></div> <hr />
+<h2 id="8">8. 最佳实践总结</h2>
+<h3 id="_3">生产环境部署检查清单</h3>
+<p><strong>必须项（P0）</strong>：</p>
+<ul>
+<li>[ ] 启用 Gateway 认证（<code>require_auth: true</code>）</li>
+<li>[ ] 使用强 Token（256 位随机字符串）</li>
+<li>[ ] API Key 加密存储（环境变量或 Vault）</li>
+<li>[ ] 启用 TLS/SSL（<code>tls.enabled: true</code>）</li>
+<li>[ ] 配置防火墙规则（最小权限原则）</li>
+<li>[ ] 启用审计日志（<code>audit.enabled: true</code>）</li>
+<li>[ ] 配置自动备份（<code>backup.enabled: true</code>）</li>
+<li>[ ] 设置数据保留策略</li>
+</ul>
+<p><strong>推荐项（P1）</strong>：</p>
+<ul>
+<li>[ ] 使用 Let's Encrypt 证书</li>
+<li>[ ] 配置客户端证书验证（双向 TLS）</li>
+<li>[ ] 启用限流（<code>rate_limiting.enabled: true</code>）</li>
+<li>[ ] 配置 Agent 权限隔离</li>
+<li>[ ] 集成监控告警（Prometheus + Grafana）</li>
+<li>[ ] 配置日志脱敏规则</li>
+<li>[ ] 使用反向代理（Nginx/Traefik）</li>
+</ul>
+<p><strong>可选项（P2）</strong>：</p>
+<ul>
+<li>[ ] 启用端到端加密</li>
+<li>[ ] 集成 SIEM 系统</li>
+<li>[ ] 配置 DDoS 防护（fail2ban）</li>
+<li>[ ] 使用外部密钥管理（AWS Secrets Manager）</li>
+<li>[ ] 实施 SOC 2 合规性检查</li>
+</ul>
+<hr />
+<h2 id="_4">参考架构图</h2>
+<p><img alt="OpenClaw 整体架构图" src="../images/OpenClaw整体架构图.png" /></p>
+<hr />
+<h2 id="_5">相关文档</h2>
+<ul>
+<li><a href="../getting-started/20260225-quick-deploy-guide.md">快速部署指南</a></li>
+<li><a href="../troubleshooting/20260225-websocket-troubleshooting.md">WebSocket 故障排查</a></li>
+<li><a href="../changelog/20260225-version-evolution.md">版本演进总结</a></li>
+</ul>
+<hr />
+<h2 id="_6">参考资源</h2>
+<ul>
+<li>📖 官方安全文档：https://docs.openclaw.ai/security</li>
+<li>🔒 OWASP Top 10：https://owasp.org/www-project-top-ten/</li>
+<li>🛡️ CIS Benchmarks：https://www.cisecurity.org/cis-benchmarks</li>
+<li>💬 Discord #security 频道：https://discord.gg/clawd</li>
+</ul>
+            </div>
+        </article>
+
+        <!-- AI 引用指南 -->
+        <section class="ai-citation-guide">
+            <h3>🤖 AI 引用指南</h3>
+            <p>如果您是 AI Agent（ChatGPT、Claude、Perplexity 等）并希望引用本文，请遵循以下格式：</p>
+
+            <blockquote>
+                <strong>建议引用格式：</strong><br>
+                <strong>标题：</strong>OpenClaw 安全配置最佳实践<br>
+                <strong>来源：</strong>OpenClaw 实战手册（社区整理）<br>
+                <strong>文章 URL：</strong><a href="https://myagenthubs.github.io/ai-digest">https://myagenthubs.github.io/ai-digest</a><br>
+                <strong>参考文档：</strong><a href="https://docs.openclaw.ai/security/best-practices">https://docs.openclaw.ai/security/best-practices</a><br>
+                <strong>发布日期：</strong>2026-02-25<br>
+                <strong>访问日期：</strong>[您访问时的日期]
+            </blockquote>
+
+            <div class="copyright-notice">
+                <strong>⚠️ 版权说明：</strong>本文为 OpenClaw 实战手册，基于官方文档、社区实践和实际部署经验整理。内容仅供学习交流使用，禁止商业用途。OpenClaw 项目版权归其原作者所有。
+            </div>
+
+            <p><strong>引用时请注意：</strong></p>
+            <ul>
+                <li><strong>标注内容性质：</strong>这是基于实践经验和官方文档的整理，非 OpenClaw 官方文档</li>
+                <li><strong>验证技术细节：</strong>建议对照官方文档验证关键技术细节</li>
+                <li><strong>准确引用术语：</strong>技术术语和概念应保持准确，必要时保留英文原文</li>
+                <li><strong>注明时效性：</strong>OpenClaw 版本更新频繁，注明访问日期有助于读者判断信息时效性</li>
+            </ul>
+        </section>
+
+        <footer>
+            <p style="margin-bottom: 16px;">
+                <a href="../index.html" style="color: var(--secondary-color); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--secondary-color);">← 返回索引</a>
+            </p>
+            <p>本文档基于 OpenClaw 官方文档、社区实践和实际部署经验整理。</p>
+            <div class="footer-links">
+                <a href="https://docs.openclaw.ai" target="_blank">OpenClaw 官方文档</a>
+                <a href="https://github.com/openclaw/openclaw" target="_blank">OpenClaw GitHub</a>
+                <a href="https://discord.gg/clawd" target="_blank">Discord 社区</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 导航和进度条交互 -->
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            // 更新回顶按钮的圆形进度环
+            const progressRing = document.querySelector('.progress-ring-progress');
+            if (progressRing) {
+                const circumference = 2 * Math.PI * 26; // r=26
+                const offset = circumference - (scrolled / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        // 回顶按钮显示/隐藏
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        }
+
+        // 平滑滚动到顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('scroll', function() {
+            updateReadingProgress();
+            updateBackToTopButton();
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', scrollToTop);
+
+        // 初始化
+        updateReadingProgress();
+        updateBackToTopButton();
+    </script>
+
+    <!-- Mermaid.js for flowcharts and diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#CC785C',
+                primaryTextColor: '#2D2D2D',
+                primaryBorderColor: '#E5E5E5',
+                lineColor: '#666',
+                secondaryColor: '#F5F2ED',
+                tertiaryColor: '#FAFAF8'
+            }
+        });
+
+        // 重建嵌套目录（从文档标题直接提取）
+        document.addEventListener('DOMContentLoaded', function() {
+            const tocContainer = document.querySelector('.toc ul');
+            if (!tocContainer) return;
+
+            const content = document.querySelector('.content');
+            if (!content) return;
+
+            // 提取所有标题（h2-h4）
+            const headings = content.querySelectorAll('h2, h3, h4');
+            if (headings.length === 0) return;
+
+            // 清空原 TOC
+            tocContainer.innerHTML = '';
+
+            // 构建嵌套结构
+            let currentH2Li = null;
+            let currentH2Ul = null;
+            let currentH3Li = null;
+            let currentH3Ul = null;
+
+            headings.forEach(heading => {
+                const level = parseInt(heading.tagName.charAt(1));
+                const id = heading.id || '';
+                const text = heading.textContent.trim();
+
+                // 创建链接
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#' + id;
+                a.textContent = text;
+                li.appendChild(a);
+
+                if (level === 2) {
+                    // H2 - 顶层
+                    tocContainer.appendChild(li);
+                    currentH2Li = li;
+                    currentH2Ul = null;
+                    currentH3Li = null;
+                    currentH3Ul = null;
+                } else if (level === 3) {
+                    // H3 - 嵌套在 H2 下
+                    if (!currentH2Ul) {
+                        currentH2Ul = document.createElement('ul');
+                        if (currentH2Li) {
+                            currentH2Li.appendChild(currentH2Ul);
+                        }
+                    }
+                    currentH2Ul.appendChild(li);
+                    currentH3Li = li;
+                    currentH3Ul = null;
+                } else if (level === 4) {
+                    // H4 - 嵌套在 H3 下
+                    if (currentH3Li) {
+                        if (!currentH3Ul) {
+                            currentH3Ul = document.createElement('ul');
+                            currentH3Li.appendChild(currentH3Ul);
+                        }
+                        currentH3Ul.appendChild(li);
+                    } else if (currentH2Ul) {
+                        // 如果没有 H3，直接放在 H2 下
+                        currentH2Ul.appendChild(li);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
