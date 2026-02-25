@@ -3,146 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Digest - AI 工程博客中文摘要整理</title>
+    <title>Anthropic Engineering 文章索引</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 60px 24px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 60px;
-        }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            font-weight: 700;
-        }
-        .subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
-        }
-        .sources-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
-        }
-        .source-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        .source-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-        .source-card h2 {
-            font-size: 1.75rem;
-            margin-bottom: 12px;
-            color: #667eea;
-        }
-        .source-card .description {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-        .source-card .meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        .badge {
-            background: #667eea;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .coming-soon {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .coming-soon:hover {
-            transform: none;
-        }
-        .coming-soon .badge {
-            background: #ccc;
-        }
-        footer {
-            text-align: center;
-            color: white;
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
-        footer a {
-            color: white;
-            text-decoration: underline;
-        }
+        body { font-family: -apple-system, sans-serif; max-width: 920px; margin: 0 auto; padding: 60px 24px; }
+        h1 { font-size: 2.5rem; margin-bottom: 48px; }
+        .article { margin-bottom: 32px; padding: 24px; border: 1px solid #E5E5E5; border-radius: 8px; }
+        .article h2 { margin: 0 0 8px 0; font-size: 1.5rem; }
+        .article .meta { color: #666; font-size: 0.9rem; margin-bottom: 12px; }
+        .article a { color: #CC785C; text-decoration: none; }
+        .article a:hover { text-decoration: underline; }
     </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H0DPXJDBJB"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-H0DPXJDBJB', {'anonymize_ip': true, 'cookie_flags': 'SameSite=None;Secure'});
+    </script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🤖 AI Digest</h1>
-            <p class="subtitle">精选 AI 公司工程博客的中文整理与摘要</p>
-        </header>
+    <h1>📚 AI Digest - 技术文档索引</h1>
 
-        <div class="sources-grid">
-            <a href="engineering/anthropic/" class="source-card">
-                <h2>Anthropic Engineering</h2>
-                <p class="description">Anthropic 工程博客的中文学习笔记</p>
-                <div class="meta">
-                    <span class="badge">ENGINEERING</span>
-                    <span>查看文章 →</span>
-                </div>
-            </a>
-            <a href="research/anthropic/" class="source-card">
-                <h2>Anthropic Research</h2>
-                <p class="description">Anthropic 研究博客的中文学习笔记</p>
-                <div class="meta">
-                    <span class="badge">RESEARCH</span>
-                    <span>查看文章 →</span>
-                </div>
-            </a>
-            <a href="#" class="source-card coming-soon" onclick="return false;">
-                <h2>OpenAI Research</h2>
-                <p class="description">OpenAI 研究博客的中文学习笔记</p>
-                <div class="meta">
-                    <span class="badge">RESEARCH</span>
-                    <span>即将推出...</span>
-                </div>
-            </a>
-            <a href="#" class="source-card coming-soon" onclick="return false;">
-                <h2>DeepSeek Research</h2>
-                <p class="description">DeepSeek 研究博客的中文学习笔记</p>
-                <div class="meta">
-                    <span class="badge">RESEARCH</span>
-                    <span>即将推出...</span>
-                </div>
-            </a>
+    <h2 style="font-size: 1.8rem; margin: 48px 0 24px 0; color: #191A1A; border-bottom: 2px solid #CC785C; padding-bottom: 12px;">🦾 OpenClaw 实战手册</h2>
+    <div class="article" style="background: #FFF8F5; border-color: #CC785C;">
+        <h2><a href="practice/openclaw/index.html" style="font-size: 1.8rem;">📖 OpenClaw 实战手册完整索引 →</a></h2>
+        <div class="meta">
+            <strong>4 篇文章</strong> | 快速部署、WebSocket 排查、安全配置、版本演进<br>
+            OpenClaw 自托管 AI 网关的实践指南、排查手册和最佳实践
         </div>
-
-        <footer>
-            <p>整理者：Panda | <a href="https://github.com/MyAIsWithPanda" target="_blank">GitHub</a></p>
-        </footer>
     </div>
+
+    <h2 style="font-size: 1.8rem; margin: 48px 0 24px 0; color: #191A1A; border-bottom: 2px solid #CC785C; padding-bottom: 12px;">🏢 Anthropic Engineering</h2>
+    <div class="article">
+        <h2><a href="engineering/anthropic/index.html">📖 Anthropic Engineering 完整索引 →</a></h2>
+        <div class="meta">
+            Anthropic 官方工程博客文章（中文翻译）
+        </div>
+    </div>
+
+    <h2 style="font-size: 1.8rem; margin: 48px 0 24px 0; color: #191A1A; border-bottom: 2px solid #CC785C; padding-bottom: 12px;">🔬 Anthropic Research</h2>
+    <div class="article">
+        <h2><a href="research/anthropic/index.html">📖 Anthropic Research 完整索引 →</a></h2>
+        <div class="meta">
+            Anthropic 官方研究论文和报告（中文翻译）
+        </div>
+    </div>
+    <footer style="text-align: center; margin-top: 64px; color: #999; font-size: 0.85rem;">
+        整理者：Panda | 
+        <a href="https://www.anthropic.com/engineering" target="_blank" style="color: #999;">Anthropic Engineering</a>
+    </footer>
 </body>
 </html>
