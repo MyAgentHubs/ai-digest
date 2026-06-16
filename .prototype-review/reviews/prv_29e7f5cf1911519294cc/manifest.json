@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_29e7f5cf1911519294cc",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "practice/openclaw/images/安全机制架构图.png",
+  "createdAt": "2026-06-16T13:05:21.961Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
