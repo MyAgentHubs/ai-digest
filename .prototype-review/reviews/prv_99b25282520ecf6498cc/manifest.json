@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_99b25282520ecf6498cc",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "practice/openclaw/images/WebSocket 通信流程图.png",
+  "createdAt": "2026-06-16T13:05:13.288Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
