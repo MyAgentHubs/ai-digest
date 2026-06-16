@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_5327b1b080052c9a4b86",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "practice/openclaw/troubleshooting/20260225-websocket-troubleshooting.html",
+  "createdAt": "2026-06-16T13:04:48.725Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
