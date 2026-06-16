@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_92b43566c8105fe5b25e",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "index.html",
+  "createdAt": "2026-06-16T09:03:14.071Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
