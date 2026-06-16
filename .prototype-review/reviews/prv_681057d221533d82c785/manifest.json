@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_681057d221533d82c785",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "practice/openclaw/getting-started/20260225-quick-deploy-guide.html",
+  "createdAt": "2026-06-16T13:04:42.007Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
