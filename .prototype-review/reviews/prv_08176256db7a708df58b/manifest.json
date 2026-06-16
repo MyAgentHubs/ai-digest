@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_08176256db7a708df58b",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "engineering/anthropic/index.html",
+  "createdAt": "2026-06-16T13:03:48.670Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
