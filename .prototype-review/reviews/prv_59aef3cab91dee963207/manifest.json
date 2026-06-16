@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_59aef3cab91dee963207",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "practice/openclaw/changelog/20260225-version-evolution.html",
+  "createdAt": "2026-06-16T13:04:35.637Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
