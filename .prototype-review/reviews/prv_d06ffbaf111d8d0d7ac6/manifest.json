@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_d06ffbaf111d8d0d7ac6",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "practice/openclaw/best-practices/20260225-security-guide.html",
+  "createdAt": "2026-06-16T13:04:16.102Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
