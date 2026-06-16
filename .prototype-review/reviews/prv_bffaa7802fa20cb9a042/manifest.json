@@ -1,0 +1,14 @@
+{
+  "schema": "prototype-review-manifest-v1",
+  "reviewId": "prv_bffaa7802fa20cb9a042",
+  "repo": "MyAgentHubs/ai-digest",
+  "ref": "main",
+  "branch": "main",
+  "assetPath": "research/openai/index.html",
+  "createdAt": "2026-06-16T13:04:09.475Z",
+  "permissions": {
+    "view": true,
+    "comment": true,
+    "export": true
+  }
+}
