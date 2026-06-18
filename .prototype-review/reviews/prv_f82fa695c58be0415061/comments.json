@@ -1,0 +1,174 @@
+{
+  "schema": "prototype-review-comments-index-v1",
+  "reviewId": "prv_f82fa695c58be0415061",
+  "updatedAt": "2026-06-18T10:50:36.682Z",
+  "comments": [
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_217ed79577863564c14a",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T07:43:59.270Z",
+      "anchor": {
+        "type": "element",
+        "description": "📚 AI Digest - 技术文档索引",
+        "selector": "body > h1",
+        "xPct": 19.6,
+        "yPct": 10.1,
+        "widthPct": 60.8,
+        "heightPct": 6.5,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "test"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_5640627867ae41269d61",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T08:02:04.534Z",
+      "anchor": {
+        "type": "text",
+        "description": "Text",
+        "selector": "body > h2:nth-of-type(3)",
+        "selectedText": "Research",
+        "xPct": 31.5,
+        "yPct": 36.3,
+        "widthPct": 8.5,
+        "heightPct": 4.7,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "comment"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_c7705f5f7f55a75b18f0",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T10:14:01.789Z",
+      "anchor": {
+        "type": "coordinate",
+        "description": "Page coordinate",
+        "xPct": 82.7,
+        "yPct": 47.6,
+        "widthPct": 0.1,
+        "heightPct": 0.1,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "d"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_4513699f67de08084886",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T10:14:05.425Z",
+      "anchor": {
+        "type": "element",
+        "description": "🧪 OpenAI Research",
+        "selector": "body > h2:nth-of-type(5)",
+        "xPct": 19.6,
+        "yPct": 59.9,
+        "widthPct": 60.8,
+        "heightPct": 6.3,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "q"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_aadc3275a209a55c45dc",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T10:14:09.357Z",
+      "anchor": {
+        "type": "element",
+        "description": "📖 OpenAI Research 完整索引 →",
+        "selector": "body > div:nth-of-type(5) > h2",
+        "xPct": 21.2,
+        "yPct": 71.9,
+        "widthPct": 57.5,
+        "heightPct": 3.9,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "sddss"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_73f41caf3484b0b62148",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T10:14:13.693Z",
+      "anchor": {
+        "type": "coordinate",
+        "description": "Page coordinate",
+        "xPct": 50.3,
+        "yPct": 57.5,
+        "widthPct": 0.1,
+        "heightPct": 0.1,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "sdsdsdsd"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_3540a42dd2de48eaa384",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-17T10:14:22.086Z",
+      "anchor": {
+        "type": "element",
+        "description": "📖 Anthropic Research 完整索引 → Anthropic 官方研究论文和报告（中文翻译）",
+        "selector": "body > div:nth-of-type(3)",
+        "xPct": 19.6,
+        "yPct": 57.8,
+        "widthPct": 60.8,
+        "heightPct": 14.4,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "232323"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_e93ad55a775bf89f7ddd",
+      "reviewId": "prv_f82fa695c58be0415061",
+      "assetPath": "index.html",
+      "reviewerName": "Panda",
+      "reviewerId": "guest_panda",
+      "createdAt": "2026-06-17T10:14:35.864Z",
+      "anchor": {
+        "type": "element",
+        "description": "📖 Anthropic Engineering 完整索引 → Anthropic 官方工程博客文章（中文翻译）",
+        "selector": "body > div:nth-of-type(2)",
+        "xPct": 19.6,
+        "yPct": 40.5,
+        "widthPct": 60.8,
+        "heightPct": 14.4,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "asdadsasd"
+    }
+  ]
+}
