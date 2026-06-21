@@ -1,7 +1,7 @@
 {
   "schema": "prototype-review-comments-index-v1",
   "reviewId": "prv_330f1e9b4270e0471a17",
-  "updatedAt": "2026-06-21T06:19:31.862Z",
+  "updatedAt": "2026-06-21T06:19:49.889Z",
   "comments": [
     {
       "schema": "prototype-review-comment-v1",
@@ -65,6 +65,27 @@
         "viewportHeight": 862
       },
       "body": "tes"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_937d10c52cbbff6a85bc",
+      "reviewId": "prv_330f1e9b4270e0471a17",
+      "assetPath": "index.html",
+      "reviewerName": "Panda",
+      "reviewerId": "guest_panda",
+      "createdAt": "2026-06-21T06:19:46.887Z",
+      "anchor": {
+        "type": "element",
+        "description": "4 篇文章 | 快速部署、WebSocket 排查、安全配置、版本演进 OpenClaw 自托管 AI 网关的实践指南、排查手册和最佳实践",
+        "selector": "body > div:nth-of-type(1) > div",
+        "xPct": 21.2,
+        "yPct": 44.4,
+        "widthPct": 57.5,
+        "heightPct": 4.8,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "it just a sample."
     }
   ]
 }
