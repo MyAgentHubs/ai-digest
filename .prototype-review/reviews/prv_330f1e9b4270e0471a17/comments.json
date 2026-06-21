@@ -1,0 +1,70 @@
+{
+  "schema": "prototype-review-comments-index-v1",
+  "reviewId": "prv_330f1e9b4270e0471a17",
+  "updatedAt": "2026-06-21T06:19:31.862Z",
+  "comments": [
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_2882a25f5cf5f2ff1d60",
+      "reviewId": "prv_330f1e9b4270e0471a17",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-16T09:03:49.478Z",
+      "anchor": {
+        "type": "element",
+        "description": "4 篇文章 | 快速部署、WebSocket 排查、安全配置、版本演进 OpenClaw 自托管 AI 网关的实践指南、排查手册和最佳实践",
+        "selector": "body > div:nth-of-type(1) > div",
+        "xPct": 21.2,
+        "yPct": 11.4,
+        "widthPct": 57.5,
+        "heightPct": 4.8,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "这里要改下"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_19fe6818f017af70cb58",
+      "reviewId": "prv_330f1e9b4270e0471a17",
+      "assetPath": "index.html",
+      "reviewerName": "Reviewer",
+      "reviewerId": "guest_reviewer",
+      "createdAt": "2026-06-16T09:04:07.963Z",
+      "anchor": {
+        "type": "element",
+        "description": "📖 OpenAI Engineering 完整索引 → OpenAI 官方产品 / 平台 / 工程文章（中文翻译）",
+        "selector": "body > div:nth-of-type(4)",
+        "xPct": 19.6,
+        "yPct": 40,
+        "widthPct": 60.8,
+        "heightPct": 14.4,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "这也一样，很丑"
+    },
+    {
+      "schema": "prototype-review-comment-v1",
+      "id": "rvw_9e5e17c701869f03277e",
+      "reviewId": "prv_330f1e9b4270e0471a17",
+      "assetPath": "index.html",
+      "reviewerName": "Panda",
+      "reviewerId": "guest_panda",
+      "createdAt": "2026-06-16T12:11:39.124Z",
+      "anchor": {
+        "type": "element",
+        "description": "📚 AI Digest - 技术文档索引",
+        "selector": "body > h1",
+        "xPct": 19.6,
+        "yPct": 10.1,
+        "widthPct": 60.8,
+        "heightPct": 6.5,
+        "viewportWidth": 1512,
+        "viewportHeight": 862
+      },
+      "body": "tes"
+    }
+  ]
+}
